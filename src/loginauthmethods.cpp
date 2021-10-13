@@ -62,7 +62,8 @@ json Templates::LoginAuth::accountSecretPublicData(void *obj, const std::string 
     if ( auth->applicationValidateAccount(getAppNameFromConnectionKey(connectionKey),JSON_ASSTRING(payload,"accountName","") ) )
     {
         auto v = auth->accountSecretPublicData(JSON_ASSTRING(payload,"accountName",""),JSON_ASUINT(payload,"passIndex",0) );
-        for (auto i : v.getMap())
+
+        for (const auto &i : v.getMap())
         {
             payloadOut[i.first] = i.second;
         }
@@ -118,7 +119,7 @@ json Templates::LoginAuth::accountExpirationDate(void *obj, const std::string &c
     json payloadOut = 0;
     if ( auth->applicationValidateAccount(getAppNameFromConnectionKey(connectionKey),JSON_ASSTRING(payload,"accountName","") ) )
     {
-        payloadOut = auth->accountExpirationDate(JSON_ASSTRING(payload,"accountName",""));
+        payloadOut = (Json::Int64)auth->accountExpirationDate(JSON_ASSTRING(payload,"accountName",""));
     }
     return payloadOut;
 }

@@ -1,0 +1,52 @@
+cmake_minimum_required(VERSION 3.12)
+include(GNUInstallDirs)
+
+# TODO: pass this version/app variable to the code...
+set(APP_NAME "uFastAuthD")
+set(SVERSION 1.0.1)
+
+project(${APP_NAME})
+project(${PROJECT_NAME} VERSION ${SVERSION} DESCRIPTION "Unmanarc's Fast Authentication Daemon")
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
+
+file(GLOB_RECURSE EDV_INCLUDE_FILES "src/*.h*")
+file(GLOB_RECURSE EDV_SOURCE_FILES "src/*.c*")
+add_executable( ${APP_NAME} ${EDV_INCLUDE_FILES} ${EDV_SOURCE_FILES} )
+
+set_target_properties( ${APP_NAME} PROPERTIES VERSION ${PROJECT_VERSION} )
+install( TARGETS ${APP_NAME} RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} )
+
+if (EXTRAPREFIX)
+    target_include_directories(${APP_NAME} PUBLIC ${EXTRAPREFIX}/include)
+    target_link_libraries(${APP_NAME} "-L${EXTRAPREFIX}/lib")
+    target_link_libraries(${APP_NAME} "-L${EXTRAPREFIX}/lib64")
+endif()
+
+target_link_libraries(${APP_NAME} "-lcx2_xrpc_fast")
+target_link_libraries(${APP_NAME} "-lcx2_xrpc_templates")
+target_link_libraries(${APP_NAME} "-lcx2_xrpc_webserver")
+target_link_libraries(${APP_NAME} "-lcx2_xrpc_common")
+target_link_libraries(${APP_NAME} "-lcx2_xrpc_templates")
+target_link_libraries(${APP_NAME} "-lcx2_auth")
+target_link_libraries(${APP_NAME} "-lcx2_auth_db")
+target_link_libraries(${APP_NAME} "-lcx2_db")
+target_link_libraries(${APP_NAME} "-lcx2_db_sqlite3")
+target_link_libraries(${APP_NAME} "-lcx2_netp_http")
+target_link_libraries(${APP_NAME} "-lcx2_netp_mime")
+target_link_libraries(${APP_NAME} "-lcx2_net_sockets")
+target_link_libraries(${APP_NAME} "-lcx2_thr_mutex")
+target_link_libraries(${APP_NAME} "-lcx2_thr_safecontainers")
+target_link_libraries(${APP_NAME} "-lcx2_thr_threads")
+target_link_libraries(${APP_NAME} "-lcx2_prg_service")
+target_link_libraries(${APP_NAME} "-lcx2_prg_logs")
+target_link_libraries(${APP_NAME} "-lcx2_mem_vars")
+target_link_libraries(${APP_NAME} "-lcx2_hlp_functions")
+target_link_libraries(${APP_NAME} "-lsqlite3")
+target_link_libraries(${APP_NAME} "-ljsoncpp")
+
+if (WIN32)
+    target_link_libraries(${APP_NAME} "-lboost_regex-mt")
+else()
+    target_link_libraries(${APP_NAME} "-lboost_regex")
+endif()

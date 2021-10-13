@@ -1,14 +1,13 @@
 #include <cx2_prg_service/application.h>
 #include <cx2_net_sockets/socket_tls.h>
-
 #include <cx2_mem_vars/a_bool.h>
+
 #include "loginauthmethods.h"
 
 #include "loginrpcserverimpl.h"
 #include "webserverimpl.h"
 #include "authstorageimpl.h"
 
-#include "wsfunctions.h"
 #include "globals.h"
 #include "defs.h"
 

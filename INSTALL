@@ -1,3 +1,0 @@
-qmake PREFIX=/usr
-make -j2
-make install

@@ -7,6 +7,11 @@ Main License: GPLv3
 
 
 ***
+## Project Description
+
+This server provides a directory/authorization implementation for managing users for your applications.
+
+***
 ## Building uFastAuthD
 
 ### Instructions:
@@ -14,27 +19,25 @@ Main License: GPLv3
 as root:
 
 ```
-qmake . PREFIX=/usr
-make -j8 install
+cmake .
+make -j12
+make install
 ```
 
-`NOTICE: This project does not use QT libraries, We only rely on QT Make files`
-
-***
-## Project Description
-
-This server provides a directory/authorization implementation for managing users for your applications.
+Then:
+- copy the **/etc/ufastauthd** directory
+- create the **/var/lib/cx2_authserver** if does not exist
+- fully update/rewrite **/var/www/ufastauthd**
 
 
 ***
 ## Compatibility
 
-This library was tested so far in:
+This program was tested so far in:
 
-* Fedora Linux 32
-* Ubuntu 18.04/20.04
+* Fedora Linux 34
+* Ubuntu 20.04 LTS (Server)
 * CentOS/RHEL 7/8
-* CentOS/RHEL 5/6, but may require special/external C++11 compilers, we don't recommend it
 
 ### Overall Pre-requisites:
 
@@ -45,7 +48,3 @@ This library was tested so far in:
 * jsoncpp
 * boost
 * SQLite3 devel libs
-
-### Win32 Pre-requisites:
-
-* Fedora MinGW (x86_64 or i686) compiler and required libs

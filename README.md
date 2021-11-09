@@ -37,11 +37,16 @@ Then:
 
 ```
 cp -a ~/uFastAuthD/etc/ufastauthd /etc/
+chmod 600 /etc/ufastauthd/snakeoil.key
 mkdir -p /var/www
 mkdir -p /var/lib/cx2_authserver
 rm -rf /var/www/ufastauthd
 cp -a ~/uFastAuthD/var/www/ufastauthd /var/www
 ```
+
+Security Alert:
+
+`Remember to change the snakeoil X.509 Certificates with your own ones, if not the communication can be eavesdropped or tampered!!!`
 
 ### Service Intialization Instructions:
 

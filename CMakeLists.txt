@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.12)
 include(GNUInstallDirs)
 
-# TODO: pass this version/app variable to the code...
 set(APP_NAME "uFastAuthD")
 set(SVERSION 1.0.1)
 
@@ -9,6 +8,8 @@ project(${APP_NAME})
 project(${PROJECT_NAME} VERSION ${SVERSION} DESCRIPTION "Unmanarc's Fast Authentication Daemon")
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
+
+configure_file(src/config.h.in ${${APP_NAME}_SOURCE_DIR}/src/config.h)
 
 file(GLOB_RECURSE EDV_INCLUDE_FILES "src/*.h*")
 file(GLOB_RECURSE EDV_SOURCE_FILES "src/*.c*")

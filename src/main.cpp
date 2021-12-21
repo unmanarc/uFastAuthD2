@@ -9,6 +9,7 @@
 #include "authstorageimpl.h"
 
 #include "globals.h"
+#include "config.h"
 #include "defs.h"
 
 #include <sys/types.h>
@@ -69,8 +70,8 @@ public:
         globalArguments->setLicense("GPLv3 (https://www.gnu.org/licenses/gpl-3.0.en.html)");
         globalArguments->setAuthor("Aarón Mizrachi");
         globalArguments->setEmail("aaron@unmanarc.com");
-        globalArguments->setVersion(AUTHSERVER_VER_MAJOR, AUTHSERVER_VER_MINOR, AUTHSERVER_VER_SUBMINOR, AUTHSERVER_VER_CODENAME);
-        globalArguments->setDescription(std::string("Unmanarc's Fast Authentication Server"));
+        globalArguments->setVersion(atoi(PROJECT_VER_MAJOR), atoi(PROJECT_VER_MINOR), atoi(PROJECT_VER_PATCH), "a");
+        globalArguments->setDescription(PROJECT_DESCRIPTION);
 
         globalArguments->addCommandLineOption("Service Options", 'c', "config-dir" , "Configuration directory"  , "/etc/ufastauthd", CX2::Memory::Abstract::TYPE_STRING );
         globalArguments->addCommandLineOption("Recovery Options", 'r', "resetadmpw" , "Reset Administrator Password"  , "false", CX2::Memory::Abstract::TYPE_BOOL );

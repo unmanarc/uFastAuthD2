@@ -1,5 +1,6 @@
 #include "authstorageimpl.h"
 #include "globals.h"
+#include "config.h"
 
 #include <sys/stat.h>
 
@@ -213,7 +214,7 @@ bool AuthStorageImpl::createApp(Authentication::Manager_DB *authManager)
     {
         Globals::getAppLog()->log0(__func__,Logs::LEVEL_WARN, "Application '%s' does not exist, creating it.", DB_APPNAME);
 
-        if (!authManager->applicationAdd(DB_APPNAME,DB_APPDESC, CX2::Helpers::Random::createRandomString(32) ,"admin"))
+        if (!authManager->applicationAdd(DB_APPNAME,PROJECT_DESCRIPTION, CX2::Helpers::Random::createRandomString(32) ,"admin"))
         {
             Globals::getAppLog()->log0(__func__,Logs::LEVEL_CRITICAL, "Failed to create the application '%s'.",DB_APPNAME);
             return false;

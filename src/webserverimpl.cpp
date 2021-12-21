@@ -1,7 +1,7 @@
 #include "webserverimpl.h"
 #include "globals.h"
 #include "defs.h"
-
+#include "config.h"
 
 #include <cx2_xrpc_webserver/webserver.h>
 #include <cx2_net_sockets/socket_tls.h>
@@ -61,7 +61,7 @@ bool WebServerImpl::createWebServer()
         }
         webServer->setAuthenticator(authDomains);
         webServer->setMethodManagers(methodsManagers);
-        webServer->setSoftwareVersion(AUTHSERVER_VER_MAJOR, AUTHSERVER_VER_MINOR, AUTHSERVER_VER_SUBMINOR, AUTHSERVER_VER_CODENAME);
+        webServer->setSoftwareVersion(atoi(PROJECT_VER_MAJOR), atoi(PROJECT_VER_MINOR), atoi(PROJECT_VER_PATCH),  "a");
         webServer->setExtCallBackOnInitFailed(WebServerImpl::protoInitFail);
 
         webServer->acceptPoolThreaded(sockWebListen, Globals::getConfig_main()->get<uint32_t>("WebServer.Threads", 10) );

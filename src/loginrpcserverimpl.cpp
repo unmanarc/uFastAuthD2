@@ -24,7 +24,7 @@ bool LoginRPCServerImpl::callbackOnRPCConnect(void *, CX2::Network::Streams::Str
     Network::Streams::CryptoStream cstream(sock);
    // CX2::Network::TLS::Socket_TLS * tlsSock = (CX2::Network::TLS::Socket_TLS *)sock;
 
-    std::string appName = sock->readString(nullptr,16);
+    std::string appName = sock->readStringEx<uint16_t>();
     std::string appKey = Globals::getAuthManager()->applicationKey(appName);
 
     std::string rpcClientKey = appName + "." + CX2::Helpers::Random::createRandomString(8);

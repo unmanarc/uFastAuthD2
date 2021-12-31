@@ -3,19 +3,19 @@
 #include "defs.h"
 #include "config.h"
 
-#include <cx2_xrpc_webserver/webserver.h>
-#include <cx2_net_sockets/socket_tls.h>
-#include <cx2_xrpc_templates/fullauth.h>
+#include <mdz_xrpc_webserver/webserver.h>
+#include <mdz_net_sockets/socket_tls.h>
+#include <mdz_xrpc_templates/fullauth.h>
 
 #include  <boost/algorithm/string/predicate.hpp>
 
 #include <sstream>
 #include <ostream>
 
-using namespace CX2::Application;
-using namespace CX2::RPC::Web;
-using namespace CX2::RPC;
-using namespace CX2;
+using namespace Mantids::Application;
+using namespace Mantids::RPC::Web;
+using namespace Mantids::RPC;
+using namespace Mantids;
 using namespace AUTHSERVER::WEB;
 
 WebServerImpl::WebServerImpl()
@@ -24,7 +24,7 @@ WebServerImpl::WebServerImpl()
 
 bool WebServerImpl::createWebServer()
 {
-    CX2::Network::TLS::Socket_TLS * sockWebListen = new CX2::Network::TLS::Socket_TLS;
+    Mantids::Network::TLS::Socket_TLS * sockWebListen = new Mantids::Network::TLS::Socket_TLS;
 
     uint16_t listenPort = Globals::getConfig_main()->get<uint16_t>("WebServer.ListenPort",40443);
     std::string listenAddr = Globals::getConfig_main()->get<std::string>("WebServer.ListenAddr","0.0.0.0");
@@ -46,7 +46,7 @@ bool WebServerImpl::createWebServer()
         MethodsManager *methodsManagers = new MethodsManager(DB_APPNAME);
 
         // Add methods:
-        CX2::RPC::Templates::FullAuth::AddFullAuthMethods(methodsManagers,DB_APPNAME);
+        Mantids::RPC::Templates::FullAuth::AddFullAuthMethods(methodsManagers,DB_APPNAME);
 
         // Add the default domain / auth:
         authDomains->addDomain("",Globals::getAuthManager());
@@ -78,7 +78,7 @@ bool WebServerImpl::createWebServer()
 
 bool WebServerImpl::protoInitFail(void * , Network::Streams::StreamSocket * sock, const char * remoteIP, bool )
 {
-    CX2::Network::TLS::Socket_TLS * secSocket = (CX2::Network::TLS::Socket_TLS *)sock;
+    Mantids::Network::TLS::Socket_TLS * secSocket = (Mantids::Network::TLS::Socket_TLS *)sock;
 
     for (const auto & i :secSocket->getTLSErrorsAndClear())
     {

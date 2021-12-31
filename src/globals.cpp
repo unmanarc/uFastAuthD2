@@ -2,26 +2,26 @@
 
 using namespace AUTHSERVER;
 
-CX2::Authentication::Manager * Globals::authManager = nullptr;
-CX2::Application::Logs::AppLog * Globals::applog = nullptr;
-CX2::Application::Logs::RPCLog * Globals::rpclog = nullptr;
+Mantids::Authentication::Manager * Globals::authManager = nullptr;
+Mantids::Application::Logs::AppLog * Globals::applog = nullptr;
+Mantids::Application::Logs::RPCLog * Globals::rpclog = nullptr;
 std::string Globals::rulesDir,Globals::actionsDir;
 std::mutex Globals::mDatabase, Globals::mDirs;
 boost::property_tree::ptree Globals::config_main;
 bool Globals::resetAdminPasswd = false;
 
-CX2::RPC::Fast::FastRPC * Globals::fastRPC = nullptr;
+Mantids::RPC::Fast::FastRPC * Globals::fastRPC = nullptr;
 
 Globals::Globals()
 {
 }
 
-CX2::Application::Logs::AppLog *Globals::getAppLog()
+Mantids::Application::Logs::AppLog *Globals::getAppLog()
 {
     return applog;
 }
 
-void Globals::setAppLog(CX2::Application::Logs::AppLog *value)
+void Globals::setAppLog(Mantids::Application::Logs::AppLog *value)
 {
     applog = value;
 }
@@ -63,22 +63,22 @@ void Globals::setActionsDir(const std::string &value)
     mDirs.unlock();
 }
 
-CX2::RPC::Fast::FastRPC *Globals::getFastRPC()
+Mantids::RPC::Fast::FastRPC *Globals::getFastRPC()
 {
     return fastRPC;
 }
 
-void Globals::setFastRPC(CX2::RPC::Fast::FastRPC *value)
+void Globals::setFastRPC(Mantids::RPC::Fast::FastRPC *value)
 {
     fastRPC = value;
 }
 
-CX2::Authentication::Manager *Globals::getAuthManager()
+Mantids::Authentication::Manager *Globals::getAuthManager()
 {
     return authManager;
 }
 
-void Globals::setAuthManager(CX2::Authentication::Manager *value)
+void Globals::setAuthManager(Mantids::Authentication::Manager *value)
 {
     authManager = value;
 }
@@ -93,12 +93,12 @@ void Globals::setResetAdminPasswd(bool newResetAdminPasswd)
     resetAdminPasswd = newResetAdminPasswd;
 }
 
-CX2::Application::Logs::RPCLog *Globals::getRPCLog()
+Mantids::Application::Logs::RPCLog *Globals::getRPCLog()
 {
     return rpclog;
 }
 
-void Globals::setRPCLog(CX2::Application::Logs::RPCLog *value)
+void Globals::setRPCLog(Mantids::Application::Logs::RPCLog *value)
 {
     rpclog = value;
 }

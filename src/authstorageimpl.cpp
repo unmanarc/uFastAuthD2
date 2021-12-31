@@ -4,13 +4,13 @@
 
 #include <sys/stat.h>
 
-#include <cx2_prg_logs/applog.h>
+#include <mdz_prg_logs/applog.h>
 
-#include <cx2_db_sqlite3/sqlconnector_sqlite3.h>
+#include <mdz_db_sqlite3/sqlconnector_sqlite3.h>
 #include <boost/algorithm/string/case_conv.hpp>
 
-#include <cx2_hlp_functions/random.h>
-#include <cx2_hlp_functions/crypto.h>
+#include <mdz_hlp_functions/random.h>
+#include <mdz_hlp_functions/crypto.h>
 
 #include "defs.h"
 
@@ -21,10 +21,10 @@
 using namespace AUTHSERVER::AUTH;
 using namespace AUTHSERVER;
 
-using namespace CX2::Database;
-using namespace CX2::Application;
-using namespace CX2::RPC;
-using namespace CX2;
+using namespace Mantids::Database;
+using namespace Mantids::Application;
+using namespace Mantids::RPC;
+using namespace Mantids;
 
 AuthStorageImpl::AuthStorageImpl()
 {
@@ -136,11 +136,11 @@ bool AuthStorageImpl::createPassFile(const std::string & sInitPW)
 {
 
 #ifndef WIN32
-    std::string initPassOutFile = "/tmp/syspwd-" +CX2::Helpers::Random::createRandomString(8) ;
+    std::string initPassOutFile = "/tmp/syspwd-" +Mantids::Helpers::Random::createRandomString(8) ;
 #else
     char tempPath[MAX_PATH+1];
     GetTempPathA(MAX_PATH,tempPath);
-    std::string initPassOutFile = tempPath + "\\syspwd-" +CX2::Helpers::Random::createRandomString(8) + ".txt";
+    std::string initPassOutFile = tempPath + "\\syspwd-" +Mantids::Helpers::Random::createRandomString(8) + ".txt";
 #endif
     std::ofstream ofstr(initPassOutFile);
     if (ofstr.fail())
@@ -164,21 +164,21 @@ bool AuthStorageImpl::createPassFile(const std::string & sInitPW)
 
 bool AuthStorageImpl::createAdmin(Authentication::Manager_DB *authManager,std::string *sInitPW)
 {
-    *sInitPW = CX2::Helpers::Random::createRandomString(16);
+    *sInitPW = Mantids::Helpers::Random::createRandomString(16);
 
     Authentication::Secret secretData;
     secretData.hash = Helpers::Crypto::calcSHA256(*sInitPW);
     secretData.passwordFunction = Authentication::FN_SHA256;
     secretData.forceExpiration = true; // Expired (to be changed on the first login).
 
-    CX2::Authentication::sAccountDetails accountDetails;
+    Mantids::Authentication::sAccountDetails accountDetails;
     accountDetails.sDescription = "Auto-generated Superuser Account";
     accountDetails.sEmail = "";
     accountDetails.sExtraData = "";
     accountDetails.sGivenName = "";
     accountDetails.sLastName = "";
 
-    CX2::Authentication::sAccountAttribs accountAttribs;
+    Mantids::Authentication::sAccountAttribs accountAttribs;
     accountAttribs.confirmed = true;
     accountAttribs.enabled = true;
     accountAttribs.superuser = true;
@@ -196,9 +196,9 @@ bool AuthStorageImpl::createAdmin(Authentication::Manager_DB *authManager,std::s
     return true;
 }
 
-bool AuthStorageImpl::resetAdminPwd(CX2::Authentication::Manager_DB *authManager, std::string *sInitPW)
+bool AuthStorageImpl::resetAdminPwd(Mantids::Authentication::Manager_DB *authManager, std::string *sInitPW)
 {
-    *sInitPW = CX2::Helpers::Random::createRandomString(16);
+    *sInitPW = Mantids::Helpers::Random::createRandomString(16);
 
     Authentication::Secret secretData;
     secretData.hash = Helpers::Crypto::calcSHA256(*sInitPW);
@@ -214,14 +214,14 @@ bool AuthStorageImpl::createApp(Authentication::Manager_DB *authManager)
     {
         Globals::getAppLog()->log0(__func__,Logs::LEVEL_WARN, "Application '%s' does not exist, creating it.", DB_APPNAME);
 
-        if (!authManager->applicationAdd(DB_APPNAME,PROJECT_DESCRIPTION, CX2::Helpers::Random::createRandomString(32) ,"admin"))
+        if (!authManager->applicationAdd(DB_APPNAME,PROJECT_DESCRIPTION, Mantids::Helpers::Random::createRandomString(32) ,"admin"))
         {
             Globals::getAppLog()->log0(__func__,Logs::LEVEL_CRITICAL, "Failed to create the application '%s'.",DB_APPNAME);
             return false;
         }
     }
 
-    std::list<std::pair<CX2::Authentication::sApplicationAttrib,std::string>> appAttributes =
+    std::list<std::pair<Mantids::Authentication::sApplicationAttrib,std::string>> appAttributes =
     {
         {{DB_APPNAME,"DIRREAD"},"Directory Read Attribute"},
         {{DB_APPNAME,"DIRWRITE"},"Directory Write Attribute"},

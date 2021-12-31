@@ -1,15 +1,15 @@
 #ifndef RPC_H
 #define RPC_H
 
-#include <cx2_net_sockets/streamsocket.h>
-#include <cx2_xrpc_fast/fastrpc.h>
+#include <mdz_net_sockets/streamsocket.h>
+#include <mdz_xrpc_fast/fastrpc.h>
 
 namespace AUTHSERVER { namespace RPC {
 
-class FastRPCImpl : public CX2::RPC::Fast::FastRPC
+class FastRPCImpl : public Mantids::RPC::Fast::FastRPC
 {
 public:
-    FastRPCImpl(uint32_t threadsCount = 16, uint32_t taskQueues = 24) : CX2::RPC::Fast::FastRPC(threadsCount,taskQueues)
+    FastRPCImpl(uint32_t threadsCount = 16, uint32_t taskQueues = 24) : Mantids::RPC::Fast::FastRPC(threadsCount,taskQueues)
     {
     }
     virtual ~FastRPCImpl()
@@ -19,8 +19,8 @@ public:
 protected:
     // TODO: report back to the manager_remote.
 
-    void eventUnexpectedAnswerReceived(CX2::RPC::Fast::FastRPC_Connection *, const std::string &) override;
-    void eventFullQueueDrop(CX2::RPC::Fast::sFastRPCParameters *) override;
+    void eventUnexpectedAnswerReceived(Mantids::RPC::Fast::FastRPC_Connection *, const std::string &) override;
+    void eventFullQueueDrop(Mantids::RPC::Fast::sFastRPCParameters *) override;
     void eventRemotePeerDisconnected(const std::string &, const std::string &, const json &) override;
     void eventRemoteExecutionTimedOut(const std::string &, const std::string &, const json &) override;
 private:
@@ -36,7 +36,7 @@ public:
 //    static void callbackOnRPCConnected(const std::string &key, void * data);
 
 private:
-    static bool callbackOnRPCConnect(void *, CX2::Network::Streams::StreamSocket *sock, const char *remoteAddr, bool secure);
+    static bool callbackOnRPCConnect(void *, Mantids::Network::Streams::StreamSocket *sock, const char *remoteAddr, bool secure);
 };
 
 }}

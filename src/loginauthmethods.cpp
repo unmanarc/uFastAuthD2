@@ -1,6 +1,6 @@
 #include "loginauthmethods.h"
 
-#include <cx2_prg_logs/applog.h>
+#include <mdz_prg_logs/applog.h>
 
 #include "defs.h"
 #include "globals.h"
@@ -8,9 +8,9 @@
 #include <boost/algorithm/string.hpp>
 
 using namespace AUTHSERVER;
-using namespace CX2::Application;
-using namespace CX2::RPC;
-using namespace CX2;
+using namespace Mantids::Application;
+using namespace Mantids::RPC;
+using namespace Mantids;
 
 std::string readFile2String(const std::string &fileName)
 {
@@ -26,7 +26,7 @@ std::string readFile2String(const std::string &fileName)
 }
 
 
-void CX2::RPC::Templates::LoginAuth::AddLoginAuthMethods(CX2::Authentication::Manager *auth, CX2::RPC::Fast::FastRPC *fastRPC)
+void Mantids::RPC::Templates::LoginAuth::AddLoginAuthMethods(Mantids::Authentication::Manager *auth, Mantids::RPC::Fast::FastRPC *fastRPC)
 {
     fastRPC->addMethod("authenticate",{&authenticate,auth});
     fastRPC->addMethod("accountChangeAuthenticatedSecret",{&accountChangeAuthenticatedSecret,auth});
@@ -56,7 +56,7 @@ void CX2::RPC::Templates::LoginAuth::AddLoginAuthMethods(CX2::Authentication::Ma
 
 json Templates::LoginAuth::accountSecretPublicData(void *obj, const std::string &connectionKey, const json &payload)
 {
-    CX2::Authentication::Manager * auth = (CX2::Authentication::Manager *)obj;
+    Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
     json payloadOut;
 
     if ( auth->applicationValidateAccount(getAppNameFromConnectionKey(connectionKey),JSON_ASSTRING(payload,"accountName","") ) )
@@ -73,7 +73,7 @@ json Templates::LoginAuth::accountSecretPublicData(void *obj, const std::string 
 
 json Templates::LoginAuth::passIndexesRequiredForLogin(void *obj, const std::string &, const json &)
 {
-    CX2::Authentication::Manager * auth = (CX2::Authentication::Manager *)obj;
+    Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
     json payloadOut;
     uint32_t x=0;
     for (auto i : auth->passIndexesRequiredForLogin())
@@ -85,7 +85,7 @@ json Templates::LoginAuth::passIndexesRequiredForLogin(void *obj, const std::str
 
 json Templates::LoginAuth::passIndexesUsedByAccount(void *obj, const std::string &connectionKey, const json &payload)
 {
-    CX2::Authentication::Manager * auth = (CX2::Authentication::Manager *)obj;
+    Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
     json payloadOut;
     uint32_t x=0;
 
@@ -101,21 +101,21 @@ json Templates::LoginAuth::passIndexesUsedByAccount(void *obj, const std::string
 
 json Templates::LoginAuth::passIndexDescription(void *obj, const std::string &, const json &payload)
 {
-    CX2::Authentication::Manager * auth = (CX2::Authentication::Manager *)obj;
+    Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
     json payloadOut = auth->passIndexDescription(JSON_ASUINT(payload,"passIndex",0));
     return payloadOut;
 }
 
 json Templates::LoginAuth::passIndexLoginRequired(void *obj, const std::string &, const json &payload)
 {
-    CX2::Authentication::Manager * auth = (CX2::Authentication::Manager *)obj;
+    Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
     json payloadOut = auth->passIndexLoginRequired(JSON_ASUINT(payload,"passIndex",0));
     return payloadOut;
 }
 
 json Templates::LoginAuth::accountExpirationDate(void *obj, const std::string &connectionKey, const json &payload)
 {
-    CX2::Authentication::Manager * auth = (CX2::Authentication::Manager *)obj;
+    Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
     json payloadOut = 0;
     if ( auth->applicationValidateAccount(getAppNameFromConnectionKey(connectionKey),JSON_ASSTRING(payload,"accountName","") ) )
     {
@@ -124,12 +124,12 @@ json Templates::LoginAuth::accountExpirationDate(void *obj, const std::string &c
     return payloadOut;
 }
 
-json CX2::RPC::Templates::LoginAuth::authenticate(void * obj, const std::string & connectionKey, const json &payload)
+json Mantids::RPC::Templates::LoginAuth::authenticate(void * obj, const std::string & connectionKey, const json &payload)
 {
-    CX2::Authentication::Manager * auth = (CX2::Authentication::Manager *)obj;
+    Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
     json payloadOut;
 
-    CX2::Authentication::sClientDetails clientDetails;
+    Mantids::Authentication::sClientDetails clientDetails;
     clientDetails.sIPAddr = JSON_ASSTRING(payload["clientDetails"],"ipAddr","");
     clientDetails.sExtraData = JSON_ASSTRING(payload["clientDetails"],"extraData","");
     clientDetails.sTLSCommonName = JSON_ASSTRING(payload["clientDetails"],"tlsCN","");
@@ -142,7 +142,7 @@ json CX2::RPC::Templates::LoginAuth::authenticate(void * obj, const std::string 
                                                              JSON_ASSTRING(payload,"accountName",""),
             JSON_ASSTRING(payload,"password",""),
             JSON_ASUINT(payload,"passIndex",0),
-            CX2::Authentication::getAuthModeFromString(JSON_ASSTRING(payload,"authMode","")),
+            Mantids::Authentication::getAuthModeFromString(JSON_ASSTRING(payload,"authMode","")),
             JSON_ASSTRING(payload,"challengeSalt",""),
             &accountPassIndexesUsedForLogin  );
 
@@ -158,17 +158,17 @@ json CX2::RPC::Templates::LoginAuth::authenticate(void * obj, const std::string 
 
     Globals::getAppLog()->log2(__func__,JSON_ASSTRING(payload,"accountName",""),clientDetails.sIPAddr,
             JSON_ASUINT(payloadOut,"retCode",0)? Logs::LEVEL_WARN : Logs::LEVEL_INFO
-                                            , "Account Authentication Result: %lu - %s, for application %s", JSON_ASUINT(payloadOut,"retCode",0),CX2::Authentication::getReasonText((CX2::Authentication::Reason)JSON_ASUINT(payloadOut,"retCode",0)),getAppNameFromConnectionKey(connectionKey).c_str() );
+                                            , "Account Authentication Result: %lu - %s, for application %s", JSON_ASUINT(payloadOut,"retCode",0),Mantids::Authentication::getReasonText((Mantids::Authentication::Reason)JSON_ASUINT(payloadOut,"retCode",0)),getAppNameFromConnectionKey(connectionKey).c_str() );
 
 
-    payloadOut["retMessage"] = CX2::Authentication::getReasonText((CX2::Authentication::Reason)JSON_ASUINT(payloadOut,"retCode",0));
+    payloadOut["retMessage"] = Mantids::Authentication::getReasonText((Mantids::Authentication::Reason)JSON_ASUINT(payloadOut,"retCode",0));
 
     return payloadOut;
 }
 
-json CX2::RPC::Templates::LoginAuth::accountChangeAuthenticatedSecret(void * obj,const std::string & connectionKey, const json &payload)
+json Mantids::RPC::Templates::LoginAuth::accountChangeAuthenticatedSecret(void * obj,const std::string & connectionKey, const json &payload)
 {
-    CX2::Authentication::Manager * auth = (CX2::Authentication::Manager *)obj;
+    Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
 
     json payloadOut;
 
@@ -178,10 +178,10 @@ json CX2::RPC::Templates::LoginAuth::accountChangeAuthenticatedSecret(void * obj
         mNewSecret[member] = JSON_ASSTRING(payload["newSecret"],member,"");
     }
 
-    CX2::Authentication::Secret newSecret;
+    Mantids::Authentication::Secret newSecret;
     newSecret.fromMap(mNewSecret);
 
-    CX2::Authentication::sClientDetails clientDetails;
+    Mantids::Authentication::sClientDetails clientDetails;
     clientDetails.sIPAddr = JSON_ASSTRING(payload["clientDetails"],"ipAddr","");
     clientDetails.sExtraData = JSON_ASSTRING(payload["clientDetails"],"extraData","");
     clientDetails.sTLSCommonName = JSON_ASSTRING(payload["clientDetails"],"tlsCN","");
@@ -193,7 +193,7 @@ json CX2::RPC::Templates::LoginAuth::accountChangeAuthenticatedSecret(void * obj
                                                                     JSON_ASSTRING(payload,"currentPassword",""),
                                                                     newSecret,
                                                                     clientDetails,
-                                                                    CX2::Authentication::getAuthModeFromString(JSON_ASSTRING(payload,"authMode","")),
+                                                                    Mantids::Authentication::getAuthModeFromString(JSON_ASSTRING(payload,"authMode","")),
                                                                     JSON_ASSTRING(payload,"challengeSalt","")
                                                                   );
 
@@ -207,9 +207,9 @@ json CX2::RPC::Templates::LoginAuth::accountChangeAuthenticatedSecret(void * obj
 
 }
 
-json CX2::RPC::Templates::LoginAuth::accountAdd(void * obj,const std::string & connectionKey, const json &payload)
+json Mantids::RPC::Templates::LoginAuth::accountAdd(void * obj,const std::string & connectionKey, const json &payload)
 {
-    CX2::Authentication::Manager * auth = (CX2::Authentication::Manager *)obj;
+    Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
 
     json payloadOut;
 
@@ -219,16 +219,16 @@ json CX2::RPC::Templates::LoginAuth::accountAdd(void * obj,const std::string & c
         mNewSecret[member] = JSON_ASSTRING(payload,member,"");
     }
 
-    CX2::Authentication::Secret newSecret;
+    Mantids::Authentication::Secret newSecret;
     newSecret.fromMap(mNewSecret);
 
-    CX2::Authentication::sAccountDetails accountDetails;
+    Mantids::Authentication::sAccountDetails accountDetails;
     accountDetails.sDescription = JSON_ASSTRING(payload["accountDetails"],"description","");
     accountDetails.sEmail = JSON_ASSTRING(payload["accountDetails"],"email","");
     accountDetails.sExtraData = JSON_ASSTRING(payload["accountDetails"],"extraData","");
     accountDetails.sGivenName = JSON_ASSTRING(payload["accountDetails"],"givenName","");
     accountDetails.sLastName = JSON_ASSTRING(payload["accountDetails"],"lastName","");
-    CX2::Authentication::sAccountAttribs accountAttribs;
+    Mantids::Authentication::sAccountAttribs accountAttribs;
     accountAttribs.confirmed = true;
     accountAttribs.enabled = false;
     accountAttribs.superuser = false;
@@ -244,9 +244,9 @@ json CX2::RPC::Templates::LoginAuth::accountAdd(void * obj,const std::string & c
     return payloadOut;
 }
 
-json CX2::RPC::Templates::LoginAuth::attribExist(void *obj,const std::string &connectionKey, const json &payload)
+json Mantids::RPC::Templates::LoginAuth::attribExist(void *obj,const std::string &connectionKey, const json &payload)
 {
-    CX2::Authentication::Manager * auth = (CX2::Authentication::Manager *)obj;
+    Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
 
     // This function is important to aplications to understand if they have been installed into the user manager
     json payloadOut;
@@ -254,9 +254,9 @@ json CX2::RPC::Templates::LoginAuth::attribExist(void *obj,const std::string &co
     return payloadOut;
 }
 
-json CX2::RPC::Templates::LoginAuth::attribAdd(void *obj, const std::string &connectionKey, const json &payload)
+json Mantids::RPC::Templates::LoginAuth::attribAdd(void *obj, const std::string &connectionKey, const json &payload)
 {
-    CX2::Authentication::Manager * auth = (CX2::Authentication::Manager *)obj;
+    Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
     json payloadOut;
     payloadOut["retCode"] = auth->attribAdd( { getAppNameFromConnectionKey(connectionKey), JSON_ASSTRING(payload,"attribName","") },
                                              JSON_ASSTRING(payload,"attribDescription","")
@@ -269,9 +269,9 @@ json CX2::RPC::Templates::LoginAuth::attribAdd(void *obj, const std::string &con
     return payloadOut;
 }
 
-json CX2::RPC::Templates::LoginAuth::attribRemove(void *obj, const std::string &connectionKey, const json &payload)
+json Mantids::RPC::Templates::LoginAuth::attribRemove(void *obj, const std::string &connectionKey, const json &payload)
 {
-    CX2::Authentication::Manager * auth = (CX2::Authentication::Manager *)obj;
+    Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
     json payloadOut;
     payloadOut["retCode"] = auth->attribRemove( { getAppNameFromConnectionKey(connectionKey), JSON_ASSTRING(payload,"attribName","") });
 
@@ -281,9 +281,9 @@ json CX2::RPC::Templates::LoginAuth::attribRemove(void *obj, const std::string &
     return payloadOut;
 }
 
-json CX2::RPC::Templates::LoginAuth::attribChangeDescription(void *obj, const std::string &connectionKey, const json &payload)
+json Mantids::RPC::Templates::LoginAuth::attribChangeDescription(void *obj, const std::string &connectionKey, const json &payload)
 {
-    CX2::Authentication::Manager * auth = (CX2::Authentication::Manager *)obj;
+    Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
     json payloadOut;
     payloadOut["retCode"] = auth->attribChangeDescription( { getAppNameFromConnectionKey(connectionKey), JSON_ASSTRING(payload,"attribName","") },
                                                            JSON_ASSTRING(payload,"attribDescription","")
@@ -297,17 +297,17 @@ json CX2::RPC::Templates::LoginAuth::attribChangeDescription(void *obj, const st
     return payloadOut;
 }
 
-json CX2::RPC::Templates::LoginAuth::attribDescription(void *obj, const std::string &connectionKey, const json &payload)
+json Mantids::RPC::Templates::LoginAuth::attribDescription(void *obj, const std::string &connectionKey, const json &payload)
 {
-    CX2::Authentication::Manager * auth = (CX2::Authentication::Manager *)obj;
+    Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
     json payloadOut;
     payloadOut["attribDescription"] = auth->attribDescription( { getAppNameFromConnectionKey(connectionKey), JSON_ASSTRING(payload,"attribName","") } );
     return payloadOut;
 }
 
-json CX2::RPC::Templates::LoginAuth::getAccountAllSecretsPublicData(void *obj, const std::string &connectionKey, const json &payload)
+json Mantids::RPC::Templates::LoginAuth::getAccountAllSecretsPublicData(void *obj, const std::string &connectionKey, const json &payload)
 {
-    CX2::Authentication::Manager * auth = (CX2::Authentication::Manager *)obj;
+    Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
     json payloadOut;
 
     if ( auth->applicationValidateAccount(getAppNameFromConnectionKey(connectionKey),JSON_ASSTRING(payload,"accountName","") ) )
@@ -327,9 +327,9 @@ json CX2::RPC::Templates::LoginAuth::getAccountAllSecretsPublicData(void *obj, c
     }
 }
 
-json CX2::RPC::Templates::LoginAuth::isAccountSuperUser(void *obj, const std::string &connectionKey, const json &payload)
+json Mantids::RPC::Templates::LoginAuth::isAccountSuperUser(void *obj, const std::string &connectionKey, const json &payload)
 {
-    CX2::Authentication::Manager * auth = (CX2::Authentication::Manager *)obj;
+    Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
     json payloadOut;
 
     // Security check/container
@@ -341,9 +341,9 @@ json CX2::RPC::Templates::LoginAuth::isAccountSuperUser(void *obj, const std::st
     return payloadOut;
 }
 
-json CX2::RPC::Templates::LoginAuth::accountValidateAttribute(void *obj, const std::string &connectionKey, const json &payload)
+json Mantids::RPC::Templates::LoginAuth::accountValidateAttribute(void *obj, const std::string &connectionKey, const json &payload)
 {
-    CX2::Authentication::Manager * auth = (CX2::Authentication::Manager *)obj;
+    Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
     json payloadOut;
     payloadOut["retCode"] = auth->accountValidateAttribute( JSON_ASSTRING(payload,"accountName",""), { getAppNameFromConnectionKey(connectionKey), JSON_ASSTRING(payload,"attribName","") } );
     return payloadOut;
@@ -358,17 +358,17 @@ json Templates::LoginAuth::getStaticContent(void *, const std::string &, const j
     int i=0;
 
     // Push static content required for login operations
-    staticContents[i]["content"] = readFile2String(resourcesPath + "/assets/js/cx2login.js");
-    staticContents[i++]["path"] = "/assets/js/cx2login.js";
+    staticContents[i]["content"] = readFile2String(resourcesPath + "/assets/js/mantids_login.js");
+    staticContents[i++]["path"] = "/assets/js/mantids_login.js";
 
-    staticContents[i]["content"] = readFile2String(resourcesPath + "/assets/js/cx2main.js");
-    staticContents[i++]["path"] = "/assets/js/cx2main.js";
+    staticContents[i]["content"] = readFile2String(resourcesPath + "/assets/js/mantids_main.js");
+    staticContents[i++]["path"] = "/assets/js/mantids_main.js";
 
-    staticContents[i]["content"] = readFile2String(resourcesPath + "/assets/js/cx2passwd.js");
-    staticContents[i++]["path"] = "/assets/js/cx2passwd.js";
+    staticContents[i]["content"] = readFile2String(resourcesPath + "/assets/js/mantids_passwd.js");
+    staticContents[i++]["path"] = "/assets/js/mantids_passwd.js";
 
-    staticContents[i]["content"] = readFile2String(resourcesPath + "/assets/js/cx2validations.js");
-    staticContents[i++]["path"] = "/assets/js/cx2validations.js";
+    staticContents[i]["content"] = readFile2String(resourcesPath + "/assets/js/mantids_validations.js");
+    staticContents[i++]["path"] = "/assets/js/mantids_validations.js";
 
     staticContents[i]["content"] = readFile2String(resourcesPath + "/secrets.html");
     staticContents[i++]["path"] = "/secrets.html";
@@ -393,7 +393,7 @@ json Templates::LoginAuth::getStaticContent(void *, const std::string &, const j
     return staticContents;
 }
 
-std::string CX2::RPC::Templates::LoginAuth::getAppNameFromConnectionKey(const std::string &connectionKey)
+std::string Mantids::RPC::Templates::LoginAuth::getAppNameFromConnectionKey(const std::string &connectionKey)
 {
     std::vector<std::string> splstr;
     split(splstr,connectionKey,boost::is_any_of("."),boost::token_compress_on);

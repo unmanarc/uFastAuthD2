@@ -2,11 +2,11 @@
 #define GLOBALS_H
 
 
-#include <cx2_xrpc_fast/fastrpc.h>
-#include <cx2_auth/manager.h>
+#include <mdz_xrpc_fast/fastrpc.h>
+#include <mdz_auth/manager.h>
 #include <boost/property_tree/ini_parser.hpp>
-#include <cx2_prg_logs/applog.h>
-#include <cx2_prg_logs/rpclog.h>
+#include <mdz_prg_logs/applog.h>
+#include <mdz_prg_logs/rpclog.h>
 #include <mutex>
 #include <list>
 
@@ -17,11 +17,11 @@ class Globals
 public:
     Globals();
 
-    static CX2::Application::Logs::AppLog *getAppLog();
-    static void setAppLog(CX2::Application::Logs::AppLog *value);
+    static Mantids::Application::Logs::AppLog *getAppLog();
+    static void setAppLog(Mantids::Application::Logs::AppLog *value);
 
-    static CX2::Application::Logs::RPCLog *getRPCLog();
-    static void setRPCLog(CX2::Application::Logs::RPCLog *value);
+    static Mantids::Application::Logs::RPCLog *getRPCLog();
+    static void setRPCLog(Mantids::Application::Logs::RPCLog *value);
 
     static boost::property_tree::ptree * getConfig_main();
 
@@ -31,11 +31,11 @@ public:
     static std::string getActionsDir();
     static void setActionsDir(const std::string &value);
 
-    static CX2::RPC::Fast::FastRPC *getFastRPC();
-    static void setFastRPC(CX2::RPC::Fast::FastRPC *value);
+    static Mantids::RPC::Fast::FastRPC *getFastRPC();
+    static void setFastRPC(Mantids::RPC::Fast::FastRPC *value);
 
-    static CX2::Authentication::Manager *getAuthManager();
-    static void setAuthManager(CX2::Authentication::Manager *value);
+    static Mantids::Authentication::Manager *getAuthManager();
+    static void setAuthManager(Mantids::Authentication::Manager *value);
 
 
     static bool getResetAdminPasswd();
@@ -46,12 +46,12 @@ private:
     static std::string rulesDir,actionsDir;
     static std::mutex mDatabase,mDirs;
     static boost::property_tree::ptree config_main;
-    static CX2::Application::Logs::AppLog * applog;
-    static CX2::Application::Logs::RPCLog * rpclog;
+    static Mantids::Application::Logs::AppLog * applog;
+    static Mantids::Application::Logs::RPCLog * rpclog;
 
 
-    static CX2::Authentication::Manager * authManager;
-    static CX2::RPC::Fast::FastRPC * fastRPC;
+    static Mantids::Authentication::Manager * authManager;
+    static Mantids::RPC::Fast::FastRPC * fastRPC;
 
 };
 

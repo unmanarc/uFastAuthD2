@@ -1,17 +1,17 @@
 #ifndef LOGINAUTHMETHODS_H
 #define LOGINAUTHMETHODS_H
 
-#include <cx2_auth/manager.h>
-#include <cx2_xrpc_fast/fastrpc.h>
+#include <mdz_auth/manager.h>
+#include <mdz_xrpc_fast/fastrpc.h>
 #include <json/json.h>
 
-namespace CX2 { namespace RPC { namespace Templates {
+namespace Mantids { namespace RPC { namespace Templates {
 
 // This template is for FastRPC
 class LoginAuth
 {
 public:
-    static void AddLoginAuthMethods(CX2::Authentication::Manager * auth,  CX2::RPC::Fast::FastRPC * fastRPC);
+    static void AddLoginAuthMethods(Mantids::Authentication::Manager * auth,  Mantids::RPC::Fast::FastRPC * fastRPC);
 
 private:
     static json accountSecretPublicData(void * obj, const std::string &key, const json & payload);

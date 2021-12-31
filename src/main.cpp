@@ -1,6 +1,6 @@
-#include <cx2_prg_service/application.h>
-#include <cx2_net_sockets/socket_tls.h>
-#include <cx2_mem_vars/a_bool.h>
+#include <mdz_prg_service/application.h>
+#include <mdz_net_sockets/socket_tls.h>
+#include <mdz_mem_vars/a_bool.h>
 
 #include "loginauthmethods.h"
 
@@ -20,7 +20,7 @@
 
 using namespace AUTHSERVER;
 
-using namespace CX2::Application;
+using namespace Mantids::Application;
 
 class Main : public Application
 {
@@ -73,8 +73,8 @@ public:
         globalArguments->setVersion(atoi(PROJECT_VER_MAJOR), atoi(PROJECT_VER_MINOR), atoi(PROJECT_VER_PATCH), "a");
         globalArguments->setDescription(PROJECT_DESCRIPTION);
 
-        globalArguments->addCommandLineOption("Service Options", 'c', "config-dir" , "Configuration directory"  , "/etc/ufastauthd", CX2::Memory::Abstract::TYPE_STRING );
-        globalArguments->addCommandLineOption("Recovery Options", 'r', "resetadmpw" , "Reset Administrator Password"  , "false", CX2::Memory::Abstract::TYPE_BOOL );
+        globalArguments->addCommandLineOption("Service Options", 'c', "config-dir" , "Configuration directory"  , "/etc/ufastauthd", Mantids::Memory::Abstract::TYPE_STRING );
+        globalArguments->addCommandLineOption("Recovery Options", 'r', "resetadmpw" , "Reset Administrator Password"  , "false", Mantids::Memory::Abstract::TYPE_BOOL );
     }
 
     bool _config(int , char *argv[], Arguments::GlobalArguments * globalArguments)
@@ -82,7 +82,7 @@ public:
         // process config:
         unsigned int logMode = Logs::MODE_STANDARD;
 
-        CX2::Network::TLS::Socket_TLS::prepareTLS();
+        Mantids::Network::TLS::Socket_TLS::prepareTLS();
 
         Logs::AppLog initLog(Logs::MODE_STANDARD);
         initLog.setPrintEmptyFields(true);
@@ -93,7 +93,7 @@ public:
         initLog.setStandardLogSeparator(",");
 
         Globals::setResetAdminPasswd(
-                    ((CX2::Memory::Abstract::BOOL *)globalArguments->getCommandLineOptionValue("resetadmpw"))->getValue()
+                    ((Mantids::Memory::Abstract::BOOL *)globalArguments->getCommandLineOptionValue("resetadmpw"))->getValue()
                 );
 
         std::string configDir = globalArguments->getCommandLineOptionValue("config-dir")->toString();

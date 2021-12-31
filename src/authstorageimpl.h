@@ -2,7 +2,7 @@
 #define AUTHSTORAGEIMPL_H
 
 #include <string>
-#include <cx2_auth_db/manager_db.h>
+#include <mdz_auth_db/manager_db.h>
 
 namespace AUTHSERVER { namespace AUTH {
 
@@ -13,9 +13,9 @@ public:
     static bool createAuth();
 private:
     static bool createPassFile(const std::string &sInitPW);
-    static bool createAdmin(CX2::Authentication::Manager_DB *, std::string *sInitPW);
-    static bool resetAdminPwd(CX2::Authentication::Manager_DB *, std::string *sInitPW);
-    static bool createApp(CX2::Authentication::Manager_DB *);
+    static bool createAdmin(Mantids::Authentication::Manager_DB *, std::string *sInitPW);
+    static bool resetAdminPwd(Mantids::Authentication::Manager_DB *, std::string *sInitPW);
+    static bool createApp(Mantids::Authentication::Manager_DB *);
 };
 
 }}

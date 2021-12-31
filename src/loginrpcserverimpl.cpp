@@ -1,9 +1,9 @@
 #include "loginrpcserverimpl.h"
 
-#include <cx2_net_sockets/socket_tls.h>
-#include <cx2_net_sockets/socket_acceptor_multithreaded.h>
-#include <cx2_net_sockets/cryptostream.h>
-#include <cx2_prg_logs/applog.h>
+#include <mdz_net_sockets/socket_tls.h>
+#include <mdz_net_sockets/socket_acceptor_multithreaded.h>
+#include <mdz_net_sockets/cryptostream.h>
+#include <mdz_prg_logs/applog.h>
 
 #include "globals.h"
 #include "defs.h"
@@ -11,23 +11,23 @@
 
 using namespace AUTHSERVER::RPC;
 
-using namespace CX2::Application;
-using namespace CX2::RPC;
-using namespace CX2;
+using namespace Mantids::Application;
+using namespace Mantids::RPC;
+using namespace Mantids;
 
 LoginRPCServerImpl::LoginRPCServerImpl()
 {
 }
 
-bool LoginRPCServerImpl::callbackOnRPCConnect(void *, CX2::Network::Streams::StreamSocket *sock, const char * remoteAddr, bool secure)
+bool LoginRPCServerImpl::callbackOnRPCConnect(void *, Mantids::Network::Streams::StreamSocket *sock, const char * remoteAddr, bool secure)
 {
     Network::Streams::CryptoStream cstream(sock);
-   // CX2::Network::TLS::Socket_TLS * tlsSock = (CX2::Network::TLS::Socket_TLS *)sock;
+   // Mantids::Network::TLS::Socket_TLS * tlsSock = (Mantids::Network::TLS::Socket_TLS *)sock;
 
     std::string appName = sock->readStringEx<uint16_t>();
     std::string appKey = Globals::getAuthManager()->applicationKey(appName);
 
-    std::string rpcClientKey = appName + "." + CX2::Helpers::Random::createRandomString(8);
+    std::string rpcClientKey = appName + "." + Mantids::Helpers::Random::createRandomString(8);
 
     Globals::getAppLog()->log0(__func__,Logs::LEVEL_INFO, "Incomming %sRPC connection from %s (ID: %s)", secure?"secure ":"", remoteAddr, rpcClientKey.c_str());
 
@@ -52,7 +52,7 @@ bool LoginRPCServerImpl::callbackOnRPCConnect(void *, CX2::Network::Streams::Str
 
 bool LoginRPCServerImpl::createRPCListener()
 {
-    CX2::Network::TLS::Socket_TLS * sockRPCListen = new CX2::Network::TLS::Socket_TLS;
+    Mantids::Network::TLS::Socket_TLS * sockRPCListen = new Mantids::Network::TLS::Socket_TLS;
 
     uint16_t listenPort = Globals::getConfig_main()->get<uint16_t>("LoginRPCServer.ListenPort",40442);
     std::string listenAddr = Globals::getConfig_main()->get<std::string>("LoginRPCServer.ListenAddr","0.0.0.0");
@@ -71,7 +71,7 @@ bool LoginRPCServerImpl::createRPCListener()
     Globals::setFastRPC(new FastRPCImpl);
 
     // Set RPC Methods.
-    CX2::RPC::Templates::LoginAuth::AddLoginAuthMethods(
+    Mantids::RPC::Templates::LoginAuth::AddLoginAuthMethods(
                 Globals::getAuthManager(),
                 Globals::getFastRPC());
 

@@ -16,7 +16,7 @@ This server provides a directory/authorization implementation for managing users
 
 ### Building Instructions:
 
-First, you must remember to have installed cxFramework2
+First, you must remember to have installed libMantids
 
 as root:
 
@@ -32,14 +32,14 @@ make -j12 install
 
 Then:
 - copy the **/etc/ufastauthd** directory
-- create the **/var/lib/cx2_authserver** if does not exist
+- create the **/var/lib/ufastauthd** if does not exist
 - fully update/rewrite **/var/www/ufastauthd**
 
 ```
 cp -a ~/uFastAuthD/etc/ufastauthd /etc/
 chmod 600 /etc/ufastauthd/snakeoil.key
 mkdir -p /var/www
-mkdir -p /var/lib/cx2_authserver
+mkdir -p /var/lib/ufastauthd
 rm -rf /var/www/ufastauthd
 cp -a ~/uFastAuthD/var/www/ufastauthd /var/www
 ```
@@ -101,7 +101,7 @@ This program was tested so far in:
 
 ### Overall Pre-requisites:
 
-* cxFramework2
+* libMantids
 * C++11 Compatible Compiler (like GCC >=5)
 * pthread
 * openssl (1.1.x)

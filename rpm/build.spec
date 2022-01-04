@@ -8,7 +8,7 @@ Release:        %{build_timestamp}.git%{?dist}
 Summary:        Unmanarc Fast Authentication Daemon
 License:        GPLv3
 URL:            https://github.com/unmanarc/uFastAuthD
-Source0:        https://github.com/unmanarc/uFastAuthD/archive/master.tar.gz#/%{name}-%{version}-%{build_timestamp}.tar.gz
+Source0:        https://github.com/unmanarc/uFastAuthD/archive/main.tar.gz#/%{name}-%{version}-%{build_timestamp}.tar.gz
 Group:          Applications/Internet
 
 %define cmake cmake
@@ -46,7 +46,7 @@ Requires: libMantids libMantids-sqlite zlib openssl boost-regex jsoncpp sqlite-l
 This package contains a server that provides a directory/authorization implementation for managing users for your libMantids applications.
 
 %prep
-%autosetup -n %{name}-master
+%autosetup -n %{name}-main
 
 %build
 %{cmake} -DCMAKE_INSTALL_PREFIX:PATH=/usr -DCMAKE_BUILD_TYPE=MinSizeRel

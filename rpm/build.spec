@@ -1,5 +1,5 @@
 %define name uFastAuthD
-%define version 1.0.3
+%define version 1.0.4
 %define build_timestamp %{lua: print(os.date("%Y%m%d"))}
 
 Name:           %{name}
@@ -86,6 +86,8 @@ ln -s . s390x-redhat-linux-gnu
 %endif
 
 mkdir -vp $RPM_BUILD_ROOT/var/lib/ufastauthd
+chmod 700 $RPM_BUILD_ROOT/var/lib/ufastauthd
+
 mkdir -vp $RPM_BUILD_ROOT/var/www
 cp -a var/www/ufastauthd $RPM_BUILD_ROOT/var/www
 
@@ -101,6 +103,6 @@ chmod 600 $RPM_BUILD_ROOT/etc/ufastauthd/snakeoil.key
 %config(noreplace) /etc/ufastauthd/snakeoil.key
 %config(noreplace) /etc/ufastauthd/config.ini
 /var/www/ufastauthd/*
-
+%dir /var/lib/ufastauthd
 
 %changelog

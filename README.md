@@ -5,6 +5,29 @@ Unmanarc Fast Authentication Daemon
 Author: Aaron Mizrachi (unmanarc) <aaron@unmanarc.com>   
 Main License: GPLv3   
 
+***
+## Builds
+
+- COPR (Fedora/CentOS/etc):  
+[![Copr build status](https://copr.fedorainfracloud.org/coprs/amizrachi/uFastAuthD/package/uFastAuthD/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/amizrachi/uFastAuthD/package/uFastAuthD/)
+
+
+Install in Fedora/RHEL8/9:
+```bash
+dnf copr enable amizrachi/libMantids
+dnf copr enable amizrachi/uFastAuthD
+
+dnf -y install uFastAuthD
+```
+
+Install in RHEL7:
+```bash
+yum copr enable amizrachi/libMantids
+yum copr enable amizrachi/uFastAuthD
+
+yum -y install uFastAuthD
+```
+
 
 ***
 ## Project Description

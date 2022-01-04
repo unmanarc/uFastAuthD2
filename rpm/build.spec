@@ -35,9 +35,9 @@ Group:          Applications/Internet
 
 
 %if 0%{?rhel} == 6
-BuildRequires:  %{cmake} libMantids-devel openssl-devel zlib-devel boost-devel gcc-c++ jsoncpp-devel sqlite-devel
+BuildRequires:  %{cmake} libMantids-devel libMantids-sqlite openssl-devel zlib-devel boost-devel gcc-c++ jsoncpp-devel sqlite-devel
 %else
-BuildRequires:  %{cmake} libMantids-devel openssl-devel zlib-devel boost-devel gcc-c++ jsoncpp-devel sqlite-devel
+BuildRequires:  %{cmake} libMantids-devel libMantids-sqlite openssl-devel zlib-devel boost-devel gcc-c++ jsoncpp-devel sqlite-devel
 %endif
 
 Requires: libMantids libMantids-sqlite zlib openssl boost-regex jsoncpp sqlite-libs

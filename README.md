@@ -6,128 +6,66 @@ Author: Aaron Mizrachi (unmanarc) <aaron@unmanarc.com>
 Main License: GPLv3   
 
 ***
-## Builds
+## Project Description
 
-- COPR (Fedora/CentOS/etc):  
+This server provides a directory/authorization implementation for managing users for your applications.
+
+***
+## Installing packages (HOWTO)
+
+
+- [Manual build guide](BUILD.md)
+- COPR Packages (Fedora/CentOS/RHEL/etc):  
 [![Copr build status](https://copr.fedorainfracloud.org/coprs/amizrachi/uFastAuthD/package/uFastAuthD/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/amizrachi/uFastAuthD/package/uFastAuthD/)
 
 
-Install in Fedora/RHEL8/9:
+### Simple installation guide for Fedora/RHEL:
+
+- First, proceed to install EPEL in your distribution (https://docs.fedoraproject.org/en-US/epel/), sometimes this is required for jsoncpp.
+
+
+- Then, proceed to activate our repo's and download/install uFastAuthD:
 ```bash
+# NOTE: for RHEL7 replace dnf by yum
 dnf copr enable amizrachi/libMantids
 dnf copr enable amizrachi/uFastAuthD
 
 dnf -y install uFastAuthD
 ```
 
-Install in RHEL7:
+- Once installed, you can continue by activating/enabling the service:
 ```bash
-yum copr enable amizrachi/libMantids
-yum copr enable amizrachi/uFastAuthD
-
-yum -y install uFastAuthD
+systemctl enable --now uFastAuthD
 ```
 
+- Don't forget to open the firewall:
 
-***
-## Project Description
-
-This server provides a directory/authorization implementation for managing users for your applications.
-
-***
-## Building/Installing uFastAuthD
-
-### Building Instructions:
-
-First, you must remember to have installed libMantids
-
-as root:
-
-```
-cd /root
-git clone https://github.com/unmanarc/uFastAuthD
-cmake -B../builds/uFastAuthD . -DCMAKE_VERBOSE_MAKEFILE=ON
-cd ../builds/uFastAuthD
-make -j12 install
+```bash
+# Add Website port:
+firewall-cmd --zone=public --permanent --add-port 40443/tcp
+# Add Authentication daemon port:
+firewall-cmd --zone=public --permanent --add-port 30301/tcp
+# Reload Firewall rules
+firewall-cmd --reload
 ```
 
-### Installing Instructions:
-
-Then:
-- copy the **/etc/ufastauthd** directory
-- create the **/var/lib/ufastauthd** if does not exist
-- fully update/rewrite **/var/www/ufastauthd**
-
-```
-cp -a ~/uFastAuthD/etc/ufastauthd /etc/
-chmod 600 /etc/ufastauthd/snakeoil.key
-mkdir -p /var/www
-mkdir -p /var/lib/ufastauthd
-rm -rf /var/www/ufastauthd
-cp -a ~/uFastAuthD/var/www/ufastauthd /var/www
+- If it's your first time installing this program, you can check for the master password using journalctl:
+```bash
+journalctl -xefu uFastAuthD
 ```
 
-Security Alert:
-
-`Remember to change the snakeoil X.509 Certificates with your own ones, if not the communication can be eavesdropped or tampered!!!`
-
-### Service Intialization Instructions:
-
-- Create the services...
-- Restart daemon
-```
-cat << 'EOF' | install -m 640 /dev/stdin /usr/lib/systemd/system/ufastauthd.service
-[Unit]
-Description=Unmanarc Fast Authentication Daemon
-After=network.target
-
-[Service]
-Type=simple
-Restart=always
-RestartSec=1
-EnvironmentFile=/etc/default/ufastauthd
-ExecStart=/usr/local/bin/uFastAuthD
-
-[Install]
-WantedBy=multi-user.target
-EOF
-
-cat << 'EOF' | install -m 640 /dev/stdin /etc/default/ufastauthd
-LD_LIBRARY_PATH=/usr/local/lib:
-EOF
-
-systemctl daemon-reload
-systemctl enable --now ufastauthd.service
-```
-
-Now, check via `journalctl -xefu ufastauthd` the path of syspwd file in /tmp:
+- And in that output you should check the path of syspwd-randomvalue file in /tmp. eg.:
 
 ```
 File '/tmp/syspwd-98ZAisMO' created with the super-user password. Login and change it immediatly
 ```
 
-Take the password inside, and login as `admin` into the website (change the ip address or domain corresponding to your installation...):
+- Now you can proceed to discover and change the temporary password (change **98ZAisMO** by the random value that your system has printed):
 
+```bash
+cat /tmp/syspwd-98ZAisMO
 ```
-> https://192.168.1.100:40443/login
-```
 
+- Then, take the string inside that file and use it as password, and login as `admin` into the website (change the ip address or domain corresponding to your installation...): https://YOURHOSTIP:40443/login
 
-***
-## Compatibility
-
-This program was tested so far in:
-
-* Fedora Linux 34 (remember to replace ` /etc/default by /etc/sysconfig`)
-* Ubuntu 20.04 LTS (Server)
-* CentOS/RHEL 7/8
-
-### Overall Pre-requisites:
-
-* libMantids
-* C++11 Compatible Compiler (like GCC >=5)
-* pthread
-* openssl (1.1.x)
-* jsoncpp
-* boost
-* SQLite3 devel libs
+- Now you are ready to operate the authentication daemon.

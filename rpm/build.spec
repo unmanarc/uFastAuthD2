@@ -1,5 +1,5 @@
 %define name uFastAuthD
-%define version 1.0.4
+%define version 1.0.5
 %define build_timestamp %{lua: print(os.date("%Y%m%d"))}
 
 Name:           %{name}
@@ -33,13 +33,7 @@ Group:          Applications/Internet
 %define debug_package %{nil}
 %endif
 
-
-%if 0%{?rhel} == 6
-BuildRequires:  %{cmake} libMantids-devel libMantids-sqlite openssl-devel zlib-devel boost-devel gcc-c++ jsoncpp-devel sqlite-devel
-%else
-BuildRequires:  %{cmake} libMantids-devel libMantids-sqlite openssl-devel zlib-devel boost-devel gcc-c++ jsoncpp-devel sqlite-devel
-%endif
-
+BuildRequires: %{cmake} systemd libMantids-devel libMantids-sqlite openssl-devel zlib-devel boost-devel gcc-c++ jsoncpp-devel sqlite-devel
 Requires: libMantids libMantids-sqlite zlib openssl boost-regex jsoncpp sqlite-libs
 
 %description
@@ -95,6 +89,10 @@ mkdir -vp $RPM_BUILD_ROOT/etc
 cp -a etc/ufastauthd $RPM_BUILD_ROOT/etc/
 chmod 600 $RPM_BUILD_ROOT/etc/ufastauthd/snakeoil.key
 
+mkdir -vp $RPM_BUILD_ROOT/usr/lib/systemd/system
+cp usr/lib/systemd/system/ufastauthd.service $RPM_BUILD_ROOT/usr/lib/systemd/system/%{name}.service
+chmod 644 $RPM_BUILD_ROOT/usr/lib/systemd/system/%{name}.service
+
 %files
 %doc
 %{_bindir}/uFastAuthD
@@ -104,5 +102,15 @@ chmod 600 $RPM_BUILD_ROOT/etc/ufastauthd/snakeoil.key
 %config(noreplace) /etc/ufastauthd/config.ini
 /var/www/ufastauthd/*
 %dir /var/lib/ufastauthd
+/usr/lib/systemd/system/%{name}.service
+
+%post
+%systemd_post %{name}.service
+
+%preun
+%systemd_preun %{name}.service
+
+%postun
+%systemd_postun_with_restart %{name}.service
 
 %changelog

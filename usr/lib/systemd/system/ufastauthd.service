@@ -7,7 +7,7 @@ Type=simple
 Restart=always
 RestartSec=5
 WorkingDirectory=/var/lib/ufastauthd
-ExecStart=/usr/bin/uFastAuthD --debugparams='false' --verbose='0' --help='false' --resetadmpw='false' --daemon='false' --config-dir='/etc/ufastauthd'
+ExecStart=/usr/bin/uFastAuthD
 Environment=
 
 [Install]

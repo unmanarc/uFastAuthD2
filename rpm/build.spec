@@ -34,7 +34,7 @@ Group:          Applications/Internet
 %endif
 
 BuildRequires: %{cmake} systemd libMantids-devel libMantids-sqlite openssl-devel zlib-devel boost-devel gcc-c++ jsoncpp-devel sqlite-devel
-Requires: libMantids libMantids-sqlite zlib openssl boost-regex jsoncpp sqlite-libs
+Requires: libMantids libMantids-sqlite zlib openssl boost-regex jsoncpp sqlite
 
 %description
 This package contains a server that provides a directory/authorization implementation for managing users for your libMantids applications.

@@ -1,5 +1,5 @@
 %define name uFastAuthD
-%define version 1.0.6
+%define version 1.0.7
 %define build_timestamp %{lua: print(os.date("%Y%m%d"))}
 
 Name:           %{name}
@@ -33,8 +33,10 @@ Group:          Applications/Internet
 %define debug_package %{nil}
 %endif
 
-BuildRequires: %{cmake} systemd libMantids-devel libMantids-sqlite openssl-devel zlib-devel boost-devel gcc-c++ jsoncpp-devel sqlite-devel
-Requires: libMantids libMantids-sqlite zlib openssl boost-regex jsoncpp sqlite
+BuildRequires: libMantids-devel >= 2.5.3
+BuildRequires: %{cmake} systemd libMantids-sqlite openssl-devel zlib-devel boost-devel gcc-c++ jsoncpp-devel sqlite-devel
+Requires: libMantids >= 2.5.3
+Requires: libMantids-sqlite zlib openssl boost-regex jsoncpp sqlite
 
 %description
 This package contains a server that provides a directory/authorization implementation for managing users for your libMantids applications.

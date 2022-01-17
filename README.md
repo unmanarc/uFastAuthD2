@@ -16,7 +16,7 @@ This server provides a directory/authorization implementation for managing users
 
 - [Manual build guide](BUILD.md)
 - COPR Packages (Fedora/CentOS/RHEL/etc):  
-[![Copr build status](https://copr.fedorainfracloud.org/coprs/amizrachi/uFastAuthD/package/uFastAuthD/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/amizrachi/uFastAuthD/package/uFastAuthD/)
+[![Copr build status](https://copr.fedorainfracloud.org/coprs/amizrachi/unmanarc/package/uFastAuthD/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/amizrachi/unmanarc/package/uFastAuthD/)
 
 
 ### Simple installation guide for Fedora/RHEL:

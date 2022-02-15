@@ -27,8 +27,7 @@ This server provides a directory/authorization implementation for managing users
 - Then, proceed to activate our repo's and download/install uFastAuthD:
 ```bash
 # NOTE: for RHEL7 replace dnf by yum
-dnf copr enable amizrachi/libMantids
-dnf copr enable amizrachi/uFastAuthD
+dnf copr enable amizrachi/unmanarc
 
 dnf -y install uFastAuthD
 ```

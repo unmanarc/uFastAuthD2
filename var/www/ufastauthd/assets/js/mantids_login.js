@@ -153,16 +153,6 @@ function ajaxLogin() {
 
 }
 
-function ajaxLoadVersion() {
-    $.ajax({
-        url: '/api?mode=VERSION',
-        type: 'POST',
-        success: function (result) {
-            $("#version").text(result["version"]);
-        }
-    });
-}
-
 function ajaxLogout()
 {
     document.getElementById("loginform").style.visibility = "visible";
@@ -184,34 +174,29 @@ function ajaxLogout()
 
 function showLogoutDialogOnSession() {
     // As cookie should be httpOnly, javascript can't know if there is a session, so, we try to get the CSRF token, 
-//    $('#message').text('Uhh.');
+
     document.getElementById("loginform").style.visibility = "visible";
     document.getElementById("logoutform").style.visibility = "collapse";
 
-    $.ajax({
-        url: '/api?mode=CSRFTOKEN',
-        type: 'POST',
-        success: function (result) {
-            // if returns the token, the cookie exist...  go to logout page.
-            document.getElementById("loginform").style.visibility = "collapse";
-            document.getElementById("logoutform").style.visibility = "visible";
+    if ($("#csrfToken").val() == "")
+    {
+        // If CSRF returns nothing, is because the cookie does not exist, or the cookie does not handle a valid session, or the session has not be fully authenticated, in each case, drop the cookie
+        document.cookie = "sessionId= ; expires = Thu, 01 Jan 1970 00:00:00 GMT";
+        $('#message').text('Ready.');
+    }
+    else
+    {
+        // if returns the token, the cookie exist...  go to logout page.
+        document.getElementById("loginform").style.visibility = "collapse";
+        document.getElementById("logoutform").style.visibility = "visible";
 
-            $('#message').text('There is an active session.');
-
-            if (result) {
-                $('#csrfToken').val(result["csrfToken"]);
-            }
-        },
-        error: function (result) {
-            // If CSRF returns nothing, is because the cookie does not exist, or the cookie does not handle a valid session, or the session has not be fully authenticated, in each case, drop the cookie
-            document.cookie = "sessionId= ; expires = Thu, 01 Jan 1970 00:00:00 GMT";
-            $('#message').text('Ready.');
-        }
-    });
+        $('#message').text('There is an active session.');
+    }
 }
 
 
 function ajaxLoginStart() {
-    ajaxLoadVersion();
+    $("#version").text($('#softwareVersion').val());
+
     showLogoutDialogOnSession();
 }

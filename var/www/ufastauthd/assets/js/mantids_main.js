@@ -73,12 +73,25 @@ function ajaxLoadInfo() {
   csrfReady();
 }
 
-
 function ajaxRemoteExecuteMethod( methodPermLevel, target, methodName, payload, successFunction  ) {
   var method = "remote." + methodPermLevel;
   var payloadData = { "target": target, "remoteMethod": methodPermLevel + "." + methodName, "payload" : payload }
   $.ajax({
     url: '/api?mode=EXEC&method=' + method,
+    type: 'POST',
+    headers: { "CSRFToken": $("#csrfToken").val() },
+    data: { payload: JSON.stringify(payloadData) },
+    success: successFunction,
+    error: function (result) {
+      console.log("ERR");
+      alert("Error Executing Remote Method...\nInsufficient Permissions");
+    }
+  });
+}
+
+function ajaxExecuteMethod( methodName, payloadData, successFunction ) {
+  $.ajax({
+    url: '/api?mode=EXEC&method=' + methodName,
     type: 'POST',
     headers: { "CSRFToken": $("#csrfToken").val() },
     data: { payload: JSON.stringify(payloadData) },

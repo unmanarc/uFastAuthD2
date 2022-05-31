@@ -118,18 +118,13 @@ json Templates::LoginAuth::accountAttribs(void *obj, const std::string &connecti
 
     // Security check/container
 
-    if ( !auth->applicationValidateAccount(getAppNameFromConnectionKey(connectionKey),JSON_ASSTRING(payload,"accountName","") ) )
-        payloadOut["retCode"] = false;
-    else
+    if ( auth->applicationValidateAccount(getAppNameFromConnectionKey(connectionKey),JSON_ASSTRING(payload,"accountName","") ) )
     {
-        payloadOut["retCode"] = true;
-
         auto i = auth->accountAttribs( JSON_ASSTRING(payload,"accountName","") );
 
         payloadOut["confirmed"] = i.confirmed;
         payloadOut["enabled"] = i.enabled;
         payloadOut["superuser"] = i.superuser;
-
     }
 
     return payloadOut;
@@ -142,11 +137,8 @@ json Templates::LoginAuth::accountGivenName(void *obj, const std::string &connec
 
     // Security check/container
 
-    if ( !auth->applicationValidateAccount(getAppNameFromConnectionKey(connectionKey),JSON_ASSTRING(payload,"accountName","") ) )
-        payloadOut["retCode"] = false;
-    else
+    if ( auth->applicationValidateAccount(getAppNameFromConnectionKey(connectionKey),JSON_ASSTRING(payload,"accountName","") ) )
     {
-        payloadOut["retCode"] = true;
         payloadOut["givenName"] = auth->accountGivenName( JSON_ASSTRING(payload,"accountName","") );
     }
 
@@ -160,12 +152,9 @@ json Templates::LoginAuth::accountLastName(void *obj, const std::string &connect
 
     // Security check/container
 
-    if ( !auth->applicationValidateAccount(getAppNameFromConnectionKey(connectionKey),JSON_ASSTRING(payload,"accountName","") ) )
-        payloadOut["retCode"] = false;
-    else
+    if ( auth->applicationValidateAccount(getAppNameFromConnectionKey(connectionKey),JSON_ASSTRING(payload,"accountName","") ) )
     {
-        payloadOut["retCode"] = true;
-        payloadOut["givenName"] = auth->accountLastName( JSON_ASSTRING(payload,"accountName","") );
+        payloadOut["lastName"] = auth->accountLastName( JSON_ASSTRING(payload,"accountName","") );
     }
 
     return payloadOut;
@@ -178,11 +167,8 @@ json Templates::LoginAuth::accountDescription(void *obj, const std::string &conn
 
     // Security check/container
 
-    if ( !auth->applicationValidateAccount(getAppNameFromConnectionKey(connectionKey),JSON_ASSTRING(payload,"accountName","") ) )
-        payloadOut["retCode"] = false;
-    else
+    if ( auth->applicationValidateAccount(getAppNameFromConnectionKey(connectionKey),JSON_ASSTRING(payload,"accountName","") ) )
     {
-        payloadOut["retCode"] = true;
         payloadOut["description"] = auth->accountDescription(JSON_ASSTRING(payload,"accountName","") );
     }
 
@@ -195,11 +181,8 @@ json Templates::LoginAuth::accountEmail(void *obj, const std::string &connection
     json payloadOut;
 
     // Security check/container
-    if ( !auth->applicationValidateAccount(getAppNameFromConnectionKey(connectionKey),JSON_ASSTRING(payload,"accountName","") ) )
-        payloadOut["retCode"] = false;
-    else
+    if ( auth->applicationValidateAccount(getAppNameFromConnectionKey(connectionKey),JSON_ASSTRING(payload,"accountName","") ) )
     {
-        payloadOut["retCode"] = true;
         payloadOut["email"] = auth->accountEmail(JSON_ASSTRING(payload,"accountName","") );
     }
 
@@ -212,11 +195,8 @@ json Templates::LoginAuth::accountExtraData(void *obj, const std::string &connec
     json payloadOut;
 
     // Security check/container
-    if ( !auth->applicationValidateAccount(getAppNameFromConnectionKey(connectionKey),JSON_ASSTRING(payload,"accountName","") ) )
-        payloadOut["retCode"] = false;
-    else
+    if ( auth->applicationValidateAccount(getAppNameFromConnectionKey(connectionKey),JSON_ASSTRING(payload,"accountName","") ) )
     {
-        payloadOut["retCode"] = true;
         payloadOut["extraData"] = auth->accountExtraData(JSON_ASSTRING(payload,"accountName","") );
     }
 
@@ -229,11 +209,8 @@ json Templates::LoginAuth::applicationDescription(void *obj, const std::string &
     json payloadOut;
 
     // Security check/container
-    if (  getAppNameFromConnectionKey(connectionKey) != JSON_ASSTRING(payload,"applicationName","") )
-        payloadOut["retCode"] = false;
-    else
+    if (  getAppNameFromConnectionKey(connectionKey) == JSON_ASSTRING(payload,"applicationName","") )
     {
-        payloadOut["retCode"] = true;
         payloadOut["description"] = auth->applicationDescription( JSON_ASSTRING(payload,"applicationName","") );
     }
 
@@ -246,9 +223,7 @@ json Templates::LoginAuth::applicationValidateOwner(void *obj, const std::string
     json payloadOut;
 
     // Security check/container
-    if (  getAppNameFromConnectionKey(connectionKey) != JSON_ASSTRING(payload,"applicationName","") )
-        payloadOut["retCode"] = false;
-    else
+    if (  getAppNameFromConnectionKey(connectionKey) == JSON_ASSTRING(payload,"applicationName","") )
     {
         payloadOut["retCode"] = auth->applicationValidateOwner( JSON_ASSTRING(payload,"applicationName",""),  JSON_ASSTRING(payload,"accountName",""));
     }
@@ -261,10 +236,10 @@ json Templates::LoginAuth::applicationValidateAccount(void *obj, const std::stri
     Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
     json payloadOut;
 
-    if (  getAppNameFromConnectionKey(connectionKey) != JSON_ASSTRING(payload,"applicationName","") )
-        payloadOut["retCode"] = false;
-    else
+    if (  getAppNameFromConnectionKey(connectionKey) == JSON_ASSTRING(payload,"applicationName","") )
+    {
         payloadOut["retCode"] = auth->applicationValidateAccount(getAppNameFromConnectionKey(connectionKey),JSON_ASSTRING(payload,"accountName","") );
+    }
 
     return payloadOut;
 }
@@ -274,15 +249,12 @@ json Templates::LoginAuth::applicationOwners(void *obj, const std::string &conne
     Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
     json payloadOut;
 
-    if (  getAppNameFromConnectionKey(connectionKey) != JSON_ASSTRING(payload,"applicationName","") )
-        payloadOut["retCode"] = false;
-    else
+    if (  getAppNameFromConnectionKey(connectionKey) == JSON_ASSTRING(payload,"applicationName","") )
     {
-        payloadOut["retCode"] = true;
         int i = 0;
         for ( auto & owner : auth->applicationOwners(getAppNameFromConnectionKey(connectionKey)))
         {
-            payloadOut["owners"][i] = owner;
+            payloadOut[i] = owner;
             i++;
         }
     }
@@ -295,15 +267,12 @@ json Templates::LoginAuth::applicationAccounts(void *obj, const std::string &con
     Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
     json payloadOut;
 
-    if (  getAppNameFromConnectionKey(connectionKey) != JSON_ASSTRING(payload,"applicationName","") )
-        payloadOut["retCode"] = false;
-    else
+    if (  getAppNameFromConnectionKey(connectionKey) == JSON_ASSTRING(payload,"applicationName","") )
     {
-        payloadOut["retCode"] = true;
         int i = 0;
         for ( auto & account : auth->applicationAccounts(getAppNameFromConnectionKey(connectionKey)))
         {
-            payloadOut["accounts"][i] = account;
+            payloadOut[i] = account;
             i++;
         }
     }

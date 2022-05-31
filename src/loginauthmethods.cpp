@@ -12,6 +12,11 @@ using namespace Mantids::Application;
 using namespace Mantids::RPC;
 using namespace Mantids;
 
+/**
+ * @brief readFile2String Local function to convert a file to a std::string (with every line), very useful for web resources.
+ * @param fileName required filepath
+ * @return string with the file content, or empty if the file was not found.
+ */
 std::string readFile2String(const std::string &fileName)
 {
     std::ifstream inputFileStream(fileName.c_str(), std::ios::in | std::ios::binary | std::ios::ate);
@@ -28,15 +33,21 @@ std::string readFile2String(const std::string &fileName)
 
 void Mantids::RPC::Templates::LoginAuth::AddLoginAuthMethods(Mantids::Authentication::Manager *auth, Mantids::RPC::Fast::FastRPC *fastRPC)
 {
+    // AUTHENTICATION FUNCTIONS:
     fastRPC->addMethod("authenticate",{&authenticate,auth});
+
+    // ACCOUNT SECRET MANIPULATION FUNCTIONS:
     fastRPC->addMethod("accountChangeAuthenticatedSecret",{&accountChangeAuthenticatedSecret,auth});
     fastRPC->addMethod("getAccountAllSecretsPublicData",{&getAccountAllSecretsPublicData,auth});
-    fastRPC->addMethod("passIndexDescription",{&passIndexDescription,auth});
     fastRPC->addMethod("accountSecretPublicData",{&accountSecretPublicData,auth});
+
+    // ACCOUNT PASSWORD @INDEX  FUNCTIONS:
+    fastRPC->addMethod("passIndexDescription",{&passIndexDescription,auth});
     fastRPC->addMethod("passIndexesRequiredForLogin",{&passIndexesRequiredForLogin,auth});
     fastRPC->addMethod("passIndexesUsedByAccount",{&passIndexesUsedByAccount,auth});
     fastRPC->addMethod("passIndexLoginRequired",{&passIndexLoginRequired,auth});
 
+    // ACCOUNT ATTRIBUTE FUNCTIONS:
     fastRPC->addMethod("attribExist",{&attribExist,auth});
     fastRPC->addMethod("attribAdd",{&attribAdd,auth});
     fastRPC->addMethod("attribRemove",{&attribRemove,auth});
@@ -44,12 +55,13 @@ void Mantids::RPC::Templates::LoginAuth::AddLoginAuthMethods(Mantids::Authentica
     fastRPC->addMethod("attribDescription",{&attribDescription,auth});
     fastRPC->addMethod("isAccountSuperUser",{&isAccountSuperUser,auth});
 
+    // ACCOUNT VALIDATION FUNCTIONS:
     fastRPC->addMethod("accountExpirationDate",{&accountExpirationDate,auth});
-
     fastRPC->addMethod("accountValidateAttribute",{&accountValidateAttribute,auth});
 
     //    fastRPC->addMethod("accountAdd",{&accountAdd,auth});
 
+    // PROVIDED STATIC CONTENT FUNCTIONS:
     fastRPC->addMethod("getStaticContent",{&getStaticContent,auth});
 
 }

@@ -11,6 +11,11 @@ namespace Mantids { namespace RPC { namespace Templates {
 class LoginAuth
 {
 public:
+    /**
+     * @brief AddLoginAuthMethods Add selected/reduced/filtered set of login authentication methods as server functions to the fastrpc connection for remote web applications
+     * @param auth authentication manager (with full access to the authentication interface)
+     * @param fastRPC RPC engine to expose the methods
+     */
     static void AddLoginAuthMethods(Mantids::Authentication::Manager * auth,  Mantids::RPC::Fast::FastRPC * fastRPC);
 
 private:

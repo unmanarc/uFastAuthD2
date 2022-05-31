@@ -48,12 +48,29 @@ void Mantids::RPC::Templates::LoginAuth::AddLoginAuthMethods(Mantids::Authentica
     fastRPC->addMethod("passIndexLoginRequired",{&passIndexLoginRequired,auth});
 
     // ACCOUNT ATTRIBUTE FUNCTIONS:
+    fastRPC->addMethod("accountAttribs",{&accountAttribs,auth});
+    fastRPC->addMethod("accountGivenName",{&accountGivenName,auth});
+    fastRPC->addMethod("accountLastName",{&accountLastName,auth});
+    fastRPC->addMethod("accountDescription",{&accountDescription,auth});
+    fastRPC->addMethod("accountEmail",{&accountEmail,auth});
+    fastRPC->addMethod("accountExtraData",{&accountExtraData,auth});
+
+    // APPLICATION FUNCTIONS
+    fastRPC->addMethod("applicationDescription",{&applicationDescription,auth});
+    fastRPC->addMethod("applicationValidateOwner",{&applicationValidateOwner,auth});
+    fastRPC->addMethod("applicationValidateAccount",{&applicationValidateAccount,auth});
+    fastRPC->addMethod("applicationOwners",{&applicationOwners,auth});
+    fastRPC->addMethod("applicationAccounts",{&applicationAccounts,auth});
+
+    // ACCOUNT ATTRIBUTE FUNCTIONS:
     fastRPC->addMethod("attribExist",{&attribExist,auth});
     fastRPC->addMethod("attribAdd",{&attribAdd,auth});
     fastRPC->addMethod("attribRemove",{&attribRemove,auth});
     fastRPC->addMethod("attribChangeDescription",{&attribChangeDescription,auth});
     fastRPC->addMethod("attribDescription",{&attribDescription,auth});
     fastRPC->addMethod("isAccountSuperUser",{&isAccountSuperUser,auth});
+    fastRPC->addMethod("isAccountDisabled",{&isAccountDisabled,auth});
+    fastRPC->addMethod("isAccountConfirmed",{&isAccountConfirmed,auth});
 
     // ACCOUNT VALIDATION FUNCTIONS:
     fastRPC->addMethod("accountExpirationDate",{&accountExpirationDate,auth});
@@ -64,6 +81,234 @@ void Mantids::RPC::Templates::LoginAuth::AddLoginAuthMethods(Mantids::Authentica
     // PROVIDED STATIC CONTENT FUNCTIONS:
     fastRPC->addMethod("getStaticContent",{&getStaticContent,auth});
 
+}
+
+json Templates::LoginAuth::isAccountDisabled(void *obj, const std::string &connectionKey, const json &payload)
+{
+    Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
+    json payloadOut;
+
+    // Security check/container
+    if ( !auth->applicationValidateAccount(getAppNameFromConnectionKey(connectionKey),JSON_ASSTRING(payload,"accountName","") ) )
+        payloadOut["retCode"] = true;
+    else
+        payloadOut["retCode"] = auth->isAccountDisabled( JSON_ASSTRING(payload,"accountName","") );
+
+    return payloadOut;
+}
+
+json Templates::LoginAuth::isAccountConfirmed(void *obj, const std::string &connectionKey, const json &payload)
+{
+    Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
+    json payloadOut;
+
+    // Security check/container
+    if ( !auth->applicationValidateAccount(getAppNameFromConnectionKey(connectionKey),JSON_ASSTRING(payload,"accountName","") ) )
+        payloadOut["retCode"] = false;
+    else
+        payloadOut["retCode"] = auth->isAccountConfirmed( JSON_ASSTRING(payload,"accountName","") );
+
+    return payloadOut;
+}
+
+json Templates::LoginAuth::accountAttribs(void *obj, const std::string &connectionKey, const json &payload)
+{
+    Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
+    json payloadOut;
+
+    // Security check/container
+
+    if ( !auth->applicationValidateAccount(getAppNameFromConnectionKey(connectionKey),JSON_ASSTRING(payload,"accountName","") ) )
+        payloadOut["retCode"] = false;
+    else
+    {
+        payloadOut["retCode"] = true;
+
+        auto i = auth->accountAttribs( JSON_ASSTRING(payload,"accountName","") );
+
+        payloadOut["confirmed"] = i.confirmed;
+        payloadOut["enabled"] = i.enabled;
+        payloadOut["superuser"] = i.superuser;
+
+    }
+
+    return payloadOut;
+}
+
+json Templates::LoginAuth::accountGivenName(void *obj, const std::string &connectionKey, const json &payload)
+{
+    Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
+    json payloadOut;
+
+    // Security check/container
+
+    if ( !auth->applicationValidateAccount(getAppNameFromConnectionKey(connectionKey),JSON_ASSTRING(payload,"accountName","") ) )
+        payloadOut["retCode"] = false;
+    else
+    {
+        payloadOut["retCode"] = true;
+        payloadOut["givenName"] = auth->accountGivenName( JSON_ASSTRING(payload,"accountName","") );
+    }
+
+    return payloadOut;
+}
+
+json Templates::LoginAuth::accountLastName(void *obj, const std::string &connectionKey, const json &payload)
+{
+    Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
+    json payloadOut;
+
+    // Security check/container
+
+    if ( !auth->applicationValidateAccount(getAppNameFromConnectionKey(connectionKey),JSON_ASSTRING(payload,"accountName","") ) )
+        payloadOut["retCode"] = false;
+    else
+    {
+        payloadOut["retCode"] = true;
+        payloadOut["givenName"] = auth->accountLastName( JSON_ASSTRING(payload,"accountName","") );
+    }
+
+    return payloadOut;
+}
+
+json Templates::LoginAuth::accountDescription(void *obj, const std::string &connectionKey, const json &payload)
+{
+    Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
+    json payloadOut;
+
+    // Security check/container
+
+    if ( !auth->applicationValidateAccount(getAppNameFromConnectionKey(connectionKey),JSON_ASSTRING(payload,"accountName","") ) )
+        payloadOut["retCode"] = false;
+    else
+    {
+        payloadOut["retCode"] = true;
+        payloadOut["description"] = auth->accountDescription(JSON_ASSTRING(payload,"accountName","") );
+    }
+
+    return payloadOut;
+}
+
+json Templates::LoginAuth::accountEmail(void *obj, const std::string &connectionKey, const json &payload)
+{
+    Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
+    json payloadOut;
+
+    // Security check/container
+    if ( !auth->applicationValidateAccount(getAppNameFromConnectionKey(connectionKey),JSON_ASSTRING(payload,"accountName","") ) )
+        payloadOut["retCode"] = false;
+    else
+    {
+        payloadOut["retCode"] = true;
+        payloadOut["email"] = auth->accountEmail(JSON_ASSTRING(payload,"accountName","") );
+    }
+
+    return payloadOut;
+}
+
+json Templates::LoginAuth::accountExtraData(void *obj, const std::string &connectionKey, const json &payload)
+{
+    Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
+    json payloadOut;
+
+    // Security check/container
+    if ( !auth->applicationValidateAccount(getAppNameFromConnectionKey(connectionKey),JSON_ASSTRING(payload,"accountName","") ) )
+        payloadOut["retCode"] = false;
+    else
+    {
+        payloadOut["retCode"] = true;
+        payloadOut["extraData"] = auth->accountExtraData(JSON_ASSTRING(payload,"accountName","") );
+    }
+
+    return payloadOut;
+}
+
+json Templates::LoginAuth::applicationDescription(void *obj, const std::string &connectionKey, const json &payload)
+{
+    Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
+    json payloadOut;
+
+    // Security check/container
+    if (  getAppNameFromConnectionKey(connectionKey) != JSON_ASSTRING(payload,"applicationName","") )
+        payloadOut["retCode"] = false;
+    else
+    {
+        payloadOut["retCode"] = true;
+        payloadOut["description"] = auth->applicationDescription( JSON_ASSTRING(payload,"applicationName","") );
+    }
+
+    return payloadOut;
+}
+
+json Templates::LoginAuth::applicationValidateOwner(void *obj, const std::string &connectionKey, const json &payload)
+{
+    Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
+    json payloadOut;
+
+    // Security check/container
+    if (  getAppNameFromConnectionKey(connectionKey) != JSON_ASSTRING(payload,"applicationName","") )
+        payloadOut["retCode"] = false;
+    else
+    {
+        payloadOut["retCode"] = auth->applicationValidateOwner( JSON_ASSTRING(payload,"applicationName",""),  JSON_ASSTRING(payload,"accountName",""));
+    }
+
+    return payloadOut;
+}
+
+json Templates::LoginAuth::applicationValidateAccount(void *obj, const std::string &connectionKey, const json &payload)
+{
+    Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
+    json payloadOut;
+
+    if (  getAppNameFromConnectionKey(connectionKey) != JSON_ASSTRING(payload,"applicationName","") )
+        payloadOut["retCode"] = false;
+    else
+        payloadOut["retCode"] = auth->applicationValidateAccount(getAppNameFromConnectionKey(connectionKey),JSON_ASSTRING(payload,"accountName","") );
+
+    return payloadOut;
+}
+
+json Templates::LoginAuth::applicationOwners(void *obj, const std::string &connectionKey, const json &payload)
+{
+    Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
+    json payloadOut;
+
+    if (  getAppNameFromConnectionKey(connectionKey) != JSON_ASSTRING(payload,"applicationName","") )
+        payloadOut["retCode"] = false;
+    else
+    {
+        payloadOut["retCode"] = true;
+        int i = 0;
+        for ( auto & owner : auth->applicationOwners(getAppNameFromConnectionKey(connectionKey)))
+        {
+            payloadOut["owners"][i] = owner;
+            i++;
+        }
+    }
+
+    return payloadOut;
+}
+
+json Templates::LoginAuth::applicationAccounts(void *obj, const std::string &connectionKey, const json &payload)
+{
+    Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
+    json payloadOut;
+
+    if (  getAppNameFromConnectionKey(connectionKey) != JSON_ASSTRING(payload,"applicationName","") )
+        payloadOut["retCode"] = false;
+    else
+    {
+        payloadOut["retCode"] = true;
+        int i = 0;
+        for ( auto & account : auth->applicationAccounts(getAppNameFromConnectionKey(connectionKey)))
+        {
+            payloadOut["accounts"][i] = account;
+            i++;
+        }
+    }
+
+    return payloadOut;
 }
 
 json Templates::LoginAuth::accountSecretPublicData(void *obj, const std::string &connectionKey, const json &payload)

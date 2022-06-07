@@ -588,7 +588,7 @@ json Templates::LoginAuth::getStaticContent(void *, const std::string &, const j
     std::list<std::string> assets
             = {
                     // Mantids:
-                    "/secrets.html"
+                    "/secrets.html",
                     "/assets/js/mantids_login.js",
                     "/assets/js/mantids_main.js",
                     "/assets/js/mantids_passwd.js",

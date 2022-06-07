@@ -584,36 +584,42 @@ json Templates::LoginAuth::getStaticContent(void *, const std::string &, const j
     int i=0;
 
     // Push static content required for login operations
-    staticContents[i]["content"] = readFile2String(resourcesPath + "/assets/js/mantids_login.js");
-    staticContents[i++]["path"] = "/assets/js/mantids_login.js";
 
-    staticContents[i]["content"] = readFile2String(resourcesPath + "/assets/js/mantids_main.js");
-    staticContents[i++]["path"] = "/assets/js/mantids_main.js";
+    std::list<std::string> assets
+            = {
+                    // Mantids:
+                    "/secrets.html"
+                    "/assets/js/mantids_login.js",
+                    "/assets/js/mantids_main.js",
+                    "/assets/js/mantids_passwd.js",
+                    "/assets/js/mantids_validations.js",
+                    "/assets/css/login.css",
+                    "/assets/css/progress.css",
+                    "/assets/css/select.css",
+                    "/assets/css/sticky-footer.css",
 
-    staticContents[i]["content"] = readFile2String(resourcesPath + "/assets/js/mantids_passwd.js");
-    staticContents[i++]["path"] = "/assets/js/mantids_passwd.js";
+                    // JQuery:
+                    "/assets/js/jquery-3.6.0.min.js",
 
-    staticContents[i]["content"] = readFile2String(resourcesPath + "/assets/js/mantids_validations.js");
-    staticContents[i++]["path"] = "/assets/js/mantids_validations.js";
+                    // Bootstrap:
+                    "/assets/js/bootstrap.min.js",
+                    "/assets/css/bootstrap-grid.min.css",
+                    "/assets/css/bootstrap-reboot.min.css.map",
+                    "/assets/css/bootstrap-grid.min.css.map",
+                    "/assets/css/bootstrap-reboot.min.css",
+                    "/assets/css/bootstrap.min.css",
+                    "/assets/css/bootstrap.min.css.map",
+                    "/assets/js/bootstrap.min.js.map",
+                    "/assets/js/bootstrap.bundle.min.js.map",
+                    "/assets/js/bootstrap.min.js",
+                    "/assets/js/bootstrap.bundle.min.js",
+              };
 
-    staticContents[i]["content"] = readFile2String(resourcesPath + "/secrets.html");
-    staticContents[i++]["path"] = "/secrets.html";
-
-    staticContents[i]["content"] = readFile2String(resourcesPath + "/assets/css/bootstrap.min.css");
-    staticContents[i++]["path"] = "/assets/css/bootstrap.min.css";
-
-    staticContents[i]["content"] = readFile2String(resourcesPath + "/assets/js/jquery-3.5.1.min.js");
-    staticContents[i++]["path"] = "/assets/js/jquery-3.5.1.min.js";
-
-    staticContents[i]["content"] = readFile2String(resourcesPath + "/assets/js/bootstrap.min.js");
-    staticContents[i++]["path"] = "/assets/js/bootstrap.min.js";
-
-    staticContents[i]["content"] = readFile2String(resourcesPath + "/assets/css/sticky-footer.css");
-    staticContents[i++]["path"] = "/assets/css/sticky-footer.css";
-
-    staticContents[i]["content"] = readFile2String(resourcesPath + "/assets/css/select.css");
-    staticContents[i++]["path"] = "/assets/css/select.css";
-
+    for (const auto & asset : assets)
+    {
+        staticContents[i]["content"] = readFile2String(resourcesPath + asset);
+        staticContents[i++]["path"] = asset;
+    }
 
 
     return staticContents;

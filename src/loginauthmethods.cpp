@@ -600,6 +600,7 @@ json Templates::LoginAuth::getStaticContent(void *, const std::string &, const j
 
                     // JQuery:
                     "/assets/js/jquery-3.6.0.min.js",
+                    "/assets/js/jquery-3.5.1.min.js",
 
                     // Bootstrap:
                     "/assets/js/bootstrap.min.js",

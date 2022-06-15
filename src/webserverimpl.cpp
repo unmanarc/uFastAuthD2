@@ -64,7 +64,10 @@ bool WebServerImpl::createWebServer()
         webServer->setSoftwareVersion(atoi(PROJECT_VER_MAJOR), atoi(PROJECT_VER_MINOR), atoi(PROJECT_VER_PATCH),  "a");
         webServer->setExtCallBackOnInitFailed(WebServerImpl::protoInitFail);
 
-        webServer->acceptPoolThreaded(sockWebListen, Globals::getConfig_main()->get<uint32_t>("WebServer.Threads", 10) );
+        if (Globals::getConfig_main()->get<bool>("WebServer.ThreadPool", false))
+            webServer->acceptPoolThreaded(sockWebListen, Globals::getConfig_main()->get<uint32_t>("WebServer.PoolSize", 10) );
+        else
+            webServer->acceptMultiThreaded(sockWebListen, Globals::getConfig_main()->get<uint32_t>("WebServer.MaxThreads", 10000));
 
         Globals::getAppLog()->log0(__func__,Logs::LEVEL_INFO,  "Web Server Listening @%s:%d", listenAddr.c_str(), listenPort);
         return true;

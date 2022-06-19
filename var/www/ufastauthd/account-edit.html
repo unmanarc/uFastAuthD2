@@ -208,7 +208,7 @@
   {
     $.ajax({
       url: '/japi_exec?method=attribAccountRemove',
-      headers: { "CSRFToken": csrfToken.trim() },
+      headers: { "CSRFToken": csrfToken },
       data: {
         payload: JSON.stringify(
           {
@@ -245,7 +245,7 @@
 
     $.ajax({
       url: '/japi_exec?method=attribAccountAdd',
-      headers: { "CSRFToken": csrfToken.trim() },
+      headers: { "CSRFToken": csrfToken },
       data: {
         payload: JSON.stringify(
           {
@@ -274,7 +274,7 @@
 
     $.ajax({
       url: '/japi_exec?method=applicationAccountRemove',
-      headers: { "CSRFToken": csrfToken.trim() },
+      headers: { "CSRFToken": csrfToken },
       data: {
         payload: JSON.stringify(
           {
@@ -308,7 +308,7 @@
 
     $.ajax({
       url: '/japi_exec?method=applicationAccountAdd',
-      headers: { "CSRFToken": csrfToken.trim() },
+      headers: { "CSRFToken": csrfToken },
       data: {
         payload: JSON.stringify(
           {
@@ -366,7 +366,7 @@
     }
     $.ajax({
       url: '/japi_exec?method=accountChangeGroupSet',
-      headers: { "CSRFToken": csrfToken.trim() },
+      headers: { "CSRFToken": csrfToken },
       data: {
         payload: JSON.stringify(
           {
@@ -391,7 +391,7 @@
   function modifyAccountDetails() {
     $.ajax({
       url: '/japi_exec?method=accountChangeBasicInfo',
-      headers: { "CSRFToken": csrfToken.trim() },
+      headers: { "CSRFToken": csrfToken },
       data: {
         payload: JSON.stringify(
           {
@@ -427,7 +427,7 @@
     if (r == true) {
       $.ajax({
         url: '/japi_exec?method=accountRemove',
-        headers: { "CSRFToken": csrfToken.trim() },
+        headers: { "CSRFToken": csrfToken },
         data: { payload: JSON.stringify({ accountName: $("#accountName").val() }) },
         type: 'POST',
         success: function (response) {
@@ -451,7 +451,7 @@
     var accountName = $("#accountName").val();
     $.ajax({
       url: '/japi_exec?method=accountBasicInfo',
-      headers: { "CSRFToken": csrfToken.trim() },
+      headers: { "CSRFToken": csrfToken },
       data: { payload: JSON.stringify({ accountName: $("#accountName").val() }) },
       type: 'POST',
       success: function (response) {
@@ -599,7 +599,7 @@
     var accountName = window.atob(location.search.substr(1));
     $.ajax({
       url: '/japi_exec?method=accountExist',
-      headers: { "CSRFToken": csrfToken.trim() },
+      headers: { "CSRFToken": csrfToken },
       data: { payload: JSON.stringify({ accountName: $("#accountName").val() }) },
       type: 'POST',
       success: function (response) {

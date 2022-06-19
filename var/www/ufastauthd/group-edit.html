@@ -130,7 +130,7 @@
  
       $.ajax({
       url: '/japi_exec?method=attribGroupRemove',
-      headers: { "CSRFToken": csrfToken.trim() },
+      headers: { "CSRFToken": csrfToken },
       data: {
         payload: JSON.stringify(
           {
@@ -157,7 +157,7 @@
   function addApplicationAttribute() {
     $.ajax({
       url: '/japi_exec?method=attribGroupAdd',
-      headers: { "CSRFToken": csrfToken.trim() },
+      headers: { "CSRFToken": csrfToken },
       data: {
         payload: JSON.stringify(
           {
@@ -186,7 +186,7 @@
 
     $.ajax({
       url: '/japi_exec?method=attribsLeftListForGroup',
-      headers: { "CSRFToken": csrfToken.trim() },
+      headers: { "CSRFToken": csrfToken },
       data: {
         payload: JSON.stringify(
           {
@@ -215,7 +215,7 @@
   function groupAccountRemove(accountId) {
     $.ajax({
       url: '/japi_exec?method=groupAccountRemove',
-      headers: { "CSRFToken": csrfToken.trim() },
+      headers: { "CSRFToken": csrfToken },
       data: {
         payload: JSON.stringify(
           {
@@ -240,7 +240,7 @@
   function modifyGroupDetails() {
     $.ajax({
       url: '/japi_exec?method=groupChangeDescription',
-      headers: { "CSRFToken": csrfToken.trim() },
+      headers: { "CSRFToken": csrfToken },
       data: {
         payload: JSON.stringify(
           {
@@ -267,7 +267,7 @@
     if (r == true) {
       $.ajax({
         url: '/japi_exec?method=groupRemove',
-        headers: { "CSRFToken": csrfToken.trim() },
+        headers: { "CSRFToken": csrfToken },
         data: { payload: JSON.stringify({ groupName: $("#groupName").val() }) },
         type: 'POST',
         success: function (response) {
@@ -291,7 +291,7 @@
     var groupName = $("#groupName").val();
     $.ajax({
       url: '/japi_exec?method=groupBasicInfo',
-      headers: { "CSRFToken": csrfToken.trim() },
+      headers: { "CSRFToken": csrfToken },
       data: { payload: JSON.stringify({ groupName: $("#groupName").val() }) },
       type: 'POST',
       success: function (response) {
@@ -417,7 +417,7 @@
     var groupName = window.atob(location.search.substr(1));
     $.ajax({
       url: '/japi_exec?method=groupExist',
-      headers: { "CSRFToken": csrfToken.trim() },
+      headers: { "CSRFToken": csrfToken },
       data: { payload: JSON.stringify({ groupName: $("#groupName").val() }) },
       type: 'POST',
       success: function (response) {

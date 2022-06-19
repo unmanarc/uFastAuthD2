@@ -165,7 +165,7 @@
   {
     $.ajax({
       url: '/japi_exec?method=applicationChangeDescription',
-      headers: { "CSRFToken": csrfToken.trim() },
+      headers: { "CSRFToken": csrfToken },
       data: {
         payload: JSON.stringify(
           {
@@ -193,7 +193,7 @@
     {
       $.ajax({
       url: '/japi_exec?method=applicationChangeKey',
-      headers: { "CSRFToken": csrfToken.trim() },
+      headers: { "CSRFToken": csrfToken },
       data: {
         payload: JSON.stringify(
           {
@@ -220,7 +220,7 @@
   {
     $.ajax({
       url: '/japi_exec?method=applicationAccountRemove',
-      headers: { "CSRFToken": csrfToken.trim() },
+      headers: { "CSRFToken": csrfToken },
       data: {
         payload: JSON.stringify(
           {
@@ -247,7 +247,7 @@
   {
     $.ajax({
       url: '/japi_exec?method=attribRemove',
-      headers: { "CSRFToken": csrfToken.trim() },
+      headers: { "CSRFToken": csrfToken },
       data: {
         payload: JSON.stringify(
           {
@@ -274,7 +274,7 @@
   function addApplicationAttribute() {
     $.ajax({
       url: '/japi_exec?method=attribAdd',
-      headers: { "CSRFToken": csrfToken.trim() },
+      headers: { "CSRFToken": csrfToken },
       data: {
         payload: JSON.stringify(
           {
@@ -303,7 +303,7 @@
     if (r == true) {
       $.ajax({
         url: '/japi_exec?method=applicationRemove',
-        headers: { "CSRFToken": csrfToken.trim() },
+        headers: { "CSRFToken": csrfToken },
         data: { payload: JSON.stringify({ appName: $("#appName").val() }) },
         type: 'POST',
         success: function (response) {
@@ -335,7 +335,7 @@
     var appName = $("#appName").val();
     $.ajax({
       url: '/japi_exec?method=applicationBasicInfo',
-      headers: { "CSRFToken": csrfToken.trim() },
+      headers: { "CSRFToken": csrfToken },
       data: { payload: JSON.stringify({ appName: $("#appName").val() }) },
       type: 'POST',
       success: function (response) {
@@ -396,7 +396,7 @@
     var appName = window.atob(location.search.substr(1));
     $.ajax({
       url: '/japi_exec?method=applicationExist',
-      headers: { "CSRFToken": csrfToken.trim() },
+      headers: { "CSRFToken": csrfToken },
       data: { payload: JSON.stringify({ appName: $("#appName").val() }) },
       type: 'POST',
       success: function (response) {

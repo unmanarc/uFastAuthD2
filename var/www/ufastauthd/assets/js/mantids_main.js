@@ -9,7 +9,7 @@ function logout() {
   $.ajax({
     url: '/japi_session?mode=LOGOUT',
     type: 'POST',
-    headers: { "CSRFToken": csrfToken.trim() },
+    headers: { "CSRFToken": csrfToken },
     success: logoutOK,
     error: logoutFAILED
   });
@@ -32,7 +32,7 @@ function ajaxAuthReCheck()
 {
   $.ajax({
     url: '/japi_session?mode=AUTHINFO',
-    headers: { "CSRFToken": csrfToken.trim() },
+    headers: { "CSRFToken": csrfToken },
     type: 'POST',
     success: function (response)
     {

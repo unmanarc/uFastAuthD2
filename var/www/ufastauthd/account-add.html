@@ -35,7 +35,7 @@
 
     $.ajax({
       url: '/japi_exec?method=accountAdd',
-      headers: { "CSRFToken": csrfToken.trim() },
+      headers: { "CSRFToken": csrfToken },
       data: { payload: JSON.stringify(payloadData) },
       type: 'POST',
       success: function (response) {

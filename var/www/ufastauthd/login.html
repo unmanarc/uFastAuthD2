@@ -12,12 +12,14 @@
     <script src="assets/js/mantids_login.js" type="text/javascript"></script>
 </head>
 
+<%jvar/csrfToken:csrfToken%>
+<%jvar/softwareVersion:softwareVersion%>
+<%jvar/user:user%>
+<%jvar/domain:domain%>
+<%jvar/maxAge:maxAge%>
+<%jvar/userAgent:userAgent%>
+
 <body onload="javascript:ajaxLoginStart()">
-    <cInputVar>csrfToken</cInputVar>
-    <cInputVar>softwareVersion</cInputVar>
-    <cInputVar>user</cInputVar>
-    <cInputVar>domain</cInputVar>
-    <cInputVar>maxAge</cInputVar>
     
     <div class="row text-center vh-100 justify-content-center align-items-center">
         <div class="col-md-5 text-center my-auto">

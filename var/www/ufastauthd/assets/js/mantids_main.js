@@ -7,14 +7,13 @@ function logoutFAILED(response) {
 }
 function logout() {
   $.ajax({
-    url: '/api?mode=LOGOUT',
+    url: '/japi_session?mode=LOGOUT',
     type: 'POST',
-    headers: { "CSRFToken": $("#csrfToken").val().trim() },
+    headers: { "CSRFToken": csrfToken.trim() },
     success: logoutOK,
     error: logoutFAILED
   });
 }
-
 
 function commonFunctionError(xhr, ajaxOptions, thrownError) {
   if (xhr.status == 404) {
@@ -27,14 +26,13 @@ function commonFunctionError(xhr, ajaxOptions, thrownError) {
   }
 }
 
-
 var intervalId = -1;
 
 function ajaxAuthReCheck() 
 {
   $.ajax({
-    url: '/api?mode=AUTHINFO',
-    headers: { "CSRFToken": $("#csrfToken").val().trim() },
+    url: '/japi_session?mode=AUTHINFO',
+    headers: { "CSRFToken": csrfToken.trim() },
     type: 'POST',
     success: function (response)
     {
@@ -62,11 +60,11 @@ function ajaxAuthReCheck()
 }
 
 function ajaxLoadInfo() {
- $('#welcome').text("Welcome " +$('#user').val());
- $("#version").text($('#softwareVersion').val());
+ $('#welcome').text("Welcome " + user);
+ $("#version").text(softwareVersion);
 
   // Check the authentication when the session is supposed to expire, and logout if there is no session.
-  var intTime = parseInt($('#maxAge').val() ,10)+1;
+  var intTime = maxAge+1;
   console.log("Setting up the next session check to " + intTime + " sec's in future.");
   intervalId = setInterval(ajaxAuthReCheck,intTime*1000);
 
@@ -77,9 +75,9 @@ function ajaxRemoteExecuteMethod( methodPermLevel, target, methodName, payload, 
   var method = "remote." + methodPermLevel;
   var payloadData = { "target": target, "remoteMethod": methodPermLevel + "." + methodName, "payload" : payload }
   $.ajax({
-    url: '/api?mode=EXEC&method=' + method,
+    url: '/japi_exec?method=' + method,
     type: 'POST',
-    headers: { "CSRFToken": $("#csrfToken").val() },
+    headers: { "CSRFToken": csrfToken },
     data: { payload: JSON.stringify(payloadData) },
     success: successFunction,
     error: function (result) {
@@ -91,9 +89,9 @@ function ajaxRemoteExecuteMethod( methodPermLevel, target, methodName, payload, 
 
 function ajaxExecuteMethod( methodName, payloadData, successFunction ) {
   $.ajax({
-    url: '/api?mode=EXEC&method=' + methodName,
+    url: '/japi_exec?method=' + methodName,
     type: 'POST',
-    headers: { "CSRFToken": $("#csrfToken").val() },
+    headers: { "CSRFToken": csrfToken },
     data: { payload: JSON.stringify(payloadData) },
     success: successFunction,
     error: function (result) {

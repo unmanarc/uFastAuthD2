@@ -1,5 +1,5 @@
-<cinc_>/assets/hidden/inc.main.header.html</cinc_>
-<cinc_>/assets/hidden/inc.accounts.header.html</cinc_>
+<%include:/assets/hidden/inc.main.header.html%>
+<%include:/assets/hidden/inc.accounts.header.html%>
 <script>
   document.getElementById("apptitle").innerHTML = "Accounts &#9658; Create New Account";
 
@@ -34,8 +34,8 @@
     };
 
     $.ajax({
-      url: '/api?mode=EXEC&method=accountAdd',
-      headers: { "CSRFToken": $("#csrfToken").val().trim() },
+      url: '/japi_exec?method=accountAdd',
+      headers: { "CSRFToken": csrfToken.trim() },
       data: { payload: JSON.stringify(payloadData) },
       type: 'POST',
       success: function (response) {
@@ -117,7 +117,7 @@
 
   <hr>
 
-<cinc_>/assets/hidden/inc.accounts.footer.html</cinc_>
-<cinc_>/assets/hidden/inc.main.footer.html</cinc_>
+<%include:/assets/hidden/inc.accounts.footer.html%>
+<%include:/assets/hidden/inc.main.footer.html%>
 
 

@@ -1,13 +1,13 @@
-<cinc_>/assets/hidden/inc.main.header.html</cinc_>
-<cinc_>/assets/hidden/inc.groups.header.html</cinc_>
+<%include:/assets/hidden/inc.main.header.html%>
+<%include:/assets/hidden/inc.groups.header.html%>
 <script>
   document.getElementById("apptitle").innerHTML = "Groups &#9658; Groups Directory";
 
   function ajaxLoadGroupList() {
     var method = "groupsBasicInfoSearch";
     $.ajax({
-      url: '/api?mode=EXEC&method=' + method,
-      headers: { "CSRFToken": $("#csrfToken").val().trim() },
+      url: '/japi_exec?method=' + method,
+      headers: { "CSRFToken": csrfToken.trim() },
       data: { payload: JSON.stringify({ searchWords: $("#searchField").val(), limit: 0, offset: 0 }) },
       type: 'POST',
       success: function (response) {
@@ -68,5 +68,5 @@
   </table>
 
 
-<cinc_>/assets/hidden/inc.groups.footer.html</cinc_>
-<cinc_>/assets/hidden/inc.main.footer.html</cinc_>
+<%include:/assets/hidden/inc.groups.footer.html%>
+<%include:/assets/hidden/inc.main.footer.html%>

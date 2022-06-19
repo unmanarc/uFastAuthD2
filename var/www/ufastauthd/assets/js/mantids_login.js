@@ -30,7 +30,7 @@ function loginFAILED(request, status, error) {
 function CSRFResponseOKForLogin(response) {
     // Put the CSRF Token into the 
     if (response) {
-        $('#csrfToken').val(response["csrfToken"]);
+        csrfToken = response["csrfToken"];
     }
 }
 
@@ -63,7 +63,7 @@ function loginConfirmSession(response) {
 
     // Now the CSRF token is fixed in the session, we can get it using the session ID:
     $.ajax({
-        url: '/api?mode=CSRFTOKEN',
+        url: '/japi_session?mode=CSRFTOKEN',
         type: 'POST',
         success: CSRFResponseOKForLogin,
         error: loginFAILED
@@ -99,7 +99,7 @@ function loginAnswerProcessor(response) {
         if (lNextPassIDX == 0) {
             // First time here.
             $.ajax({
-                url: '/api?mode=AUTHCSRF',
+                url: '/japi_session?mode=AUTHCSRF',
                 type: 'POST',
                 headers: { "CSRFToken": response["csrfAuthConfirm"] },
                 data: { sessionId: response["sessionId"] },
@@ -124,7 +124,7 @@ function ajaxLogin() {
         // Login for master key ID=0 (Session Openning)
         $('#message').text('logging in...');
         $.ajax({
-            url: '/api?mode=LOGIN',
+            url: '/japi_session?mode=LOGIN',
             type: 'POST',
             headers: { "CSRFToken": "00112233445566778899" },
             data: {
@@ -140,9 +140,9 @@ function ajaxLogin() {
         $('#message').text('Submitting authentication ID(#' + nextPassIDX + ')');
 
         $.ajax({
-            url: '/api?mode=POSTLOGIN',
+            url: '/japi_session?mode=POSTLOGIN',
             type: 'POST',
-            headers: { "CSRFToken": $("#csrfToken").val().trim() },
+            headers: { "CSRFToken": csrfToken },
             data: {
                 auth: JSON.stringify({ pass: $("#password").val(), idx: nextPassIDX })
             },
@@ -159,9 +159,9 @@ function ajaxLogout()
     document.getElementById("logoutform").style.visibility = "collapse";
 
     $.ajax({
-        url: '/api?mode=LOGOUT',
+        url: '/japi_session?mode=LOGOUT',
         type: 'POST',
-        headers: { "CSRFToken": $("#csrfToken").val().trim() },
+        headers: { "CSRFToken": csrfToken },
         success: function (result) {
             $('#message').text('You have been logged out, Ready.');
         },
@@ -178,7 +178,7 @@ function showLogoutDialogOnSession() {
     document.getElementById("loginform").style.visibility = "visible";
     document.getElementById("logoutform").style.visibility = "collapse";
 
-    if ($("#csrfToken").val() == "")
+    if (csrfToken == null)
     {
         // If CSRF returns nothing, is because the cookie does not exist, or the cookie does not handle a valid session, or the session has not be fully authenticated, in each case, drop the cookie
         document.cookie = "sessionId= ; expires = Thu, 01 Jan 1970 00:00:00 GMT";
@@ -196,7 +196,7 @@ function showLogoutDialogOnSession() {
 
 
 function ajaxLoginStart() {
-    $("#version").text($('#softwareVersion').val());
+    $("#version").text(softwareVersion);
 
     showLogoutDialogOnSession();
 }

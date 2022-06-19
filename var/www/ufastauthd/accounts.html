@@ -1,63 +1,69 @@
-<cinc_>/assets/hidden/inc.main.header.html</cinc_>
-<cinc_>/assets/hidden/inc.accounts.header.html</cinc_>
+<%include:/assets/hidden/inc.main.header.html%>
+<%include:/assets/hidden/inc.accounts.header.html%>
+
+<%jfunc/accountBasicInfoSearchData:accountsBasicInfoSearch({searchWords:"",limit:0,offset:0})%>
+
 <script>
   document.getElementById("apptitle").innerHTML = "Accounts &#9658; Accounts Directory";
 
+  function drawUserList(response) 
+  {
+    document.getElementById("tbody-ulist").innerHTML = "";
+    let userId = 0;
+    for (let userInfo of response) {
+      let b64UserName = window.btoa(userInfo["accountName"]);
+
+      $("#tbody-ulist").append(
+        `<tr> 
+            <th scope="row" id=ulist-user-${userId}></th>
+            <td id=ulist-givenAndLastName-${userId}></td>
+            <td id=ulist-description-${userId}></td>
+            <td><a href="" id=ulist-mail-${userId}></a></td>
+            <td id=ulist-status-${userId}></td>
+            <td style="text-align: right;">
+              <button type="button" class="btn btn-info btn-sm" onclick="window.location='account-edit?${b64UserName}'">Edit</button>
+              <!--<button type="button" class="btn btn-danger btn-sm" onclick="window.location='account-remove?${b64UserName}'">Remove</button>-->
+            </td>
+          </tr>`
+      );
+      $(`#ulist-user-${userId}`).text(userInfo["accountName"]);
+      $(`#ulist-givenAndLastName-${userId}`).text(userInfo["givenName"] + " " + userInfo["lastName"]);
+      $(`#ulist-description-${userId}`).text(userInfo["description"]);
+      $(`#ulist-mail-${userId}`).text(userInfo["email"]);
+      if (userInfo["enabled"] == true && userInfo["confirmed"] == true && userInfo["expired"] == false)
+        document.getElementById(`ulist-status-${userId}`).innerHTML = " <span class=\"badge badge-success\">Operational</span>";
+      else {
+        if (userInfo["enabled"] == false)
+          document.getElementById(`ulist-status-${userId}`).innerHTML = document.getElementById(`ulist-status-${userId}`).innerHTML + " <span class=\"badge badge-danger\">Disabled</span>";
+        if (userInfo["confirmed"] == false)
+          document.getElementById(`ulist-status-${userId}`).innerHTML = document.getElementById(`ulist-status-${userId}`).innerHTML + " <span class=\"badge badge-warning\">Unconfirmed</span>";
+        if (userInfo["expired"] == true)
+          document.getElementById(`ulist-status-${userId}`).innerHTML = document.getElementById(`ulist-status-${userId}`).innerHTML + " <span class=\"badge badge-warning\">Expired</span>";
+      }
+      if (userInfo["superuser"] == true)
+        document.getElementById(`ulist-status-${userId}`).innerHTML = document.getElementById(`ulist-status-${userId}`).innerHTML + " <span class=\"badge badge-primary\">SuperUser</span>";
+
+      userId++;
+    }
+  }
   function ajaxLoadUserList() {
     var method = "accountsBasicInfoSearch";
     var payloadData = { searchWords: $("#searchField").val(), limit: 0, offset: 0 };
     $.ajax({
-      url: '/api?mode=EXEC&method=' + method,
-      headers: { "CSRFToken": $("#csrfToken").val().trim() },
+      url: '/japi_exec?method=' + method,
+      headers: { "CSRFToken": csrfToken.trim() },
       data: { payload: JSON.stringify(payloadData) },
       type: 'POST',
-      success: function (response) {
-        document.getElementById("tbody-ulist").innerHTML = "";
-        let userId = 0;
-        for (let userInfo of response) {
-          let b64UserName = window.btoa(userInfo["accountName"]);
-
-          $("#tbody-ulist").append(
-            `<tr> 
-                <th scope="row" id=ulist-user-${userId}></th>
-                <td id=ulist-givenAndLastName-${userId}></td>
-                <td id=ulist-description-${userId}></td>
-                <td><a href="" id=ulist-mail-${userId}></a></td>
-                <td id=ulist-status-${userId}></td>
-                <td style="text-align: right;">
-                  <button type="button" class="btn btn-info btn-sm" onclick="window.location='account-edit?${b64UserName}'">Edit</button>
-                  <!--<button type="button" class="btn btn-danger btn-sm" onclick="window.location='account-remove?${b64UserName}'">Remove</button>-->
-                </td>
-              </tr>`
-          );
-          $(`#ulist-user-${userId}`).text(userInfo["accountName"]);
-          $(`#ulist-givenAndLastName-${userId}`).text(userInfo["givenName"] + " " + userInfo["lastName"]);
-          $(`#ulist-description-${userId}`).text(userInfo["description"]);
-          $(`#ulist-mail-${userId}`).text(userInfo["email"]);
-          if (userInfo["enabled"] == true && userInfo["confirmed"] == true && userInfo["expired"] == false)
-            document.getElementById(`ulist-status-${userId}`).innerHTML = " <span class=\"badge badge-success\">Operational</span>";
-          else {
-            if (userInfo["enabled"] == false)
-              document.getElementById(`ulist-status-${userId}`).innerHTML = document.getElementById(`ulist-status-${userId}`).innerHTML + " <span class=\"badge badge-danger\">Disabled</span>";
-            if (userInfo["confirmed"] == false)
-              document.getElementById(`ulist-status-${userId}`).innerHTML = document.getElementById(`ulist-status-${userId}`).innerHTML + " <span class=\"badge badge-warning\">Unconfirmed</span>";
-            if (userInfo["expired"] == true)
-              document.getElementById(`ulist-status-${userId}`).innerHTML = document.getElementById(`ulist-status-${userId}`).innerHTML + " <span class=\"badge badge-warning\">Expired</span>";
-          }
-          if (userInfo["superuser"] == true)
-            document.getElementById(`ulist-status-${userId}`).innerHTML = document.getElementById(`ulist-status-${userId}`).innerHTML + " <span class=\"badge badge-primary\">SuperUser</span>";
-
-          userId++;
-        }
-      },
+      success: drawUserList,
       error: commonFunctionError
     });
   }
 
   // Default Main View:
   function csrfReady() {
-    ajaxLoadUserList();
+    drawUserList(accountBasicInfoSearchData);
   }
+
 </script>
 
 <table width=100%>
@@ -83,5 +89,5 @@
 </table>
 
 
-<cinc_>/assets/hidden/inc.accounts.footer.html</cinc_>
-<cinc_>/assets/hidden/inc.main.footer.html</cinc_>
+<%include:/assets/hidden/inc.accounts.footer.html%>
+<%include:/assets/hidden/inc.main.footer.html%>

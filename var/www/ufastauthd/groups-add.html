@@ -1,5 +1,5 @@
-<cinc_>/assets/hidden/inc.main.header.html</cinc_>
-<cinc_>/assets/hidden/inc.groups.header.html</cinc_>
+<%include:/assets/hidden/inc.main.header.html%>
+<%include:/assets/hidden/inc.groups.header.html%>
 <script>
     document.getElementById("apptitle").innerHTML = "Groups &#9658; Create New Group";
 
@@ -13,8 +13,8 @@
         };
 
         $.ajax({
-            url: '/api?mode=EXEC&method=groupAdd',
-            headers: { "CSRFToken": $("#csrfToken").val().trim() },
+            url: '/japi_exec?method=groupAdd',
+            headers: { "CSRFToken": csrfToken.trim() },
             data: { payload: JSON.stringify(payloadData) },
             type: 'POST',
             success: function (response) {
@@ -49,5 +49,5 @@
   <tr><td align="right">Description: </td><td><input id="description" class="form-control" placeholder="Description"></td></tr>
 </table>
 
-<cinc_>/assets/hidden/inc.groups.footer.html</cinc_>
-<cinc_>/assets/hidden/inc.main.footer.html</cinc_>
+<%include:/assets/hidden/inc.groups.footer.html%>
+<%include:/assets/hidden/inc.main.footer.html%>

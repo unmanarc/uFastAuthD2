@@ -1,7 +1,5 @@
-<cinc_>/assets/hidden/inc.main.header.html</cinc_>
-<cinc_>/assets/hidden/inc.groups.header.html</cinc_>
-
-
+<%include:/assets/hidden/inc.main.header.html%>
+<%include:/assets/hidden/inc.groups.header.html%>
 
 <table width=90% align="center" style=" border-spacing: 15px;   border-collapse: separate;">
   <tr><td align="right" width=15%>Editing Group: </td><td><input type="username" name="username" id="groupName" class="form-control" placeholder="Group Name" readonly></td></tr>
@@ -131,8 +129,8 @@
     {
  
       $.ajax({
-      url: '/api?mode=EXEC&method=attribGroupRemove',
-      headers: { "CSRFToken": $("#csrfToken").val().trim() },
+      url: '/japi_exec?method=attribGroupRemove',
+      headers: { "CSRFToken": csrfToken.trim() },
       data: {
         payload: JSON.stringify(
           {
@@ -158,8 +156,8 @@
 
   function addApplicationAttribute() {
     $.ajax({
-      url: '/api?mode=EXEC&method=attribGroupAdd',
-      headers: { "CSRFToken": $("#csrfToken").val().trim() },
+      url: '/japi_exec?method=attribGroupAdd',
+      headers: { "CSRFToken": csrfToken.trim() },
       data: {
         payload: JSON.stringify(
           {
@@ -187,8 +185,8 @@
     document.getElementById('applicationAttribs').innerHTML = "";
 
     $.ajax({
-      url: '/api?mode=EXEC&method=attribsLeftListForGroup',
-      headers: { "CSRFToken": $("#csrfToken").val().trim() },
+      url: '/japi_exec?method=attribsLeftListForGroup',
+      headers: { "CSRFToken": csrfToken.trim() },
       data: {
         payload: JSON.stringify(
           {
@@ -216,8 +214,8 @@
 
   function groupAccountRemove(accountId) {
     $.ajax({
-      url: '/api?mode=EXEC&method=groupAccountRemove',
-      headers: { "CSRFToken": $("#csrfToken").val().trim() },
+      url: '/japi_exec?method=groupAccountRemove',
+      headers: { "CSRFToken": csrfToken.trim() },
       data: {
         payload: JSON.stringify(
           {
@@ -241,8 +239,8 @@
 
   function modifyGroupDetails() {
     $.ajax({
-      url: '/api?mode=EXEC&method=groupChangeDescription',
-      headers: { "CSRFToken": $("#csrfToken").val().trim() },
+      url: '/japi_exec?method=groupChangeDescription',
+      headers: { "CSRFToken": csrfToken.trim() },
       data: {
         payload: JSON.stringify(
           {
@@ -268,8 +266,8 @@
     var r = confirm("Do you really want to completly remove this group?\nConsider disabling it instead.");
     if (r == true) {
       $.ajax({
-        url: '/api?mode=EXEC&method=groupRemove',
-        headers: { "CSRFToken": $("#csrfToken").val().trim() },
+        url: '/japi_exec?method=groupRemove',
+        headers: { "CSRFToken": csrfToken.trim() },
         data: { payload: JSON.stringify({ groupName: $("#groupName").val() }) },
         type: 'POST',
         success: function (response) {
@@ -292,8 +290,8 @@
 
     var groupName = $("#groupName").val();
     $.ajax({
-      url: '/api?mode=EXEC&method=groupBasicInfo',
-      headers: { "CSRFToken": $("#csrfToken").val().trim() },
+      url: '/japi_exec?method=groupBasicInfo',
+      headers: { "CSRFToken": csrfToken.trim() },
       data: { payload: JSON.stringify({ groupName: $("#groupName").val() }) },
       type: 'POST',
       success: function (response) {
@@ -418,8 +416,8 @@
   function ajaxValidateAndPopulateGroup() {
     var groupName = window.atob(location.search.substr(1));
     $.ajax({
-      url: '/api?mode=EXEC&method=groupExist',
-      headers: { "CSRFToken": $("#csrfToken").val().trim() },
+      url: '/japi_exec?method=groupExist',
+      headers: { "CSRFToken": csrfToken.trim() },
       data: { payload: JSON.stringify({ groupName: $("#groupName").val() }) },
       type: 'POST',
       success: function (response) {
@@ -437,11 +435,5 @@
 
 </script>
 
-
-
-
-
-
-
-<cinc_>/assets/hidden/inc.groups.footer.html</cinc_>
-<cinc_>/assets/hidden/inc.main.footer.html</cinc_>
+<%include:/assets/hidden/inc.groups.footer.html%>
+<%include:/assets/hidden/inc.main.footer.html%>

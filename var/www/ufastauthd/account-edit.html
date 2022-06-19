@@ -1,5 +1,5 @@
-<cinc_>/assets/hidden/inc.main.header.html</cinc_>
-<cinc_>/assets/hidden/inc.accounts.header.html</cinc_>
+<%include:/assets/hidden/inc.main.header.html%>
+<%include:/assets/hidden/inc.accounts.header.html%>
 
 <table width=90% align="center" style=" border-spacing: 15px;   border-collapse: separate;">
   <tr><td align="right" width=15%>Editing Account: </td><td><input type="username" name="username" id="accountName" class="form-control" placeholder="Account Name" readonly></td></tr>
@@ -207,8 +207,8 @@
   function attribRemove(appId,attribId)
   {
     $.ajax({
-      url: '/api?mode=EXEC&method=attribAccountRemove',
-      headers: { "CSRFToken": $("#csrfToken").val().trim() },
+      url: '/japi_exec?method=attribAccountRemove',
+      headers: { "CSRFToken": csrfToken.trim() },
       data: {
         payload: JSON.stringify(
           {
@@ -244,8 +244,8 @@
     }
 
     $.ajax({
-      url: '/api?mode=EXEC&method=attribAccountAdd',
-      headers: { "CSRFToken": $("#csrfToken").val().trim() },
+      url: '/japi_exec?method=attribAccountAdd',
+      headers: { "CSRFToken": csrfToken.trim() },
       data: {
         payload: JSON.stringify(
           {
@@ -273,8 +273,8 @@
     var appName = document.getElementById(`userapp-key-${appId}`).value;
 
     $.ajax({
-      url: '/api?mode=EXEC&method=applicationAccountRemove',
-      headers: { "CSRFToken": $("#csrfToken").val().trim() },
+      url: '/japi_exec?method=applicationAccountRemove',
+      headers: { "CSRFToken": csrfToken.trim() },
       data: {
         payload: JSON.stringify(
           {
@@ -307,8 +307,8 @@
     }
 
     $.ajax({
-      url: '/api?mode=EXEC&method=applicationAccountAdd',
-      headers: { "CSRFToken": $("#csrfToken").val().trim() },
+      url: '/japi_exec?method=applicationAccountAdd',
+      headers: { "CSRFToken": csrfToken.trim() },
       data: {
         payload: JSON.stringify(
           {
@@ -365,8 +365,8 @@
       selected1.push(select1.options[i].value);
     }
     $.ajax({
-      url: '/api?mode=EXEC&method=accountChangeGroupSet',
-      headers: { "CSRFToken": $("#csrfToken").val().trim() },
+      url: '/japi_exec?method=accountChangeGroupSet',
+      headers: { "CSRFToken": csrfToken.trim() },
       data: {
         payload: JSON.stringify(
           {
@@ -390,8 +390,8 @@
 
   function modifyAccountDetails() {
     $.ajax({
-      url: '/api?mode=EXEC&method=accountChangeBasicInfo',
-      headers: { "CSRFToken": $("#csrfToken").val().trim() },
+      url: '/japi_exec?method=accountChangeBasicInfo',
+      headers: { "CSRFToken": csrfToken.trim() },
       data: {
         payload: JSON.stringify(
           {
@@ -426,8 +426,8 @@
     var r = confirm("Do you really want to completly remove this account?\nConsider disabling it instead.");
     if (r == true) {
       $.ajax({
-        url: '/api?mode=EXEC&method=accountRemove',
-        headers: { "CSRFToken": $("#csrfToken").val().trim() },
+        url: '/japi_exec?method=accountRemove',
+        headers: { "CSRFToken": csrfToken.trim() },
         data: { payload: JSON.stringify({ accountName: $("#accountName").val() }) },
         type: 'POST',
         success: function (response) {
@@ -450,8 +450,8 @@
 
     var accountName = $("#accountName").val();
     $.ajax({
-      url: '/api?mode=EXEC&method=accountBasicInfo',
-      headers: { "CSRFToken": $("#csrfToken").val().trim() },
+      url: '/japi_exec?method=accountBasicInfo',
+      headers: { "CSRFToken": csrfToken.trim() },
       data: { payload: JSON.stringify({ accountName: $("#accountName").val() }) },
       type: 'POST',
       success: function (response) {
@@ -598,8 +598,8 @@
   function ajaxValidateAndPopulateAccount() {
     var accountName = window.atob(location.search.substr(1));
     $.ajax({
-      url: '/api?mode=EXEC&method=accountExist',
-      headers: { "CSRFToken": $("#csrfToken").val().trim() },
+      url: '/japi_exec?method=accountExist',
+      headers: { "CSRFToken": csrfToken.trim() },
       data: { payload: JSON.stringify({ accountName: $("#accountName").val() }) },
       type: 'POST',
       success: function (response) {
@@ -635,8 +635,8 @@
 </script>
 
 
-<cinc_>/assets/hidden/inc.accounts.footer.html</cinc_>
-<cinc_>/assets/hidden/inc.main.footer.html</cinc_>
+<%include:/assets/hidden/inc.accounts.footer.html%>
+<%include:/assets/hidden/inc.main.footer.html%>
 
 
 

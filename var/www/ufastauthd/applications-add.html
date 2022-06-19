@@ -1,5 +1,5 @@
-<cinc_>/assets/hidden/inc.main.header.html</cinc_>
-<cinc_>/assets/hidden/inc.applications.header.html</cinc_>
+<%include:/assets/hidden/inc.main.header.html%>
+<%include:/assets/hidden/inc.applications.header.html%>
 <script>
     document.getElementById("apptitle").innerHTML = "Applications &#9658; Create New Application";
 
@@ -15,8 +15,8 @@
         };
 
         $.ajax({
-            url: '/api?mode=EXEC&method=applicationAdd',
-            headers: { "CSRFToken": $("#csrfToken").val().trim() },
+            url: '/japi_exec?method=applicationAdd',
+            headers: { "CSRFToken": csrfToken.trim() },
             data: { payload: JSON.stringify(payloadData) },
             type: 'POST',
             success: function (response) {
@@ -56,5 +56,5 @@
         </td></tr>
 </table>
 
-<cinc_>/assets/hidden/inc.applications.footer.html</cinc_>
-<cinc_>/assets/hidden/inc.main.footer.html</cinc_>
+<%include:/assets/hidden/inc.applications.footer.html%>
+<%include:/assets/hidden/inc.main.footer.html%>

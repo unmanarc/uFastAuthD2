@@ -11,6 +11,7 @@
 
 #include <sstream>
 #include <ostream>
+#include <inttypes.h>
 
 using namespace Mantids::Application;
 using namespace Mantids::RPC::Web;
@@ -31,12 +32,12 @@ bool WebServerImpl::createWebServer()
 
     if (!sockWebListen->setTLSPublicKeyPath(  Globals::getConfig_main()->get<std::string>("WebServer.CertFile","snakeoil.crt").c_str()  ))
     {
-        Globals::getAppLog()->log0(__func__,Logs::LEVEL_CRITICAL, "Error starting Web Server @%s:%d: %s", listenAddr.c_str(), listenPort, "Bad TLS WEB Server Public Key");
+        Globals::getAppLog()->log0(__func__,Logs::LEVEL_CRITICAL, "Error starting Web Server @%s:%" PRIu16 ": %s", listenAddr.c_str(), listenPort, "Bad TLS WEB Server Public Key");
         return false;
     }
     if (!sockWebListen->setTLSPrivateKeyPath( Globals::getConfig_main()->get<std::string>("WebServer.KeyFile","snakeoil.key").c_str()  ))
     {
-        Globals::getAppLog()->log0(__func__,Logs::LEVEL_CRITICAL, "Error starting Web Server @%s:%d: %s", listenAddr.c_str(), listenPort, "Bad TLS WEB Server Private Key");
+        Globals::getAppLog()->log0(__func__,Logs::LEVEL_CRITICAL, "Error starting Web Server @%s:%" PRIu16 ": %s", listenAddr.c_str(), listenPort, "Bad TLS WEB Server Private Key");
         return false;
     }
 
@@ -69,12 +70,12 @@ bool WebServerImpl::createWebServer()
         else
             webServer->acceptMultiThreaded(sockWebListen, Globals::getConfig_main()->get<uint32_t>("WebServer.MaxThreads", 10000));
 
-        Globals::getAppLog()->log0(__func__,Logs::LEVEL_INFO,  "Web Server Listening @%s:%d", listenAddr.c_str(), listenPort);
+        Globals::getAppLog()->log0(__func__,Logs::LEVEL_INFO,  "Web Server Listening @%s:%" PRIu16, listenAddr.c_str(), listenPort);
         return true;
     }
     else
     {
-        Globals::getAppLog()->log0(__func__,Logs::LEVEL_CRITICAL, "Error starting Web Server @%s:%d: %s", listenAddr.c_str(), listenPort, sockWebListen->getLastError().c_str());
+        Globals::getAppLog()->log0(__func__,Logs::LEVEL_CRITICAL, "Error starting Web Server @%s:%" PRIu16 ": %s", listenAddr.c_str(), listenPort, sockWebListen->getLastError().c_str());
         return false;
     }
 }

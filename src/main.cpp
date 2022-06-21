@@ -17,6 +17,7 @@
 #include <signal.h>
 #include <dirent.h>
 #include <unistd.h>
+#include <inttypes.h>
 
 using namespace AUTHSERVER;
 
@@ -35,7 +36,7 @@ public:
         std::string configDir = globalArguments->getCommandLineOptionValue("config-dir")->toString();
 
         // start program.
-        Globals::getAppLog()->log(__func__, "","", Logs::LEVEL_INFO, 2048, "Starting... (Build date %s %s), PID: %u",__DATE__, __TIME__, getpid());
+        Globals::getAppLog()->log(__func__, "","", Logs::LEVEL_INFO, 2048, "Starting... (Build date %s %s), PID: %" PRIi32,__DATE__, __TIME__, getpid());
         Globals::getAppLog()->log0(__func__,Logs::LEVEL_INFO, "Using config dir: %s", configDir.c_str());
 
         // TODO: for MySQL Authenticator, how reconnect takes place?

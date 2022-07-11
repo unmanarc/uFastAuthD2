@@ -1,7 +1,7 @@
 #ifndef RPC_H
 #define RPC_H
 
-#include <mdz_net_sockets/streamsocket.h>
+#include <mdz_net_sockets/socket_streambase.h>
 #include <mdz_xrpc_fast/fastrpc.h>
 
 namespace AUTHSERVER { namespace RPC {
@@ -36,7 +36,7 @@ public:
 //    static void callbackOnRPCConnected(const std::string &key, void * data);
 
 private:
-    static bool callbackOnRPCConnect(void *, Mantids::Network::Streams::StreamSocket *sock, const char *remoteAddr, bool secure);
+    static bool callbackOnRPCConnect(void *, Mantids::Network::Sockets::Socket_StreamBase *sock, const char *remoteAddr, bool secure);
 };
 
 }}

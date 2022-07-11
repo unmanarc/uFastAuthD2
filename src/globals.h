@@ -10,6 +10,9 @@
 #include <mutex>
 #include <list>
 
+#define LOG_APP Globals::getAppLog()
+#define LOG_RPC Globals::getRPCLog()
+
 namespace AUTHSERVER {
 
 class Globals

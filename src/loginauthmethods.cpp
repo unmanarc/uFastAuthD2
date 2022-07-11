@@ -383,7 +383,7 @@ json Mantids::RPC::Templates::LoginAuth::authenticate(void * obj, const std::str
 
 
 
-    Globals::getAppLog()->log2(__func__,JSON_ASSTRING(payload,"accountName",""),clientDetails.sIPAddr,
+    LOG_APP->log2(__func__,JSON_ASSTRING(payload,"accountName",""),clientDetails.sIPAddr,
             JSON_ASUINT(payloadOut,"retCode",0)? Logs::LEVEL_WARN : Logs::LEVEL_INFO
                                             , "Account Authentication Result: %" PRIu32 " - %s, for application %s", JSON_ASUINT(payloadOut,"retCode",0),Mantids::Authentication::getReasonText((Mantids::Authentication::Reason)JSON_ASUINT(payloadOut,"retCode",0)),getAppNameFromConnectionKey(connectionKey).c_str() );
 
@@ -425,7 +425,7 @@ json Mantids::RPC::Templates::LoginAuth::accountChangeAuthenticatedSecret(void *
                                                                   );
 
 
-    Globals::getAppLog()->log2(__func__,JSON_ASSTRING(payload,"accountName",""),clientDetails.sIPAddr,
+    LOG_APP->log2(__func__,JSON_ASSTRING(payload,"accountName",""),clientDetails.sIPAddr,
             JSON_ASBOOL(payloadOut,"retCode",false)? Logs::LEVEL_INFO : Logs::LEVEL_WARN
                                             , "Account Change Authentication Result: %" PRIu8, JSON_ASBOOL(payloadOut,"retCode",false)?1:0);
 
@@ -490,7 +490,7 @@ json Mantids::RPC::Templates::LoginAuth::attribAdd(void *obj, const std::string 
             );
 
 
-    Globals::getAppLog()->log0(__func__,JSON_ASBOOL(payloadOut,"retCode",false)? Logs::LEVEL_INFO : Logs::LEVEL_WARN
+    LOG_APP->log0(__func__,JSON_ASBOOL(payloadOut,"retCode",false)? Logs::LEVEL_INFO : Logs::LEVEL_WARN
                                                                         , "Adding Attribute '%s' to Application '%s' - %" PRIu8,
                                JSON_ASSTRING(payload,"attribName","").c_str(),getAppNameFromConnectionKey(connectionKey).c_str(),
                                JSON_ASBOOL(payloadOut,"retCode",false)?1:0);
@@ -504,7 +504,7 @@ json Mantids::RPC::Templates::LoginAuth::attribRemove(void *obj, const std::stri
     json payloadOut;
     payloadOut["retCode"] = auth->attribRemove( { getAppNameFromConnectionKey(connectionKey), JSON_ASSTRING(payload,"attribName","") });
 
-    Globals::getAppLog()->log0(__func__,JSON_ASBOOL(payloadOut,"retCode",false)? Logs::LEVEL_INFO : Logs::LEVEL_WARN
+    LOG_APP->log0(__func__,JSON_ASBOOL(payloadOut,"retCode",false)? Logs::LEVEL_INFO : Logs::LEVEL_WARN
                                                                         , "Removing Attribute '%s' from Application '%s' - %" PRIu8,
                                JSON_ASSTRING(payload,"attribName","").c_str(),getAppNameFromConnectionKey(connectionKey).c_str(),  JSON_ASBOOL(payloadOut,"retCode",false)?1:0);
 
@@ -520,7 +520,7 @@ json Mantids::RPC::Templates::LoginAuth::attribChangeDescription(void *obj, cons
             );
 
 
-    Globals::getAppLog()->log0(__func__,JSON_ASBOOL(payloadOut,"retCode",false)? Logs::LEVEL_INFO : Logs::LEVEL_WARN
+    LOG_APP->log0(__func__,JSON_ASBOOL(payloadOut,"retCode",false)? Logs::LEVEL_INFO : Logs::LEVEL_WARN
                                                                         , "Changing description to Attribute '%s' from Application '%s' - %" PRIu8,
                                JSON_ASSTRING(payload,"attribName","").c_str(),getAppNameFromConnectionKey(connectionKey).c_str(),  JSON_ASBOOL(payloadOut,"retCode",false)?1:0);
 

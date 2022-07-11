@@ -43,7 +43,7 @@ bool AuthStorageImpl::createAuth()
         SQLConnector_SQLite3 * sqlConnector = new SQLConnector_SQLite3;
         if (!sqlConnector->connect(dbFilePath))
         {
-            Globals::getAppLog()->log0(__func__,Logs::LEVEL_CRITICAL, "Error, Failed to open/create SQLite3 file: '%s'", dbFilePath.c_str());
+            LOG_APP->log0(__func__,Logs::LEVEL_CRITICAL, "Error, Failed to open/create SQLite3 file: '%s'", dbFilePath.c_str());
             return false;
         }
 
@@ -61,7 +61,7 @@ bool AuthStorageImpl::createAuth()
     }*/
     else
     {
-        Globals::getAppLog()->log0(__func__,Logs::LEVEL_CRITICAL, "Error, Authentication driver '%s' not implemented", sDriverName.c_str());
+        LOG_APP->log0(__func__,Logs::LEVEL_CRITICAL, "Error, Authentication driver '%s' not implemented", sDriverName.c_str());
     }
 
     if (!authManager)
@@ -69,7 +69,7 @@ bool AuthStorageImpl::createAuth()
 
     if (!authManager->initScheme())
     {
-        Globals::getAppLog()->log0(__func__,Logs::LEVEL_CRITICAL, "Error (Driver: %s), Unknown error during database scheme initialization.", sDriverName.c_str());
+        LOG_APP->log0(__func__,Logs::LEVEL_CRITICAL, "Error (Driver: %s), Unknown error during database scheme initialization.", sDriverName.c_str());
         return false;
     }
 
@@ -78,26 +78,26 @@ bool AuthStorageImpl::createAuth()
     if ( authManager->accountExist("admin") && !authManager->isAccountSuperUser("admin") )
     {
         // This account should be marked as superuser.
-        Globals::getAppLog()->log0(__func__,Logs::LEVEL_ERR, "Admin account exist but is not super user, change this by hand.");
+        LOG_APP->log0(__func__,Logs::LEVEL_ERR, "Admin account exist but is not super user, change this by hand.");
     }
     else if ( authManager->accountExist("admin") && authManager->isAccountExpired("admin") )
     {
         // This account should not expire.
-        Globals::getAppLog()->log0(__func__,Logs::LEVEL_ERR, "Admin account exist but is expired, change this by hand.");
+        LOG_APP->log0(__func__,Logs::LEVEL_ERR, "Admin account exist but is expired, change this by hand.");
     }
     else if ( authManager->accountExist("admin") && authManager->isAccountDisabled("admin") )
     {
         // This account should not be disabled.
-        Globals::getAppLog()->log0(__func__,Logs::LEVEL_ERR, "Admin account exist but is disabled, change this by hand.");
+        LOG_APP->log0(__func__,Logs::LEVEL_ERR, "Admin account exist but is disabled, change this by hand.");
     }
     else if ( authManager->accountExist("admin") && !authManager->isAccountConfirmed("admin") )
     {
         // This account should not be disabled.
-        Globals::getAppLog()->log0(__func__,Logs::LEVEL_ERR, "Admin account exist but is not confirmed, change this by hand.");
+        LOG_APP->log0(__func__,Logs::LEVEL_ERR, "Admin account exist but is not confirmed, change this by hand.");
     }
     else if (!authManager->accountExist("admin"))
     {
-        Globals::getAppLog()->log0(__func__,Logs::LEVEL_WARN, "Super User Account does not exist. Creating 'admin' account.");
+        LOG_APP->log0(__func__,Logs::LEVEL_WARN, "Super User Account does not exist. Creating 'admin' account.");
 
         std::string sInitPW;
 
@@ -111,13 +111,13 @@ bool AuthStorageImpl::createAuth()
 
     if (Globals::getResetAdminPasswd())
     {
-        Globals::getAppLog()->log0(__func__,Logs::LEVEL_WARN, "Password marked to be reseted...");
+        LOG_APP->log0(__func__,Logs::LEVEL_WARN, "Password marked to be reseted...");
 
         std::string sInitPW;
 
         if (!resetAdminPwd(authManager,&sInitPW))
         {
-            Globals::getAppLog()->log0(__func__,Logs::LEVEL_ERR, "Password not resetted (Maybe the admin account is not admin)...");
+            LOG_APP->log0(__func__,Logs::LEVEL_ERR, "Password not resetted (Maybe the admin account is not admin)...");
             return false;
         }
         if (!createPassFile(sInitPW))
@@ -145,20 +145,20 @@ bool AuthStorageImpl::createPassFile(const std::string & sInitPW)
     std::ofstream ofstr(initPassOutFile);
     if (ofstr.fail())
     {
-        Globals::getAppLog()->log0(__func__,Logs::LEVEL_CRITICAL, "Failed to save the password account.");
+        LOG_APP->log0(__func__,Logs::LEVEL_CRITICAL, "Failed to save the password account.");
         return false;
     }
 #ifndef WIN32
     if (chmod(initPassOutFile.c_str(),0600)!=0)
     {
-        Globals::getAppLog()->log0(__func__,Logs::LEVEL_WARN, "Failed to chmod the password file (be careful with this file and content).");
+        LOG_APP->log0(__func__,Logs::LEVEL_WARN, "Failed to chmod the password file (be careful with this file and content).");
     }
 #else
-    Globals::getAppLog()->log0(__func__,Logs::LEVEL_WARN, "Initial password was saved without special owner read-only privileges (be careful).");
+    LOG_APP->log0(__func__,Logs::LEVEL_WARN, "Initial password was saved without special owner read-only privileges (be careful).");
 #endif
     ofstr << sInitPW;
     ofstr.close();
-    Globals::getAppLog()->log0(__func__,Logs::LEVEL_INFO, "File '%s' created with the super-user password. Login and change it immediatly", initPassOutFile.c_str());
+    LOG_APP->log0(__func__,Logs::LEVEL_INFO, "File '%s' created with the super-user password. Login and change it immediatly", initPassOutFile.c_str());
     return true;
 }
 
@@ -189,7 +189,7 @@ bool AuthStorageImpl::createAdmin(Authentication::Manager_DB *authManager,std::s
                                     0, // Expiration (don't expire)
                                     accountAttribs))
     {
-        Globals::getAppLog()->log0(__func__,Logs::LEVEL_CRITICAL, "Failed to create admin account.");
+        LOG_APP->log0(__func__,Logs::LEVEL_CRITICAL, "Failed to create admin account.");
         return false;
     }
 
@@ -212,11 +212,11 @@ bool AuthStorageImpl::createApp(Authentication::Manager_DB *authManager)
 {
     if (!authManager->applicationExist(DB_APPNAME))
     {
-        Globals::getAppLog()->log0(__func__,Logs::LEVEL_WARN, "Application '%s' does not exist, creating it.", DB_APPNAME);
+        LOG_APP->log0(__func__,Logs::LEVEL_WARN, "Application '%s' does not exist, creating it.", DB_APPNAME);
 
         if (!authManager->applicationAdd(DB_APPNAME,PROJECT_DESCRIPTION, Mantids::Helpers::Random::createRandomString(32) ,"admin"))
         {
-            Globals::getAppLog()->log0(__func__,Logs::LEVEL_CRITICAL, "Failed to create the application '%s'.",DB_APPNAME);
+            LOG_APP->log0(__func__,Logs::LEVEL_CRITICAL, "Failed to create the application '%s'.",DB_APPNAME);
             return false;
         }
     }
@@ -231,11 +231,11 @@ bool AuthStorageImpl::createApp(Authentication::Manager_DB *authManager)
     {
         if (!authManager->attribExist(attrib.first))
         {
-            Globals::getAppLog()->log0(__func__,Logs::LEVEL_WARN, "Attribute '%s' does not exist, creating it.", attrib.first.attribName.c_str());
+            LOG_APP->log0(__func__,Logs::LEVEL_WARN, "Attribute '%s' does not exist, creating it.", attrib.first.attribName.c_str());
 
             if (!authManager->attribAdd(attrib.first,attrib.second))
             {
-                Globals::getAppLog()->log0(__func__,Logs::LEVEL_CRITICAL, "Failed to create the attrib '%s'.", attrib.first.attribName.c_str());
+                LOG_APP->log0(__func__,Logs::LEVEL_CRITICAL, "Failed to create the attrib '%s'.", attrib.first.attribName.c_str());
                 return false;
             }
         }
@@ -243,22 +243,22 @@ bool AuthStorageImpl::createApp(Authentication::Manager_DB *authManager)
 
     if (!authManager->applicationValidateAccount(DB_APPNAME,"admin"))
     {
-        Globals::getAppLog()->log0(__func__,Logs::LEVEL_WARN, "Setting up 'admin' user as application '%s' user.", DB_APPNAME);
+        LOG_APP->log0(__func__,Logs::LEVEL_WARN, "Setting up 'admin' user as application '%s' user.", DB_APPNAME);
 
         if (!authManager->applicationAccountAdd(DB_APPNAME,"admin"))
         {
-            Globals::getAppLog()->log0(__func__,Logs::LEVEL_CRITICAL, "Failed to set the 'admin' account as application '%s' user.", DB_APPNAME);
+            LOG_APP->log0(__func__,Logs::LEVEL_CRITICAL, "Failed to set the 'admin' account as application '%s' user.", DB_APPNAME);
             return false;
         }
     }
 
     if (!authManager->applicationValidateOwner(DB_APPNAME,"admin"))
     {
-        Globals::getAppLog()->log0(__func__,Logs::LEVEL_WARN, "Setting up 'admin' user as application '%s' owner.", DB_APPNAME);
+        LOG_APP->log0(__func__,Logs::LEVEL_WARN, "Setting up 'admin' user as application '%s' owner.", DB_APPNAME);
 
         if (!authManager->applicationOwnerAdd(DB_APPNAME,"admin"))
         {
-            Globals::getAppLog()->log0(__func__,Logs::LEVEL_CRITICAL, "Failed to set the 'admin' account as application '%s' owner.", DB_APPNAME);
+            LOG_APP->log0(__func__,Logs::LEVEL_CRITICAL, "Failed to set the 'admin' account as application '%s' owner.", DB_APPNAME);
             return false;
         }
     }

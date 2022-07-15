@@ -21,16 +21,31 @@ This server provides a directory/authorization implementation for managing users
 
 ### Simple installation guide for Fedora/RHEL:
 
-- First, proceed to install EPEL in your distribution (https://docs.fedoraproject.org/en-US/epel/), sometimes this is required for jsoncpp.
+To activate our repo's and download/install the software:
 
-
-- Then, proceed to activate our repo's and download/install uFastAuthD:
+In RHEL7:
 ```bash
-# NOTE: for RHEL7 replace dnf by yum
-dnf copr enable amizrachi/unmanarc
+# Install EPEL Repo + COPR
+yum -y install epel-release
+yum -y install yum-plugin-copr
 
+# Install unmanarc's copr
+yum copr enable amizrachi/unmanarc -y
+yum -y install uFastAuthD
+```
+
+In RHEL8:
+```bash
+# Install EPEL Repo
+dnf -y install 'dnf-command(config-manager)'
+dnf config-manager --set-enabled powertools
+dnf -y install epel-release
+
+# Install unmanarc's copr
+dnf copr enable amizrachi/unmanarc -y
 dnf -y install uFastAuthD
 ```
+
 
 - Once installed, you can continue by activating/enabling the service:
 ```bash

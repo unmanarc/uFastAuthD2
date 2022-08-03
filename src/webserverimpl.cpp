@@ -27,6 +27,9 @@ bool WebServerImpl::createWebServer()
 {
     Mantids::Network::Sockets::Socket_TLS * sockWebListen = new Mantids::Network::Sockets::Socket_TLS;
 
+    // Set the SO default security level:
+    sockWebListen->keys.setSecurityLevel(-1);
+
     uint16_t listenPort = Globals::getConfig_main()->get<uint16_t>("WebServer.ListenPort",40443);
     std::string listenAddr = Globals::getConfig_main()->get<std::string>("WebServer.ListenAddr","0.0.0.0");
 

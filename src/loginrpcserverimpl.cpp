@@ -56,6 +56,9 @@ bool LoginRPCServerImpl::createRPCListener()
 {
     Mantids::Network::Sockets::Socket_TLS * sockRPCListen = new Mantids::Network::Sockets::Socket_TLS;
 
+    // Set the SO default security level:
+    sockRPCListen->keys.setSecurityLevel(-1);
+
     uint16_t listenPort = Globals::getConfig_main()->get<uint16_t>("LoginRPCServer.ListenPort",40442);
     std::string listenAddr = Globals::getConfig_main()->get<std::string>("LoginRPCServer.ListenAddr","0.0.0.0");
 

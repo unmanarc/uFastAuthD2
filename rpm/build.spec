@@ -33,9 +33,9 @@ Group:          Applications/Internet
 %define debug_package %{nil}
 %endif
 
-BuildRequires: libMantids-devel >= 2.7.3
+BuildRequires: libMantids-devel >= 2.7.5
 BuildRequires: %{cmake} systemd libMantids-sqlite openssl-devel zlib-devel boost-devel gcc-c++ jsoncpp-devel sqlite-devel
-Requires: libMantids >= 2.7.3
+Requires: libMantids >= 2.7.5
 Requires: libMantids-sqlite zlib openssl boost-regex jsoncpp sqlite
 
 %description
@@ -91,6 +91,7 @@ cp -a var/www/ufastauthd $RPM_BUILD_ROOT/var/www
 mkdir -vp $RPM_BUILD_ROOT/etc
 cp -a etc/ufastauthd $RPM_BUILD_ROOT/etc/
 chmod 600 $RPM_BUILD_ROOT/etc/ufastauthd/snakeoil.key
+chmod 600 $RPM_BUILD_ROOT/etc/ufastauthd/config.ini
 
 mkdir -vp $RPM_BUILD_ROOT/usr/lib/systemd/system
 cp usr/lib/systemd/system/ufastauthd.service $RPM_BUILD_ROOT/usr/lib/systemd/system/%{name}.service

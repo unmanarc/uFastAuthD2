@@ -47,9 +47,15 @@ public:
         }
 
         // Initiate the RPC Listener
-        if (!AUTHSERVER::RPC::LoginRPCServerImpl::createRPCListener())
+        if (!AUTHSERVER::RPC::LoginRPCServerImpl::createRPCListenerCAB())
         {
             _exit(-2);
+        }
+
+        // Initiate the RPC Listener
+        if (!AUTHSERVER::RPC::LoginRPCServerImpl::createRPCListenerPAB())
+        {
+            _exit(-4);
         }
 
         // Initiate the web server

@@ -32,7 +32,8 @@ class LoginRPCServerImpl
 {
 public:
     LoginRPCServerImpl();
-    static bool createRPCListener();
+    static bool createRPCListenerCAB();
+    static bool createRPCListenerPAB();
 //    static void callbackOnRPCConnected(const std::string &key, void * data);
 
 private:

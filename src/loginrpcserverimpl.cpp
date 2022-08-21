@@ -116,6 +116,8 @@ bool LoginRPCServerImpl::createRPCListenerPAB()
     {
         Mantids::Network::Sockets::Socket_TLS * sockRPCListen = new Mantids::Network::Sockets::Socket_TLS;
 
+        // Configure default
+        sockRPCListen->keys.setPSK();
         sockRPCListen->keys.getPSKServerWallet()->setPSKCallback(&cbPSK,nullptr);
 
         uint16_t listenPort = Globals::getConfig_main()->get<uint16_t>("LoginRPCServerPAB.ListenPort",30302);

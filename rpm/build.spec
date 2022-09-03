@@ -1,5 +1,5 @@
 %define name uFastAuthD
-%define version 1.1.7
+%define version 1.1.8
 %define build_timestamp %{lua: print(os.date("%Y%m%d"))}
 
 Name:           %{name}
@@ -33,7 +33,7 @@ Group:          Applications/Internet
 %define debug_package %{nil}
 %endif
 
-BuildRequires: libMantids-devel >= 2.7.10
+BuildRequires: libMantids-devel >= 2.7.11
 BuildRequires: %{cmake} systemd libMantids-sqlite zlib-devel boost-devel gcc-c++ jsoncpp-devel sqlite-devel
 %if 0%{?rhel} == 7
 BuildRequires:  openssl11-devel
@@ -42,7 +42,7 @@ BuildRequires:  openssl-devel
 %endif
 
 
-Requires: libMantids >= 2.7.10
+Requires: libMantids >= 2.7.11
 Requires: libMantids-sqlite zlib boost-regex jsoncpp sqlite
 
 %if 0%{?rhel} == 7

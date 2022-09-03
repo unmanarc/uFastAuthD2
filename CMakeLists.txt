@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.12)
 include(GNUInstallDirs)
 
 set(APP_NAME "uFastAuthD")
-set(SVERSION 1.1.7)
+set(SVERSION 1.1.8)
 
 project(${APP_NAME})
 project(${PROJECT_NAME} VERSION ${SVERSION} DESCRIPTION "Unmanarc's Fast Authentication Daemon")
@@ -62,7 +62,7 @@ else()
 endif()
 target_include_directories(${APP_NAME} PUBLIC ${OPENSSL_INCLUDE_DIRS})
 target_compile_options(${APP_NAME} PUBLIC ${OPENSSL_CFLAGS_OTHER})
-target_link_libraries(${APP_NAME} ${OPENSSL_LIBRARIES})
+target_link_libraries(${APP_NAME} ${OPENSSL_STATIC_LDFLAGS})
 
 if (WIN32)
     target_link_libraries(${APP_NAME} "-lboost_regex-mt")

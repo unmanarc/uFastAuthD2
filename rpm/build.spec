@@ -1,5 +1,5 @@
 %define name uFastAuthD
-%define version 1.1.5
+%define version 1.1.6
 %define build_timestamp %{lua: print(os.date("%Y%m%d"))}
 
 Name:           %{name}
@@ -33,10 +33,24 @@ Group:          Applications/Internet
 %define debug_package %{nil}
 %endif
 
-BuildRequires: libMantids-devel >= 2.7.6
-BuildRequires: %{cmake} systemd libMantids-sqlite openssl-devel zlib-devel boost-devel gcc-c++ jsoncpp-devel sqlite-devel
-Requires: libMantids >= 2.7.6
-Requires: libMantids-sqlite zlib openssl boost-regex jsoncpp sqlite
+BuildRequires: libMantids-devel >= 2.7.10
+BuildRequires: %{cmake} systemd libMantids-sqlite zlib-devel boost-devel gcc-c++ jsoncpp-devel sqlite-devel
+%if 0%{?rhel} == 7
+BuildRequires:  openssl11-devel
+%else
+BuildRequires:  openssl-devel
+%endif
+
+
+Requires: libMantids >= 2.7.10
+Requires: libMantids-sqlite zlib boost-regex jsoncpp sqlite
+
+%if 0%{?rhel} == 7
+Requires:       openssl11
+%else
+Requires:       openssl
+%endif
+
 
 %description
 This package contains a server that provides a directory/authorization implementation for managing users for your libMantids applications.
@@ -45,8 +59,14 @@ This package contains a server that provides a directory/authorization implement
 %autosetup -n %{name}-main
 
 %build
+%if 0%{?rhel} == 7
+%{cmake} -DCMAKE_INSTALL_PREFIX:PATH=/usr -DCMAKE_BUILD_TYPE=MinSizeRel -DSSLRHEL7=ON
+%{cmake} -DCMAKE_INSTALL_PREFIX:PATH=/usr -DCMAKE_BUILD_TYPE=MinSizeRel -DSSLRHEL7=ON
+%else
 %{cmake} -DCMAKE_INSTALL_PREFIX:PATH=/usr -DCMAKE_BUILD_TYPE=MinSizeRel
 %{cmake} -DCMAKE_INSTALL_PREFIX:PATH=/usr -DCMAKE_BUILD_TYPE=MinSizeRel
+%endif
+
 make %{?_smp_mflags}
 
 %clean

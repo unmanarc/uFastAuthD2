@@ -64,6 +64,12 @@ public:
             _exit(-1);
         }
 
+        // Initiate the web services
+        if (!AUTHSERVER::WEB::WebServerImpl::createWebService())
+        {
+            _exit(-1);
+        }
+
         LOG_APP->log0(__func__,Logs::LEVEL_INFO,  (globalArguments->getDaemonName() + " initialized with PID: %d").c_str(), getpid());
 
         return 0;

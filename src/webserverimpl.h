@@ -13,12 +13,10 @@ class WebServerImpl
 public:
     WebServerImpl();
     static bool createWebServer();
+    static bool createWebService();
 
 private:
     static bool protoInitFail(void *webServer, Mantids::Network::Sockets::Socket_StreamBase *sock, const char *remoteIP, bool isSecure);
-/*
-    static json statMethods(void *, Mantids::Authentication::Manager *, Mantids::Authentication::Session *, const json &);
-    static json controlMethods(void *, Mantids::Authentication::Manager *, Mantids::Authentication::Session *, const json &);*/
 };
 
 }}

@@ -84,7 +84,7 @@ void Mantids::RPC::Templates::LoginAuth::AddLoginAuthMethods(Mantids::Authentica
 
 }
 
-json Templates::LoginAuth::isAccountDisabled(void *obj, const std::string &connectionKey, const json &payload)
+json Templates::LoginAuth::isAccountDisabled(void *obj, const std::string &connectionKey, const json &payload, void*, const std::string &)
 {
     Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
     json payloadOut;
@@ -98,7 +98,7 @@ json Templates::LoginAuth::isAccountDisabled(void *obj, const std::string &conne
     return payloadOut;
 }
 
-json Templates::LoginAuth::isAccountConfirmed(void *obj, const std::string &connectionKey, const json &payload)
+json Templates::LoginAuth::isAccountConfirmed(void *obj, const std::string &connectionKey, const json &payload, void*, const std::string &)
 {
     Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
     json payloadOut;
@@ -112,7 +112,7 @@ json Templates::LoginAuth::isAccountConfirmed(void *obj, const std::string &conn
     return payloadOut;
 }
 
-json Templates::LoginAuth::accountAttribs(void *obj, const std::string &connectionKey, const json &payload)
+json Templates::LoginAuth::accountAttribs(void *obj, const std::string &connectionKey, const json &payload, void*, const std::string &)
 {
     Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
     json payloadOut;
@@ -131,7 +131,7 @@ json Templates::LoginAuth::accountAttribs(void *obj, const std::string &connecti
     return payloadOut;
 }
 
-json Templates::LoginAuth::accountGivenName(void *obj, const std::string &connectionKey, const json &payload)
+json Templates::LoginAuth::accountGivenName(void *obj, const std::string &connectionKey, const json &payload, void*, const std::string &)
 {
     Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
     json payloadOut;
@@ -146,7 +146,7 @@ json Templates::LoginAuth::accountGivenName(void *obj, const std::string &connec
     return payloadOut;
 }
 
-json Templates::LoginAuth::accountLastName(void *obj, const std::string &connectionKey, const json &payload)
+json Templates::LoginAuth::accountLastName(void *obj, const std::string &connectionKey, const json &payload, void*, const std::string &)
 {
     Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
     json payloadOut;
@@ -161,7 +161,7 @@ json Templates::LoginAuth::accountLastName(void *obj, const std::string &connect
     return payloadOut;
 }
 
-json Templates::LoginAuth::accountDescription(void *obj, const std::string &connectionKey, const json &payload)
+json Templates::LoginAuth::accountDescription(void *obj, const std::string &connectionKey, const json &payload, void*, const std::string &)
 {
     Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
     json payloadOut;
@@ -176,7 +176,7 @@ json Templates::LoginAuth::accountDescription(void *obj, const std::string &conn
     return payloadOut;
 }
 
-json Templates::LoginAuth::accountEmail(void *obj, const std::string &connectionKey, const json &payload)
+json Templates::LoginAuth::accountEmail(void *obj, const std::string &connectionKey, const json &payload, void*, const std::string &)
 {
     Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
     json payloadOut;
@@ -190,7 +190,7 @@ json Templates::LoginAuth::accountEmail(void *obj, const std::string &connection
     return payloadOut;
 }
 
-json Templates::LoginAuth::accountExtraData(void *obj, const std::string &connectionKey, const json &payload)
+json Templates::LoginAuth::accountExtraData(void *obj, const std::string &connectionKey, const json &payload, void*, const std::string &)
 {
     Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
     json payloadOut;
@@ -204,7 +204,7 @@ json Templates::LoginAuth::accountExtraData(void *obj, const std::string &connec
     return payloadOut;
 }
 
-json Templates::LoginAuth::applicationDescription(void *obj, const std::string &connectionKey, const json &payload)
+json Templates::LoginAuth::applicationDescription(void *obj, const std::string &connectionKey, const json &payload, void*, const std::string &)
 {
     Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
     json payloadOut;
@@ -218,7 +218,7 @@ json Templates::LoginAuth::applicationDescription(void *obj, const std::string &
     return payloadOut;
 }
 
-json Templates::LoginAuth::applicationValidateOwner(void *obj, const std::string &connectionKey, const json &payload)
+json Templates::LoginAuth::applicationValidateOwner(void *obj, const std::string &connectionKey, const json &payload, void*, const std::string &)
 {
     Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
     json payloadOut;
@@ -232,7 +232,7 @@ json Templates::LoginAuth::applicationValidateOwner(void *obj, const std::string
     return payloadOut;
 }
 
-json Templates::LoginAuth::applicationValidateAccount(void *obj, const std::string &connectionKey, const json &payload)
+json Templates::LoginAuth::applicationValidateAccount(void *obj, const std::string &connectionKey, const json &payload, void*, const std::string &)
 {
     Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
     json payloadOut;
@@ -245,7 +245,7 @@ json Templates::LoginAuth::applicationValidateAccount(void *obj, const std::stri
     return payloadOut;
 }
 
-json Templates::LoginAuth::applicationOwners(void *obj, const std::string &connectionKey, const json &payload)
+json Templates::LoginAuth::applicationOwners(void *obj, const std::string &connectionKey, const json &payload, void*, const std::string &)
 {
     Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
     json payloadOut;
@@ -263,7 +263,7 @@ json Templates::LoginAuth::applicationOwners(void *obj, const std::string &conne
     return payloadOut;
 }
 
-json Templates::LoginAuth::applicationAccounts(void *obj, const std::string &connectionKey, const json &payload)
+json Templates::LoginAuth::applicationAccounts(void *obj, const std::string &connectionKey, const json &payload, void*, const std::string &)
 {
     Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
     json payloadOut;
@@ -281,7 +281,7 @@ json Templates::LoginAuth::applicationAccounts(void *obj, const std::string &con
     return payloadOut;
 }
 
-json Templates::LoginAuth::accountSecretPublicData(void *obj, const std::string &connectionKey, const json &payload)
+json Templates::LoginAuth::accountSecretPublicData(void *obj, const std::string &connectionKey, const json &payload, void*, const std::string &)
 {
     Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
     json payloadOut;
@@ -298,7 +298,7 @@ json Templates::LoginAuth::accountSecretPublicData(void *obj, const std::string 
     return payloadOut;
 }
 
-json Templates::LoginAuth::passIndexesRequiredForLogin(void *obj, const std::string &, const json &)
+json Templates::LoginAuth::passIndexesRequiredForLogin(void *obj, const std::string &, const json &, void*, const std::string &)
 {
     Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
     json payloadOut;
@@ -310,7 +310,7 @@ json Templates::LoginAuth::passIndexesRequiredForLogin(void *obj, const std::str
     return payloadOut;
 }
 
-json Templates::LoginAuth::passIndexesUsedByAccount(void *obj, const std::string &connectionKey, const json &payload)
+json Templates::LoginAuth::passIndexesUsedByAccount(void *obj, const std::string &connectionKey, const json &payload, void*, const std::string &)
 {
     Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
     json payloadOut;
@@ -326,21 +326,21 @@ json Templates::LoginAuth::passIndexesUsedByAccount(void *obj, const std::string
     return payloadOut;
 }
 
-json Templates::LoginAuth::passIndexDescription(void *obj, const std::string &, const json &payload)
+json Templates::LoginAuth::passIndexDescription(void *obj, const std::string &, const json &payload, void*, const std::string &)
 {
     Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
     json payloadOut = auth->passIndexDescription(JSON_ASUINT(payload,"passIndex",0));
     return payloadOut;
 }
 
-json Templates::LoginAuth::passIndexLoginRequired(void *obj, const std::string &, const json &payload)
+json Templates::LoginAuth::passIndexLoginRequired(void *obj, const std::string &, const json &payload, void*, const std::string &)
 {
     Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
     json payloadOut = auth->passIndexLoginRequired(JSON_ASUINT(payload,"passIndex",0));
     return payloadOut;
 }
 
-json Templates::LoginAuth::accountExpirationDate(void *obj, const std::string &connectionKey, const json &payload)
+json Templates::LoginAuth::accountExpirationDate(void *obj, const std::string &connectionKey, const json &payload, void*, const std::string &)
 {
     Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
     json payloadOut = 0;
@@ -351,7 +351,7 @@ json Templates::LoginAuth::accountExpirationDate(void *obj, const std::string &c
     return payloadOut;
 }
 
-json Mantids::RPC::Templates::LoginAuth::authenticate(void * obj, const std::string & connectionKey, const json &payload)
+json Mantids::RPC::Templates::LoginAuth::authenticate(void * obj, const std::string & connectionKey, const json &payload, void*, const std::string &)
 {
     Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
     json payloadOut;
@@ -393,7 +393,7 @@ json Mantids::RPC::Templates::LoginAuth::authenticate(void * obj, const std::str
     return payloadOut;
 }
 
-json Mantids::RPC::Templates::LoginAuth::accountChangeAuthenticatedSecret(void * obj,const std::string & connectionKey, const json &payload)
+json Mantids::RPC::Templates::LoginAuth::accountChangeAuthenticatedSecret(void * obj,const std::string & connectionKey, const json &payload, void*, const std::string &)
 {
     Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
 
@@ -434,7 +434,7 @@ json Mantids::RPC::Templates::LoginAuth::accountChangeAuthenticatedSecret(void *
 
 }
 
-json Mantids::RPC::Templates::LoginAuth::accountAdd(void * obj,const std::string & connectionKey, const json &payload)
+json Mantids::RPC::Templates::LoginAuth::accountAdd(void * obj,const std::string & connectionKey, const json &payload, void*, const std::string &)
 {
     Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
 
@@ -471,7 +471,7 @@ json Mantids::RPC::Templates::LoginAuth::accountAdd(void * obj,const std::string
     return payloadOut;
 }
 
-json Mantids::RPC::Templates::LoginAuth::attribExist(void *obj,const std::string &connectionKey, const json &payload)
+json Mantids::RPC::Templates::LoginAuth::attribExist(void *obj,const std::string &connectionKey, const json &payload, void*, const std::string &)
 {
     Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
 
@@ -481,7 +481,7 @@ json Mantids::RPC::Templates::LoginAuth::attribExist(void *obj,const std::string
     return payloadOut;
 }
 
-json Mantids::RPC::Templates::LoginAuth::attribAdd(void *obj, const std::string &connectionKey, const json &payload)
+json Mantids::RPC::Templates::LoginAuth::attribAdd(void *obj, const std::string &connectionKey, const json &payload, void*, const std::string &)
 {
     Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
     json payloadOut;
@@ -498,7 +498,7 @@ json Mantids::RPC::Templates::LoginAuth::attribAdd(void *obj, const std::string 
     return payloadOut;
 }
 
-json Mantids::RPC::Templates::LoginAuth::attribRemove(void *obj, const std::string &connectionKey, const json &payload)
+json Mantids::RPC::Templates::LoginAuth::attribRemove(void *obj, const std::string &connectionKey, const json &payload, void*, const std::string &)
 {
     Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
     json payloadOut;
@@ -511,7 +511,7 @@ json Mantids::RPC::Templates::LoginAuth::attribRemove(void *obj, const std::stri
     return payloadOut;
 }
 
-json Mantids::RPC::Templates::LoginAuth::attribChangeDescription(void *obj, const std::string &connectionKey, const json &payload)
+json Mantids::RPC::Templates::LoginAuth::attribChangeDescription(void *obj, const std::string &connectionKey, const json &payload, void*, const std::string &)
 {
     Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
     json payloadOut;
@@ -528,7 +528,7 @@ json Mantids::RPC::Templates::LoginAuth::attribChangeDescription(void *obj, cons
     return payloadOut;
 }
 
-json Mantids::RPC::Templates::LoginAuth::attribDescription(void *obj, const std::string &connectionKey, const json &payload)
+json Mantids::RPC::Templates::LoginAuth::attribDescription(void *obj, const std::string &connectionKey, const json &payload, void*, const std::string &)
 {
     Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
     json payloadOut;
@@ -536,7 +536,7 @@ json Mantids::RPC::Templates::LoginAuth::attribDescription(void *obj, const std:
     return payloadOut;
 }
 
-json Mantids::RPC::Templates::LoginAuth::getAccountAllSecretsPublicData(void *obj, const std::string &connectionKey, const json &payload)
+json Mantids::RPC::Templates::LoginAuth::getAccountAllSecretsPublicData(void *obj, const std::string &connectionKey, const json &payload, void*, const std::string &)
 {
     Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
     json payloadOut;
@@ -558,7 +558,7 @@ json Mantids::RPC::Templates::LoginAuth::getAccountAllSecretsPublicData(void *ob
     }
 }
 
-json Mantids::RPC::Templates::LoginAuth::isAccountSuperUser(void *obj, const std::string &connectionKey, const json &payload)
+json Mantids::RPC::Templates::LoginAuth::isAccountSuperUser(void *obj, const std::string &connectionKey, const json &payload, void*, const std::string &)
 {
     Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
     json payloadOut;
@@ -572,7 +572,7 @@ json Mantids::RPC::Templates::LoginAuth::isAccountSuperUser(void *obj, const std
     return payloadOut;
 }
 
-json Mantids::RPC::Templates::LoginAuth::accountValidateAttribute(void *obj, const std::string &connectionKey, const json &payload)
+json Mantids::RPC::Templates::LoginAuth::accountValidateAttribute(void *obj, const std::string &connectionKey, const json &payload, void*, const std::string &)
 {
     Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
     json payloadOut;
@@ -580,7 +580,7 @@ json Mantids::RPC::Templates::LoginAuth::accountValidateAttribute(void *obj, con
     return payloadOut;
 }
 
-json Templates::LoginAuth::getStaticContent(void *, const std::string &, const json &)
+json Templates::LoginAuth::getStaticContent(void *, const std::string &, const json &, void*, const std::string &)
 {
     json staticContents;
     // Now here we send/init everything...

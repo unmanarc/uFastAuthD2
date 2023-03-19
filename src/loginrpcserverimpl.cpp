@@ -2,10 +2,11 @@
 
 #include <inttypes.h>
 
-#include <mdz_net_sockets/socket_tls.h>
-#include <mdz_net_sockets/acceptor_multithreaded.h>
-#include <mdz_net_sockets/streams_cryptochallenge.h>
-#include <mdz_prg_logs/applog.h>
+#include <Mantids29/Net_Sockets/socket_tls.h>
+#include <Mantids29/Net_Sockets/acceptor_multithreaded.h>
+#include <Mantids29/Net_Sockets/streams_cryptochallenge.h>
+#include <Mantids29/Program_Logs/applog.h>
+#include <memory>
 
 #include "globals.h"
 //#include "defs.h"
@@ -13,22 +14,22 @@
 
 using namespace AUTHSERVER::RPC;
 
-using namespace Mantids::Application;
-using namespace Mantids::RPC;
-using namespace Mantids;
+using namespace Mantids29::Application;
+using namespace Mantids29::RPC;
+using namespace Mantids29;
 
 LoginRPCServerImpl::LoginRPCServerImpl()
 {
 }
 
-bool LoginRPCServerImpl::callbackOnRPCConnect(void *, Mantids::Network::Sockets::Socket_StreamBase *sock, const char * remoteAddr, bool secure)
+bool LoginRPCServerImpl::callbackOnRPCConnect(void *, Mantids29::Network::Sockets::Socket_Stream_Base *sock, const char * remoteAddr, bool secure)
 {
     Network::Sockets::NetStreams::CryptoChallenge cstream(sock);
 
     std::string appName = sock->readStringEx<uint16_t>();
     std::string appKey = Globals::getAuthManager()->applicationKey(appName);
 
-    std::string rpcClientKey = appName + "." + Mantids::Helpers::Random::createRandomString(8);
+    std::string rpcClientKey = appName + "." + Mantids29::Helpers::Random::createRandomString(8);
 
     LOG_APP->log0(__func__,Logs::LEVEL_INFO, "Incomming %sRPC connection from %s (ID: %s)", secure?"secure ":"", remoteAddr, rpcClientKey.c_str());
 
@@ -57,7 +58,7 @@ bool LoginRPCServerImpl::createRPCListenerCAB()
 {
     if (Globals::getConfig_main()->get<bool>("LoginRPCServerCAB.Enabled",true))
     {
-        Mantids::Network::Sockets::Socket_TLS * sockRPCListen = new Mantids::Network::Sockets::Socket_TLS;
+        auto sockRPCListen = std::make_shared<Mantids29::Network::Sockets::Socket_TLS>();
 
         // Set the SO default security level:
         sockRPCListen->keys.setSecurityLevel(-1);
@@ -79,19 +80,19 @@ bool LoginRPCServerImpl::createRPCListenerCAB()
         Globals::setFastRPC(new FastRPCImpl);
 
         // Set RPC Methods.
-        Mantids::RPC::Templates::LoginAuth::AddLoginAuthMethods(
+        Mantids29::RPC::Templates::LoginAuth::AddLoginAuthMethods(
                     Globals::getAuthManager(),
                     Globals::getFastRPC());
 
         // Init the server:
-        Network::Sockets::Acceptors::MultiThreaded * multiThreadedAcceptor = new Network::Sockets::Acceptors::MultiThreaded;
+        auto multiThreadedAcceptor = std::make_shared<Network::Sockets::Acceptors::MultiThreaded>();
         multiThreadedAcceptor->setMaxConcurrentClients( Globals::getConfig_main()->get<uint16_t>("LoginRPCServerCAB.MaxClients",512) );
         multiThreadedAcceptor->setCallbackOnConnect(callbackOnRPCConnect,nullptr);
 
         if (sockRPCListen->listenOn(listenPort ,listenAddr.c_str(), !Globals::getConfig_main()->get<bool>("LoginRPCServerCAB.ipv6",false) ))
         {
             multiThreadedAcceptor->setAcceptorSocket(sockRPCListen);
-            multiThreadedAcceptor->startThreaded();
+            multiThreadedAcceptor->startThreaded(multiThreadedAcceptor);
             LOG_APP->log0(__func__,Logs::LEVEL_INFO,  "Accepting RPC clients @%s:%" PRIu16 " via TLS", listenAddr.c_str(), listenPort);
             return true;
         }
@@ -114,7 +115,7 @@ bool LoginRPCServerImpl::createRPCListenerPAB()
 {
     if (Globals::getConfig_main()->get<bool>("LoginRPCServerPAB.Enabled",true))
     {
-        Mantids::Network::Sockets::Socket_TLS * sockRPCListen = new Mantids::Network::Sockets::Socket_TLS;
+        auto sockRPCListen = std::make_shared<Mantids29::Network::Sockets::Socket_TLS>();
 
         // Configure default
         sockRPCListen->keys.setPSK();
@@ -126,19 +127,19 @@ bool LoginRPCServerImpl::createRPCListenerPAB()
         Globals::setFastRPC(new FastRPCImpl);
 
         // Set RPC Methods.
-        Mantids::RPC::Templates::LoginAuth::AddLoginAuthMethods(
+        Mantids29::RPC::Templates::LoginAuth::AddLoginAuthMethods(
                     Globals::getAuthManager(),
                     Globals::getFastRPC());
 
         // Init the server:
-        Network::Sockets::Acceptors::MultiThreaded * multiThreadedAcceptor = new Network::Sockets::Acceptors::MultiThreaded;
+        auto multiThreadedAcceptor = std::make_shared<Network::Sockets::Acceptors::MultiThreaded>();
         multiThreadedAcceptor->setMaxConcurrentClients( Globals::getConfig_main()->get<uint16_t>("LoginRPCServerPAB.MaxClients",512) );
         multiThreadedAcceptor->setCallbackOnConnect(callbackOnRPCConnect,nullptr);
 
         if (sockRPCListen->listenOn(listenPort ,listenAddr.c_str(), !Globals::getConfig_main()->get<bool>("LoginRPCServerPAB.ipv6",false) ))
         {
             multiThreadedAcceptor->setAcceptorSocket(sockRPCListen);
-            multiThreadedAcceptor->startThreaded();
+            multiThreadedAcceptor->startThreaded(multiThreadedAcceptor);
             LOG_APP->log0(__func__,Logs::LEVEL_INFO,  "Accepting API KEY RPC clients @%s:%" PRIu16 " via TLS", listenAddr.c_str(), listenPort);
             return true;
         }
@@ -152,26 +153,23 @@ bool LoginRPCServerImpl::createRPCListenerPAB()
 }
 
 
-void FastRPCImpl::eventUnexpectedAnswerReceived(Fast::FastRPC_Connection *, const std::string &)
+void FastRPCImpl::eventUnexpectedAnswerReceived(FastRPC::Connection *, const std::string &)
 {
-    LOG_APP->log0(__func__,Logs::LEVEL_ERR, "RPC Error");
-
+    LOG_APP->log0(__func__,Logs::LEVEL_ERR, "RPC Error - Unexpected Answer");
 }
 
-void FastRPCImpl::eventFullQueueDrop(Fast::sFastRPCParameters *)
+void FastRPCImpl::eventFullQueueDrop(FastRPC::ThreadParameters *)
 {
-    LOG_APP->log0(__func__,Logs::LEVEL_ERR, "RPC Error");
-
+    LOG_APP->log0(__func__,Logs::LEVEL_ERR, "RPC Error - Event Queue Full");
 }
 
 void FastRPCImpl::eventRemotePeerDisconnected(const std::string &, const std::string &, const json &)
 {
-    LOG_APP->log0(__func__,Logs::LEVEL_ERR, "RPC Error");
-
+    LOG_APP->log0(__func__,Logs::LEVEL_ERR, "RPC Error - Remote Peer Disconnected");
 }
 
 void FastRPCImpl::eventRemoteExecutionTimedOut(const std::string &, const std::string &, const json &)
 {
-    LOG_APP->log0(__func__,Logs::LEVEL_ERR, "RPC Error");
+    LOG_APP->log0(__func__,Logs::LEVEL_ERR, "RPC Error - Remote Execution Timed Out");
 
 }

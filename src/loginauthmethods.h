@@ -1,11 +1,11 @@
 #ifndef LOGINAUTHMETHODS_H
 #define LOGINAUTHMETHODS_H
 
-#include <mdz_auth/manager.h>
-#include <mdz_xrpc_fast/fastrpc.h>
+#include <Mantids29/Auth/manager.h>
+#include <Mantids29/RPC_Fast/fastrpc.h>
 #include <json/json.h>
 
-namespace Mantids { namespace RPC { namespace Templates {
+namespace Mantids29 { namespace RPC { namespace Templates {
 
 // This template is for FastRPC
 class LoginAuth
@@ -16,7 +16,7 @@ public:
      * @param auth authentication manager (with full access to the authentication interface)
      * @param fastRPC RPC engine to expose the methods
      */
-    static void AddLoginAuthMethods(Mantids::Authentication::Manager * auth,  Mantids::RPC::Fast::FastRPC * fastRPC);
+    static void AddLoginAuthMethods(Mantids29::Authentication::Manager * auth,  Mantids29::RPC::Fast::FastRPC * fastRPC);
 
 private:
     static json isAccountDisabled(void * obj, const std::string &connectionKey, const json & payload, void*, const std::string &);

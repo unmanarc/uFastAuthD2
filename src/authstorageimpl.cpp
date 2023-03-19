@@ -4,13 +4,13 @@
 
 #include <sys/stat.h>
 
-#include <mdz_prg_logs/applog.h>
+#include <Mantids29/Program_Logs/applog.h>
 
-#include <mdz_db_sqlite3/sqlconnector_sqlite3.h>
 #include <boost/algorithm/string/case_conv.hpp>
 
-#include <mdz_hlp_functions/random.h>
-#include <mdz_hlp_functions/crypto.h>
+#include <Mantids29/DB_SQLite3/sqlconnector_sqlite3.h>
+#include <Mantids29/Helpers/random.h>
+#include <Mantids29/Helpers/crypto.h>
 
 #include "defs.h"
 
@@ -21,10 +21,10 @@
 using namespace AUTHSERVER::AUTH;
 using namespace AUTHSERVER;
 
-using namespace Mantids::Database;
-using namespace Mantids::Application;
-using namespace Mantids::RPC;
-using namespace Mantids;
+using namespace Mantids29::Database;
+using namespace Mantids29::Application;
+using namespace Mantids29::RPC;
+using namespace Mantids29;
 
 AuthStorageImpl::AuthStorageImpl()
 {
@@ -136,11 +136,11 @@ bool AuthStorageImpl::createPassFile(const std::string & sInitPW)
 {
 
 #ifndef WIN32
-    std::string initPassOutFile = "/tmp/syspwd-" +Mantids::Helpers::Random::createRandomString(8) ;
+    std::string initPassOutFile = "/tmp/syspwd-" +Mantids29::Helpers::Random::createRandomString(8) ;
 #else
     char tempPath[MAX_PATH+1];
     GetTempPathA(MAX_PATH,tempPath);
-    std::string initPassOutFile = tempPath + "\\syspwd-" +Mantids::Helpers::Random::createRandomString(8) + ".txt";
+    std::string initPassOutFile = tempPath + "\\syspwd-" +Mantids29::Helpers::Random::createRandomString(8) + ".txt";
 #endif
     std::ofstream ofstr(initPassOutFile);
     if (ofstr.fail())
@@ -164,21 +164,21 @@ bool AuthStorageImpl::createPassFile(const std::string & sInitPW)
 
 bool AuthStorageImpl::createAdmin(Authentication::Manager_DB *authManager,std::string *sInitPW)
 {
-    *sInitPW = Mantids::Helpers::Random::createRandomString(16);
+    *sInitPW = Mantids29::Helpers::Random::createRandomString(16);
 
     Authentication::Secret secretData;
     secretData.hash = Helpers::Crypto::calcSHA256(*sInitPW);
     secretData.passwordFunction = Authentication::FN_SHA256;
     secretData.forceExpiration = true; // Expired (to be changed on the first login).
 
-    Mantids::Authentication::sAccountDetails accountDetails;
-    accountDetails.sDescription = "Auto-generated Superuser Account";
-    accountDetails.sEmail = "";
-    accountDetails.sExtraData = "";
-    accountDetails.sGivenName = "";
-    accountDetails.sLastName = "";
+    Mantids29::Authentication::AccountDetailsWExtraData accountDetails;
+    accountDetails.description = "Auto-generated Superuser Account";
+    accountDetails.email = "";
+    accountDetails.extraData = "";
+    accountDetails.givenName = "";
+    accountDetails.lastName = "";
 
-    Mantids::Authentication::sAccountAttribs accountAttribs;
+    Mantids29::Authentication::AccountBasicAttributes accountAttribs;
     accountAttribs.confirmed = true;
     accountAttribs.enabled = true;
     accountAttribs.superuser = true;
@@ -196,9 +196,9 @@ bool AuthStorageImpl::createAdmin(Authentication::Manager_DB *authManager,std::s
     return true;
 }
 
-bool AuthStorageImpl::resetAdminPwd(Mantids::Authentication::Manager_DB *authManager, std::string *sInitPW)
+bool AuthStorageImpl::resetAdminPwd(Mantids29::Authentication::Manager_DB *authManager, std::string *sInitPW)
 {
-    *sInitPW = Mantids::Helpers::Random::createRandomString(16);
+    *sInitPW = Mantids29::Helpers::Random::createRandomString(16);
 
     Authentication::Secret secretData;
     secretData.hash = Helpers::Crypto::calcSHA256(*sInitPW);
@@ -214,14 +214,14 @@ bool AuthStorageImpl::createApp(Authentication::Manager_DB *authManager)
     {
         LOG_APP->log0(__func__,Logs::LEVEL_WARN, "Application '%s' does not exist, creating it.", DB_APPNAME);
 
-        if (!authManager->applicationAdd(DB_APPNAME,PROJECT_DESCRIPTION, Mantids::Helpers::Random::createRandomString(32) ,"admin"))
+        if (!authManager->applicationAdd(DB_APPNAME,PROJECT_DESCRIPTION, Mantids29::Helpers::Random::createRandomString(32) ,"admin"))
         {
             LOG_APP->log0(__func__,Logs::LEVEL_CRITICAL, "Failed to create the application '%s'.",DB_APPNAME);
             return false;
         }
     }
 
-    std::list<std::pair<Mantids::Authentication::sApplicationAttrib,std::string>> appAttributes =
+    std::list<std::pair<Mantids29::Authentication::ApplicationAttribute,std::string>> appAttributes =
     {
         {{DB_APPNAME,"DIRREAD"},"Directory Read Attribute"},
         {{DB_APPNAME,"DIRWRITE"},"Directory Write Attribute"},

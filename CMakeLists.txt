@@ -1,11 +1,11 @@
 cmake_minimum_required(VERSION 3.12)
 include(GNUInstallDirs)
 
-set(APP_NAME "uFastAuthD")
-set(SVERSION 1.2.0)
+set(APP_NAME "uFastAuthD2")
+set(SVERSION 2.0.0)
 
 project(${APP_NAME})
-project(${PROJECT_NAME} VERSION ${SVERSION} DESCRIPTION "Unmanarc's Fast Authentication Daemon")
+project(${PROJECT_NAME} VERSION ${SVERSION} DESCRIPTION "Unmanarc's Fast Authentication Daemon 2")
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
 
@@ -30,28 +30,41 @@ if (CMAKE_INSTALL_PREFIX)
     target_link_libraries(${APP_NAME} "-L${CMAKE_INSTALL_PREFIX}/lib64")
 endif()
 
-target_link_libraries(${APP_NAME} "-ljsoncpp")
+# Find Mantids29 package using pkg-config
+find_package(PkgConfig REQUIRED)
 
-target_link_libraries(${APP_NAME} "-lmdz_xrpc_fast")
-target_link_libraries(${APP_NAME} "-lmdz_xrpc_templates")
-target_link_libraries(${APP_NAME} "-lmdz_xrpc_webserver")
-target_link_libraries(${APP_NAME} "-lmdz_xrpc_common")
-target_link_libraries(${APP_NAME} "-lmdz_xrpc_templates")
-target_link_libraries(${APP_NAME} "-lmdz_auth")
-target_link_libraries(${APP_NAME} "-lmdz_auth_db")
-target_link_libraries(${APP_NAME} "-lmdz_db")
-target_link_libraries(${APP_NAME} "-lmdz_db_sqlite3")
-target_link_libraries(${APP_NAME} "-lmdz_proto_http")
-target_link_libraries(${APP_NAME} "-lmdz_proto_mime")
-target_link_libraries(${APP_NAME} "-lmdz_net_sockets")
-target_link_libraries(${APP_NAME} "-lmdz_thr_mutex")
-target_link_libraries(${APP_NAME} "-lmdz_thr_safecontainers")
-target_link_libraries(${APP_NAME} "-lmdz_thr_threads")
-target_link_libraries(${APP_NAME} "-lmdz_prg_service")
-target_link_libraries(${APP_NAME} "-lmdz_prg_logs")
-target_link_libraries(${APP_NAME} "-lmdz_mem_vars")
-target_link_libraries(${APP_NAME} "-lmdz_hlp_functions")
+# List of Mantids29 libraries to link against
+set(MANTIDS29_LIBRARIES
+    Mantids29_RPC_Fast
+    Mantids29_RPC_WebServer
+    Mantids29_RPC_Common
+    Mantids29_RPC_Templates
+    Mantids29_Auth
+    Mantids29_Auth_DB
+    Mantids29_DB
+    Mantids29_DB_SQLite3
+    Mantids29_Protocol_HTTP
+    Mantids29_Protocol_MIME
+    Mantids29_Net_Sockets
+    Mantids29_Threads
+    Mantids29_Program_Service
+    Mantids29_Program_Logs
+    Mantids29_Memory
+    Mantids29_Helpers
+)
+
+# Iterate over the list of Mantids29 libraries and add include directories and linker flags to the target
+foreach(LIBRARY ${MANTIDS29_LIBRARIES})
+    # Find the library using pkg-config
+    pkg_check_modules(${LIBRARY} REQUIRED ${LIBRARY})
+    # Add include directory to target
+    target_include_directories(${APP_NAME} PUBLIC ${${LIBRARY}_INCLUDEDIR})
+    # Link target against the library
+    target_link_libraries(${APP_NAME} ${${LIBRARY}_LDFLAGS})
+endforeach()
+
 target_link_libraries(${APP_NAME} "-lsqlite3")
+target_link_libraries(${APP_NAME} "-ljsoncpp")
 
 option(SSLRHEL7 "OpenSSL 1.1 For Red Hat 7.x provided by EPEL" OFF)
 find_package(PkgConfig REQUIRED)

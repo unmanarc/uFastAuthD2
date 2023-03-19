@@ -1,7 +1,8 @@
 #include "loginauthmethods.h"
 
-#include <mdz_prg_logs/applog.h>
+#include <Mantids29/Program_Logs/applog.h>
 
+#include "Auth/manager.h"
 #include "defs.h"
 #include "globals.h"
 
@@ -9,9 +10,9 @@
 #include <boost/algorithm/string.hpp>
 
 using namespace AUTHSERVER;
-using namespace Mantids::Application;
-using namespace Mantids::RPC;
-using namespace Mantids;
+using namespace Mantids29::Application;
+using namespace Mantids29::RPC;
+using namespace Mantids29;
 
 /**
  * @brief readFile2String Local function to convert a file to a std::string (with every line), very useful for web resources.
@@ -31,8 +32,7 @@ std::string readFile2String(const std::string &fileName)
     return std::string(bytes.data(), iFileSize);
 }
 
-
-void Mantids::RPC::Templates::LoginAuth::AddLoginAuthMethods(Mantids::Authentication::Manager *auth, Mantids::RPC::Fast::FastRPC *fastRPC)
+void Mantids29::RPC::Templates::LoginAuth::AddLoginAuthMethods(Mantids29::Authentication::Manager *auth, Mantids29::RPC::Fast::FastRPC *fastRPC)
 {
     // AUTHENTICATION FUNCTIONS:
     fastRPC->addMethod("authenticate",{&authenticate,auth});
@@ -86,7 +86,7 @@ void Mantids::RPC::Templates::LoginAuth::AddLoginAuthMethods(Mantids::Authentica
 
 json Templates::LoginAuth::isAccountDisabled(void *obj, const std::string &connectionKey, const json &payload, void*, const std::string &)
 {
-    Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
+    Mantids29::Authentication::Manager * auth = (Mantids29::Authentication::Manager *)obj;
     json payloadOut;
 
     // Security check/container
@@ -100,7 +100,7 @@ json Templates::LoginAuth::isAccountDisabled(void *obj, const std::string &conne
 
 json Templates::LoginAuth::isAccountConfirmed(void *obj, const std::string &connectionKey, const json &payload, void*, const std::string &)
 {
-    Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
+    Mantids29::Authentication::Manager * auth = (Mantids29::Authentication::Manager *)obj;
     json payloadOut;
 
     // Security check/container
@@ -114,7 +114,7 @@ json Templates::LoginAuth::isAccountConfirmed(void *obj, const std::string &conn
 
 json Templates::LoginAuth::accountAttribs(void *obj, const std::string &connectionKey, const json &payload, void*, const std::string &)
 {
-    Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
+    Mantids29::Authentication::Manager * auth = (Mantids29::Authentication::Manager *)obj;
     json payloadOut;
 
     // Security check/container
@@ -133,7 +133,7 @@ json Templates::LoginAuth::accountAttribs(void *obj, const std::string &connecti
 
 json Templates::LoginAuth::accountGivenName(void *obj, const std::string &connectionKey, const json &payload, void*, const std::string &)
 {
-    Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
+    Mantids29::Authentication::Manager * auth = (Mantids29::Authentication::Manager *)obj;
     json payloadOut;
 
     // Security check/container
@@ -148,7 +148,7 @@ json Templates::LoginAuth::accountGivenName(void *obj, const std::string &connec
 
 json Templates::LoginAuth::accountLastName(void *obj, const std::string &connectionKey, const json &payload, void*, const std::string &)
 {
-    Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
+    Mantids29::Authentication::Manager * auth = (Mantids29::Authentication::Manager *)obj;
     json payloadOut;
 
     // Security check/container
@@ -163,7 +163,7 @@ json Templates::LoginAuth::accountLastName(void *obj, const std::string &connect
 
 json Templates::LoginAuth::accountDescription(void *obj, const std::string &connectionKey, const json &payload, void*, const std::string &)
 {
-    Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
+    Mantids29::Authentication::Manager * auth = (Mantids29::Authentication::Manager *)obj;
     json payloadOut;
 
     // Security check/container
@@ -178,7 +178,7 @@ json Templates::LoginAuth::accountDescription(void *obj, const std::string &conn
 
 json Templates::LoginAuth::accountEmail(void *obj, const std::string &connectionKey, const json &payload, void*, const std::string &)
 {
-    Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
+    Mantids29::Authentication::Manager * auth = (Mantids29::Authentication::Manager *)obj;
     json payloadOut;
 
     // Security check/container
@@ -192,7 +192,7 @@ json Templates::LoginAuth::accountEmail(void *obj, const std::string &connection
 
 json Templates::LoginAuth::accountExtraData(void *obj, const std::string &connectionKey, const json &payload, void*, const std::string &)
 {
-    Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
+    Mantids29::Authentication::Manager * auth = (Mantids29::Authentication::Manager *)obj;
     json payloadOut;
 
     // Security check/container
@@ -206,7 +206,7 @@ json Templates::LoginAuth::accountExtraData(void *obj, const std::string &connec
 
 json Templates::LoginAuth::applicationDescription(void *obj, const std::string &connectionKey, const json &payload, void*, const std::string &)
 {
-    Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
+    Mantids29::Authentication::Manager * auth = (Mantids29::Authentication::Manager *)obj;
     json payloadOut;
 
     // Security check/container
@@ -220,7 +220,7 @@ json Templates::LoginAuth::applicationDescription(void *obj, const std::string &
 
 json Templates::LoginAuth::applicationValidateOwner(void *obj, const std::string &connectionKey, const json &payload, void*, const std::string &)
 {
-    Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
+    Mantids29::Authentication::Manager * auth = (Mantids29::Authentication::Manager *)obj;
     json payloadOut;
 
     // Security check/container
@@ -234,7 +234,7 @@ json Templates::LoginAuth::applicationValidateOwner(void *obj, const std::string
 
 json Templates::LoginAuth::applicationValidateAccount(void *obj, const std::string &connectionKey, const json &payload, void*, const std::string &)
 {
-    Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
+    Mantids29::Authentication::Manager * auth = (Mantids29::Authentication::Manager *)obj;
     json payloadOut;
 
     if (  getAppNameFromConnectionKey(connectionKey) == JSON_ASSTRING(payload,"applicationName","") )
@@ -247,7 +247,7 @@ json Templates::LoginAuth::applicationValidateAccount(void *obj, const std::stri
 
 json Templates::LoginAuth::applicationOwners(void *obj, const std::string &connectionKey, const json &payload, void*, const std::string &)
 {
-    Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
+    Mantids29::Authentication::Manager * auth = (Mantids29::Authentication::Manager *)obj;
     json payloadOut;
 
     if (  getAppNameFromConnectionKey(connectionKey) == JSON_ASSTRING(payload,"applicationName","") )
@@ -265,7 +265,7 @@ json Templates::LoginAuth::applicationOwners(void *obj, const std::string &conne
 
 json Templates::LoginAuth::applicationAccounts(void *obj, const std::string &connectionKey, const json &payload, void*, const std::string &)
 {
-    Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
+    Mantids29::Authentication::Manager * auth = (Mantids29::Authentication::Manager *)obj;
     json payloadOut;
 
     if (  getAppNameFromConnectionKey(connectionKey) == JSON_ASSTRING(payload,"applicationName","") )
@@ -283,12 +283,12 @@ json Templates::LoginAuth::applicationAccounts(void *obj, const std::string &con
 
 json Templates::LoginAuth::accountSecretPublicData(void *obj, const std::string &connectionKey, const json &payload, void*, const std::string &)
 {
-    Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
+    Mantids29::Authentication::Manager * auth = (Mantids29::Authentication::Manager *)obj;
     json payloadOut;
 
     if ( auth->applicationValidateAccount(getAppNameFromConnectionKey(connectionKey),JSON_ASSTRING(payload,"accountName","") ) )
     {
-        auto v = auth->accountSecretPublicData(JSON_ASSTRING(payload,"accountName",""),JSON_ASUINT(payload,"passIndex",0) );
+        auto v = auth->getAccountSecretPublicData(JSON_ASSTRING(payload,"accountName",""),JSON_ASUINT(payload,"passIndex",0) );
 
         for (const auto &i : v.getMap())
         {
@@ -300,7 +300,7 @@ json Templates::LoginAuth::accountSecretPublicData(void *obj, const std::string 
 
 json Templates::LoginAuth::passIndexesRequiredForLogin(void *obj, const std::string &, const json &, void*, const std::string &)
 {
-    Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
+    Mantids29::Authentication::Manager * auth = (Mantids29::Authentication::Manager *)obj;
     json payloadOut;
     uint32_t x=0;
     for (auto i : auth->passIndexesRequiredForLogin())
@@ -312,7 +312,7 @@ json Templates::LoginAuth::passIndexesRequiredForLogin(void *obj, const std::str
 
 json Templates::LoginAuth::passIndexesUsedByAccount(void *obj, const std::string &connectionKey, const json &payload, void*, const std::string &)
 {
-    Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
+    Mantids29::Authentication::Manager * auth = (Mantids29::Authentication::Manager *)obj;
     json payloadOut;
     uint32_t x=0;
 
@@ -328,21 +328,21 @@ json Templates::LoginAuth::passIndexesUsedByAccount(void *obj, const std::string
 
 json Templates::LoginAuth::passIndexDescription(void *obj, const std::string &, const json &payload, void*, const std::string &)
 {
-    Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
+    Mantids29::Authentication::Manager * auth = (Mantids29::Authentication::Manager *)obj;
     json payloadOut = auth->passIndexDescription(JSON_ASUINT(payload,"passIndex",0));
     return payloadOut;
 }
 
 json Templates::LoginAuth::passIndexLoginRequired(void *obj, const std::string &, const json &payload, void*, const std::string &)
 {
-    Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
+    Mantids29::Authentication::Manager * auth = (Mantids29::Authentication::Manager *)obj;
     json payloadOut = auth->passIndexLoginRequired(JSON_ASUINT(payload,"passIndex",0));
     return payloadOut;
 }
 
 json Templates::LoginAuth::accountExpirationDate(void *obj, const std::string &connectionKey, const json &payload, void*, const std::string &)
 {
-    Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
+    Mantids29::Authentication::Manager * auth = (Mantids29::Authentication::Manager *)obj;
     json payloadOut = 0;
     if ( auth->applicationValidateAccount(getAppNameFromConnectionKey(connectionKey),JSON_ASSTRING(payload,"accountName","") ) )
     {
@@ -351,16 +351,16 @@ json Templates::LoginAuth::accountExpirationDate(void *obj, const std::string &c
     return payloadOut;
 }
 
-json Mantids::RPC::Templates::LoginAuth::authenticate(void * obj, const std::string & connectionKey, const json &payload, void*, const std::string &)
+json Mantids29::RPC::Templates::LoginAuth::authenticate(void * obj, const std::string & connectionKey, const json &payload, void*, const std::string &)
 {
-    Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
+    Mantids29::Authentication::Manager * auth = (Mantids29::Authentication::Manager *)obj;
     json payloadOut;
 
-    Mantids::Authentication::sClientDetails clientDetails;
-    clientDetails.sIPAddr = JSON_ASSTRING(payload["clientDetails"],"ipAddr","");
-    clientDetails.sExtraData = JSON_ASSTRING(payload["clientDetails"],"extraData","");
-    clientDetails.sTLSCommonName = JSON_ASSTRING(payload["clientDetails"],"tlsCN","");
-    clientDetails.sUserAgent = JSON_ASSTRING(payload["clientDetails"],"userAgent","");
+    Mantids29::Authentication::ClientDetails clientDetails;
+    clientDetails.ipAddress = JSON_ASSTRING(payload["clientDetails"],"ipAddr","");
+    clientDetails.extraData = JSON_ASSTRING(payload["clientDetails"],"extraData","");
+    clientDetails.tlsCommonName = JSON_ASSTRING(payload["clientDetails"],"tlsCN","");
+    clientDetails.userAgent = JSON_ASSTRING(payload["clientDetails"],"userAgent","");
 
     std::map<uint32_t, std::string> accountPassIndexesUsedForLogin;
 
@@ -369,7 +369,7 @@ json Mantids::RPC::Templates::LoginAuth::authenticate(void * obj, const std::str
                                                              JSON_ASSTRING(payload,"accountName",""),
             JSON_ASSTRING(payload,"password",""),
             JSON_ASUINT(payload,"passIndex",0),
-            Mantids::Authentication::getAuthModeFromString(JSON_ASSTRING(payload,"authMode","")),
+            Mantids29::Authentication::getAuthModeFromString(JSON_ASSTRING(payload,"authMode","")),
             JSON_ASSTRING(payload,"challengeSalt",""),
             &accountPassIndexesUsedForLogin  );
 
@@ -383,19 +383,19 @@ json Mantids::RPC::Templates::LoginAuth::authenticate(void * obj, const std::str
 
 
 
-    LOG_APP->log2(__func__,JSON_ASSTRING(payload,"accountName",""),clientDetails.sIPAddr,
+    LOG_APP->log2(__func__,JSON_ASSTRING(payload,"accountName",""),clientDetails.ipAddress,
             JSON_ASUINT(payloadOut,"retCode",0)? Logs::LEVEL_WARN : Logs::LEVEL_INFO
-                                            , "Account Authentication Result: %" PRIu32 " - %s, for application %s", JSON_ASUINT(payloadOut,"retCode",0),Mantids::Authentication::getReasonText((Mantids::Authentication::Reason)JSON_ASUINT(payloadOut,"retCode",0)),getAppNameFromConnectionKey(connectionKey).c_str() );
+                                            , "Account Authentication Result: %" PRIu32 " - %s, for application %s", JSON_ASUINT(payloadOut,"retCode",0),Mantids29::Authentication::getReasonText((Mantids29::Authentication::Reason)JSON_ASUINT(payloadOut,"retCode",0)),getAppNameFromConnectionKey(connectionKey).c_str() );
 
 
-    payloadOut["retMessage"] = Mantids::Authentication::getReasonText((Mantids::Authentication::Reason)JSON_ASUINT(payloadOut,"retCode",0));
+    payloadOut["retMessage"] = Mantids29::Authentication::getReasonText((Mantids29::Authentication::Reason)JSON_ASUINT(payloadOut,"retCode",0));
 
     return payloadOut;
 }
 
-json Mantids::RPC::Templates::LoginAuth::accountChangeAuthenticatedSecret(void * obj,const std::string & connectionKey, const json &payload, void*, const std::string &)
+json Mantids29::RPC::Templates::LoginAuth::accountChangeAuthenticatedSecret(void * obj,const std::string & connectionKey, const json &payload, void*, const std::string &)
 {
-    Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
+    Mantids29::Authentication::Manager * auth = (Mantids29::Authentication::Manager *)obj;
 
     json payloadOut;
 
@@ -405,14 +405,14 @@ json Mantids::RPC::Templates::LoginAuth::accountChangeAuthenticatedSecret(void *
         mNewSecret[member] = JSON_ASSTRING(payload["newSecret"],member,"");
     }
 
-    Mantids::Authentication::Secret newSecret;
+    Mantids29::Authentication::Secret newSecret;
     newSecret.fromMap(mNewSecret);
 
-    Mantids::Authentication::sClientDetails clientDetails;
-    clientDetails.sIPAddr = JSON_ASSTRING(payload["clientDetails"],"ipAddr","");
-    clientDetails.sExtraData = JSON_ASSTRING(payload["clientDetails"],"extraData","");
-    clientDetails.sTLSCommonName = JSON_ASSTRING(payload["clientDetails"],"tlsCN","");
-    clientDetails.sUserAgent = JSON_ASSTRING(payload["clientDetails"],"userAgent","");
+    Mantids29::Authentication::ClientDetails clientDetails;
+    clientDetails.ipAddress = JSON_ASSTRING(payload["clientDetails"],"ipAddr","");
+    clientDetails.extraData = JSON_ASSTRING(payload["clientDetails"],"extraData","");
+    clientDetails.tlsCommonName = JSON_ASSTRING(payload["clientDetails"],"tlsCN","");
+    clientDetails.userAgent = JSON_ASSTRING(payload["clientDetails"],"userAgent","");
 
     payloadOut["retCode"] = auth->accountChangeAuthenticatedSecret( getAppNameFromConnectionKey(connectionKey),
                                                                     payload["accountName" ].asString(),
@@ -420,12 +420,12 @@ json Mantids::RPC::Templates::LoginAuth::accountChangeAuthenticatedSecret(void *
                                                                     JSON_ASSTRING(payload,"currentPassword",""),
                                                                     newSecret,
                                                                     clientDetails,
-                                                                    Mantids::Authentication::getAuthModeFromString(JSON_ASSTRING(payload,"authMode","")),
+                                                                    Mantids29::Authentication::getAuthModeFromString(JSON_ASSTRING(payload,"authMode","")),
                                                                     JSON_ASSTRING(payload,"challengeSalt","")
                                                                   );
 
 
-    LOG_APP->log2(__func__,JSON_ASSTRING(payload,"accountName",""),clientDetails.sIPAddr,
+    LOG_APP->log2(__func__,JSON_ASSTRING(payload,"accountName",""),clientDetails.ipAddress,
             JSON_ASBOOL(payloadOut,"retCode",false)? Logs::LEVEL_INFO : Logs::LEVEL_WARN
                                             , "Account Change Authentication Result: %" PRIu8, JSON_ASBOOL(payloadOut,"retCode",false)?1:0);
 
@@ -434,9 +434,9 @@ json Mantids::RPC::Templates::LoginAuth::accountChangeAuthenticatedSecret(void *
 
 }
 
-json Mantids::RPC::Templates::LoginAuth::accountAdd(void * obj,const std::string & connectionKey, const json &payload, void*, const std::string &)
+json Mantids29::RPC::Templates::LoginAuth::accountAdd(void * obj,const std::string & connectionKey, const json &payload, void*, const std::string &)
 {
-    Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
+    Mantids29::Authentication::Manager * auth = (Mantids29::Authentication::Manager *)obj;
 
     json payloadOut;
 
@@ -446,16 +446,16 @@ json Mantids::RPC::Templates::LoginAuth::accountAdd(void * obj,const std::string
         mNewSecret[member] = JSON_ASSTRING(payload,member,"");
     }
 
-    Mantids::Authentication::Secret newSecret;
+    Mantids29::Authentication::Secret newSecret;
     newSecret.fromMap(mNewSecret);
 
-    Mantids::Authentication::sAccountDetails accountDetails;
-    accountDetails.sDescription = JSON_ASSTRING(payload["accountDetails"],"description","");
-    accountDetails.sEmail = JSON_ASSTRING(payload["accountDetails"],"email","");
-    accountDetails.sExtraData = JSON_ASSTRING(payload["accountDetails"],"extraData","");
-    accountDetails.sGivenName = JSON_ASSTRING(payload["accountDetails"],"givenName","");
-    accountDetails.sLastName = JSON_ASSTRING(payload["accountDetails"],"lastName","");
-    Mantids::Authentication::sAccountAttribs accountAttribs;
+    Mantids29::Authentication::AccountDetailsWExtraData accountDetails;
+    accountDetails.description = JSON_ASSTRING(payload["accountDetails"],"description","");
+    accountDetails.email = JSON_ASSTRING(payload["accountDetails"],"email","");
+    accountDetails.extraData = JSON_ASSTRING(payload["accountDetails"],"extraData","");
+    accountDetails.givenName = JSON_ASSTRING(payload["accountDetails"],"givenName","");
+    accountDetails.lastName = JSON_ASSTRING(payload["accountDetails"],"lastName","");
+    Mantids29::Authentication::AccountBasicAttributes accountAttribs;
     accountAttribs.confirmed = true;
     accountAttribs.enabled = false;
     accountAttribs.superuser = false;
@@ -471,9 +471,9 @@ json Mantids::RPC::Templates::LoginAuth::accountAdd(void * obj,const std::string
     return payloadOut;
 }
 
-json Mantids::RPC::Templates::LoginAuth::attribExist(void *obj,const std::string &connectionKey, const json &payload, void*, const std::string &)
+json Mantids29::RPC::Templates::LoginAuth::attribExist(void *obj,const std::string &connectionKey, const json &payload, void*, const std::string &)
 {
-    Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
+    Mantids29::Authentication::Manager * auth = (Mantids29::Authentication::Manager *)obj;
 
     // This function is important to aplications to understand if they have been installed into the user manager
     json payloadOut;
@@ -481,9 +481,9 @@ json Mantids::RPC::Templates::LoginAuth::attribExist(void *obj,const std::string
     return payloadOut;
 }
 
-json Mantids::RPC::Templates::LoginAuth::attribAdd(void *obj, const std::string &connectionKey, const json &payload, void*, const std::string &)
+json Mantids29::RPC::Templates::LoginAuth::attribAdd(void *obj, const std::string &connectionKey, const json &payload, void*, const std::string &)
 {
-    Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
+    Mantids29::Authentication::Manager * auth = (Mantids29::Authentication::Manager *)obj;
     json payloadOut;
     payloadOut["retCode"] = auth->attribAdd( { getAppNameFromConnectionKey(connectionKey), JSON_ASSTRING(payload,"attribName","") },
                                              JSON_ASSTRING(payload,"attribDescription","")
@@ -498,9 +498,9 @@ json Mantids::RPC::Templates::LoginAuth::attribAdd(void *obj, const std::string 
     return payloadOut;
 }
 
-json Mantids::RPC::Templates::LoginAuth::attribRemove(void *obj, const std::string &connectionKey, const json &payload, void*, const std::string &)
+json Mantids29::RPC::Templates::LoginAuth::attribRemove(void *obj, const std::string &connectionKey, const json &payload, void*, const std::string &)
 {
-    Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
+    Mantids29::Authentication::Manager * auth = (Mantids29::Authentication::Manager *)obj;
     json payloadOut;
     payloadOut["retCode"] = auth->attribRemove( { getAppNameFromConnectionKey(connectionKey), JSON_ASSTRING(payload,"attribName","") });
 
@@ -511,9 +511,9 @@ json Mantids::RPC::Templates::LoginAuth::attribRemove(void *obj, const std::stri
     return payloadOut;
 }
 
-json Mantids::RPC::Templates::LoginAuth::attribChangeDescription(void *obj, const std::string &connectionKey, const json &payload, void*, const std::string &)
+json Mantids29::RPC::Templates::LoginAuth::attribChangeDescription(void *obj, const std::string &connectionKey, const json &payload, void*, const std::string &)
 {
-    Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
+    Mantids29::Authentication::Manager * auth = (Mantids29::Authentication::Manager *)obj;
     json payloadOut;
     payloadOut["retCode"] = auth->attribChangeDescription( { getAppNameFromConnectionKey(connectionKey), JSON_ASSTRING(payload,"attribName","") },
                                                            JSON_ASSTRING(payload,"attribDescription","")
@@ -528,17 +528,17 @@ json Mantids::RPC::Templates::LoginAuth::attribChangeDescription(void *obj, cons
     return payloadOut;
 }
 
-json Mantids::RPC::Templates::LoginAuth::attribDescription(void *obj, const std::string &connectionKey, const json &payload, void*, const std::string &)
+json Mantids29::RPC::Templates::LoginAuth::attribDescription(void *obj, const std::string &connectionKey, const json &payload, void*, const std::string &)
 {
-    Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
+    Mantids29::Authentication::Manager * auth = (Mantids29::Authentication::Manager *)obj;
     json payloadOut;
     payloadOut["attribDescription"] = auth->attribDescription( { getAppNameFromConnectionKey(connectionKey), JSON_ASSTRING(payload,"attribName","") } );
     return payloadOut;
 }
 
-json Mantids::RPC::Templates::LoginAuth::getAccountAllSecretsPublicData(void *obj, const std::string &connectionKey, const json &payload, void*, const std::string &)
+json Mantids29::RPC::Templates::LoginAuth::getAccountAllSecretsPublicData(void *obj, const std::string &connectionKey, const json &payload, void*, const std::string &)
 {
-    Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
+    Mantids29::Authentication::Manager * auth = (Mantids29::Authentication::Manager *)obj;
     json payloadOut;
 
     if ( auth->applicationValidateAccount(getAppNameFromConnectionKey(connectionKey),JSON_ASSTRING(payload,"accountName","") ) )
@@ -558,9 +558,9 @@ json Mantids::RPC::Templates::LoginAuth::getAccountAllSecretsPublicData(void *ob
     }
 }
 
-json Mantids::RPC::Templates::LoginAuth::isAccountSuperUser(void *obj, const std::string &connectionKey, const json &payload, void*, const std::string &)
+json Mantids29::RPC::Templates::LoginAuth::isAccountSuperUser(void *obj, const std::string &connectionKey, const json &payload, void*, const std::string &)
 {
-    Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
+    Mantids29::Authentication::Manager * auth = (Mantids29::Authentication::Manager *)obj;
     json payloadOut;
 
     // Security check/container
@@ -572,11 +572,11 @@ json Mantids::RPC::Templates::LoginAuth::isAccountSuperUser(void *obj, const std
     return payloadOut;
 }
 
-json Mantids::RPC::Templates::LoginAuth::accountValidateAttribute(void *obj, const std::string &connectionKey, const json &payload, void*, const std::string &)
+json Mantids29::RPC::Templates::LoginAuth::accountValidateAttribute(void *obj, const std::string &connectionKey, const json &payload, void*, const std::string &)
 {
-    Mantids::Authentication::Manager * auth = (Mantids::Authentication::Manager *)obj;
+    Mantids29::Authentication::Manager * auth = (Mantids29::Authentication::Manager *)obj;
     json payloadOut;
-    payloadOut["retCode"] = auth->accountValidateAttribute( JSON_ASSTRING(payload,"accountName",""), { getAppNameFromConnectionKey(connectionKey), JSON_ASSTRING(payload,"attribName","") } );
+    payloadOut["retCode"] = auth->validateAccountAttribute( JSON_ASSTRING(payload,"accountName",""), { getAppNameFromConnectionKey(connectionKey), JSON_ASSTRING(payload,"attribName","") } );
     return payloadOut;
 }
 
@@ -631,7 +631,7 @@ json Templates::LoginAuth::getStaticContent(void *, const std::string &, const j
     return staticContents;
 }
 
-std::string Mantids::RPC::Templates::LoginAuth::getAppNameFromConnectionKey(const std::string &connectionKey)
+std::string Mantids29::RPC::Templates::LoginAuth::getAppNameFromConnectionKey(const std::string &connectionKey)
 {
     std::vector<std::string> splstr;
     split(splstr,connectionKey,boost::is_any_of("."),boost::token_compress_on);

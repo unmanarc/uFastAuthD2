@@ -1,6 +1,6 @@
-# uFastAuthD 
+# uFastAuthD2 
 
-Unmanarc Fast Authentication Daemon  
+Unmanarc Fast Authentication Daemon 2 
   
 Author: Aaron Mizrachi (unmanarc) <aaron@unmanarc.com>   
 Main License: GPLv3   
@@ -16,7 +16,7 @@ This server provides a directory/authorization implementation for managing users
 
 - [Manual build guide](BUILD.md)
 - COPR Packages (Fedora/CentOS/RHEL/etc):  
-[![Copr build status](https://copr.fedorainfracloud.org/coprs/amizrachi/unmanarc/package/uFastAuthD/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/amizrachi/unmanarc/package/uFastAuthD/)
+[![Copr build status](https://copr.fedorainfracloud.org/coprs/amizrachi/unmanarc/package/uFastAuthD2/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/amizrachi/unmanarc/package/uFastAuthD2/)
 
 
 ### Simple installation guide for Fedora/RHEL:

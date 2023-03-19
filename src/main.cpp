@@ -1,9 +1,9 @@
-#include <mdz_prg_service/application.h>
-#include <mdz_net_sockets/socket_tls.h>
-#include <mdz_mem_vars/a_bool.h>
+#include <Mantids29/Program_Service/application.h>
+#include <Mantids29/Net_Sockets/socket_tls.h>
+#include <Mantids29/Program_Logs/loglevels.h>
+#include <Mantids29/Memory/a_bool.h>
 
 #include "loginrpcserverimpl.h"
-#include "mdz_prg_logs/loglevels.h"
 #include "webserverimpl.h"
 #include "authstorageimpl.h"
 
@@ -21,7 +21,7 @@
 
 using namespace AUTHSERVER;
 
-using namespace Mantids::Application;
+using namespace Mantids29::Application;
 
 class Main : public Application
 {
@@ -59,10 +59,10 @@ public:
         }
 
         // Initiate the web server
-        if (!AUTHSERVER::WEB::WebServerImpl::createWebServer())
+        /*if (!AUTHSERVER::WEB::WebServerImpl::createWebServer())
         {
             _exit(-1);
-        }
+        }*/
 
         // Initiate the web services
         if (!AUTHSERVER::WEB::WebServerImpl::createWebService())
@@ -80,14 +80,13 @@ public:
         // init variables (pre-config):
         globalArguments->setInifiniteWaitAtEnd(true);
 
-        globalArguments->setLicense("GPLv3 (https://www.gnu.org/licenses/gpl-3.0.en.html)");
-        globalArguments->setAuthor("Aarón Mizrachi");
-        globalArguments->setEmail("aaron@unmanarc.com");
+        globalArguments->m_softwareLicense = "GPLv3 (https://www.gnu.org/licenses/gpl-3.0.en.html)";
+        globalArguments->m_softwareDescription = PROJECT_DESCRIPTION;
+        globalArguments->addAuthor({"Aarón Mizrachi","aaron@unmanarc.com"});
         globalArguments->setVersion(atoi(PROJECT_VER_MAJOR), atoi(PROJECT_VER_MINOR), atoi(PROJECT_VER_PATCH), "a");
-        globalArguments->setDescription(PROJECT_DESCRIPTION);
 
-        globalArguments->addCommandLineOption("Service Options", 'c', "config-dir" , "Configuration directory"  , "/etc/ufastauthd", Mantids::Memory::Abstract::Var::TYPE_STRING );
-        globalArguments->addCommandLineOption("Recovery Options", 'r', "resetadmpw" , "Reset Administrator Password"  , "false", Mantids::Memory::Abstract::Var::TYPE_BOOL );
+        globalArguments->addCommandLineOption("Service Options", 'c', "config-dir" , "Configuration directory"  , "/etc/ufastauthd2", Mantids29::Memory::Abstract::Var::TYPE_STRING );
+        globalArguments->addCommandLineOption("Recovery Options", 'r', "resetadmpw" , "Reset Administrator Password"  , "false", Mantids29::Memory::Abstract::Var::TYPE_BOOL );
     }
 
     bool _config(int , char *argv[], Arguments::GlobalArguments * globalArguments)
@@ -95,18 +94,19 @@ public:
         // process config:
         unsigned int logMode = Logs::MODE_STANDARD;
 
-        Mantids::Network::Sockets::Socket_TLS::prepareTLS();
+        Mantids29::Network::Sockets::Socket_TLS::prepareTLS();
 
         Logs::AppLog initLog(Logs::MODE_STANDARD);
-        initLog.setPrintEmptyFields(true);
-        initLog.setUsingColors(true);
-        initLog.setUsingPrintDate(true);
-        initLog.setModuleAlignSize(26);
-        initLog.setUsingAttributeName(false);
-        initLog.setStandardLogSeparator(",");
+        initLog.m_printAttributeName = false;
+        initLog.m_printDate = true;
+        initLog.m_printAttributeName = false;
+        initLog.m_printEmptyFields = true;
+        initLog.m_useColors = true;
+        initLog.m_logFieldSeparator = ",";
+        initLog.m_minModuleFieldWidth = 26;
 
         Globals::setResetAdminPasswd(
-                    ((Mantids::Memory::Abstract::BOOL *)globalArguments->getCommandLineOptionValue("resetadmpw"))->getValue()
+                    ((Mantids29::Memory::Abstract::BOOL *)globalArguments->getCommandLineOptionValue("resetadmpw"))->getValue()
                 );
 
         std::string configDir = globalArguments->getCommandLineOptionValue("config-dir")->toString();
@@ -156,25 +156,26 @@ public:
         if ( config_main.get<bool>("Logs.ToSyslog",true) ) logMode|=Logs::MODE_SYSLOG;
 
         Globals::setAppLog(new Logs::AppLog(logMode));
-        LOG_APP->setPrintEmptyFields(true);
-        LOG_APP->setUsingColors(config_main.get<bool>("Logs.ShowColors",true));
-        LOG_APP->setUsingPrintDate(config_main.get<bool>("Logs.ShowDate",true));
-        LOG_APP->setModuleAlignSize(26);
-        LOG_APP->setUsingAttributeName(false);
-        LOG_APP->setStandardLogSeparator(",");
         LOG_APP->setDebug(Globals::getConfig_main()->get<bool>("Logs.Debug",false));
+        LOG_APP->m_printDate = config_main.get<bool>("Logs.ShowDate",true);
+        LOG_APP->m_useColors = config_main.get<bool>("Logs.ShowColors",true);
+        LOG_APP->m_printAttributeName = false;
+        LOG_APP->m_printEmptyFields = true;
+        LOG_APP->m_logFieldSeparator = ",";
+        LOG_APP->m_minModuleFieldWidth = 26;
+        LOG_APP->m_printAttributeName = false;
 
 
         Globals::setRPCLog(new Logs::RPCLog(logMode));
-        LOG_RPC->setPrintEmptyFields(true);
-        LOG_RPC->setUsingColors(config_main.get<bool>("Logs.ShowColors",true));
-        LOG_RPC->setUsingPrintDate(config_main.get<bool>("Logs.ShowDate",true));
-        LOG_RPC->setDisableDomain(true);
-        LOG_RPC->setDisableModule(true);
-        LOG_RPC->setModuleAlignSize(26);
-        LOG_RPC->setUsingAttributeName(false);
-        LOG_RPC->setStandardLogSeparator(",");
         LOG_RPC->setDebug(Globals::getConfig_main()->get<bool>("Logs.Debug",false));
+        LOG_RPC->m_useColors=config_main.get<bool>("Logs.ShowColors",true);
+        LOG_RPC->m_printDate=config_main.get<bool>("Logs.ShowDate",true);
+        LOG_RPC->m_printEmptyFields=true;
+        LOG_RPC->m_disableDomain=true;
+        LOG_RPC->m_disableModule=true;
+        LOG_RPC->m_minModuleFieldWidth=26;
+        LOG_RPC->m_printAttributeName=false;
+        LOG_RPC->m_logFieldSeparator=",";
 
         return true;
     }

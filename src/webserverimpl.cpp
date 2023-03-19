@@ -3,31 +3,32 @@
 #include "defs.h"
 #include "config.h"
 
-#include <mdz_xrpc_webserver/webserver.h>
-#include <mdz_net_sockets/socket_tls.h>
-#include <mdz_xrpc_templates/fullauth.h>
+#include <Mantids29/Net_Sockets/socket_tls.h>
+#include <Mantids29/RPC_WebServer/webserver.h>
+#include <Mantids29/RPC_Templates/fullauth.h>
 
 #include  <boost/algorithm/string/predicate.hpp>
 
+#include <memory>
 #include <sstream>
 #include <ostream>
 #include <inttypes.h>
 
 
-using namespace Mantids::Network::Sockets;
-using namespace Mantids::Application;
-using namespace Mantids::RPC::Web;
-using namespace Mantids::RPC;
-using namespace Mantids;
+using namespace Mantids29::Network::Sockets;
+using namespace Mantids29::Application;
+using namespace Mantids29::RPC::Web;
+using namespace Mantids29::RPC;
+using namespace Mantids29;
 using namespace AUTHSERVER::WEB;
 
 WebServerImpl::WebServerImpl()
 {
 }
-
+/*
 bool WebServerImpl::createWebServer()
 {
-    Socket_TLS * sockWebListen = new Socket_TLS;
+    auto sockWebListen = std::make_shared<Socket_TLS>();
 
     // Set the SO default security level:
     sockWebListen->keys.setSecurityLevel(-1);
@@ -51,7 +52,7 @@ bool WebServerImpl::createWebServer()
         Authentication::Domains * authDomains = new Authentication::Domains;
         MethodsManager *methodsManagers = new MethodsManager(DB_APPNAME);
 
-        // Add methods:
+        // Add authentication methods for the session:
         RPC::Templates::FullAuth::AddFullAuthMethods(methodsManagers,DB_APPNAME);
 
         // Add the default domain / auth:
@@ -83,11 +84,11 @@ bool WebServerImpl::createWebServer()
         LOG_APP->log0(__func__,Logs::LEVEL_CRITICAL, "Error starting Web Server @%s:%" PRIu16 ": %s", listenAddr.c_str(), listenPort, sockWebListen->getLastError().c_str());
         return false;
     }
-}
+}*/
 
 bool WebServerImpl::createWebService()
 {
-    Socket_TLS * sockWebListen = new Socket_TLS;
+    auto sockWebListen = std::make_shared<Socket_TLS>();
 
     // Set the SO default security level:
     sockWebListen->keys.setSecurityLevel(-1);
@@ -111,7 +112,7 @@ bool WebServerImpl::createWebService()
         Authentication::Domains * authDomains = new Authentication::Domains;
         MethodsManager *methodsManagers = new MethodsManager(DB_APPNAME);
 
-        // Add methods:
+        // Add authentication methods:
         RPC::Templates::FullAuth::AddFullAuthMethods(methodsManagers,DB_APPNAME);
 
         // Add the default domain / auth:
@@ -141,7 +142,7 @@ bool WebServerImpl::createWebService()
     }
 }
 
-bool WebServerImpl::protoInitFail(void * , Network::Sockets::Socket_StreamBase * sock, const char * remoteIP, bool )
+bool WebServerImpl::protoInitFail(void * , Network::Sockets::Socket_Stream_Base * sock, const char * remoteIP, bool )
 {
     Socket_TLS * secSocket = (Socket_TLS *)sock;
 

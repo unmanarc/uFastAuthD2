@@ -2,6 +2,8 @@
 #include <Mantids29/Net_Sockets/socket_tls.h>
 #include <Mantids29/Program_Logs/loglevels.h>
 #include <Mantids29/Memory/a_bool.h>
+#include <Mantids29/Helpers/file.h>
+
 
 #include "loginrpcserverimpl.h"
 #include "webserverimpl.h"
@@ -21,7 +23,7 @@
 
 using namespace AUTHSERVER;
 
-using namespace Mantids29::Application;
+using namespace Mantids29::Program;
 
 class Main : public Application
 {
@@ -123,32 +125,29 @@ public:
 
         chdir(configDir.c_str());
 
-        if (!access("config.ini",R_OK))
+        bool isConfigFileInsecure;
+        if ( !Mantids29::Helpers::File::isSensitiveConfigPermissionInsecure("config.ini", &isConfigFileInsecure) )
         {
-            struct stat stats;
-            // Check file properties...
-            stat("config.ini", &stats);
-
-            int smode = stats.st_mode & (S_IRWXU | S_IRWXG | S_IRWXO);
-
-            if ( smode != 0600 )
-            {
-                initLog.log0(__func__,Logs::LEVEL_WARN, "config.ini file permissions are not 0600 and API key may be exposed, changing...");
-
-                if (chmod("config.ini",0600))
-                {
-                    initLog.log0(__func__,Logs::LEVEL_CRITICAL, "Configuration file permissions can't be changed to 0600");
-                    return false;
-                }
-                initLog.log0(__func__,Logs::LEVEL_INFO, "config.ini file permissions changed to 0600");
-            }
-
-            boost::property_tree::ini_parser::read_ini("config.ini",config_main);
+            initLog.log0(__func__,Logs::LEVEL_WARN, "The configuration file 'config.ini' is inaccessible, loading defaults...");
         }
         else
         {
-            initLog.log0(__func__,Logs::LEVEL_CRITICAL, "Missing configuration: %s", "/config.ini");
-            return false;
+            if ( isConfigFileInsecure )
+            {
+                initLog.log0(__func__,Logs::LEVEL_SECURITY_ALERT, "The permissions of the 'config.ini' file are currently not set to 0600. This may leave your API key exposed to potential security threats. To mitigate this risk, we are changing the permissions of the file to ensure that your API key remains secure. Please ensure that you take necessary precautions to protect your API key and update any affected applications or services as necessary.");
+
+                if ( Mantids29::Helpers::File::fixSensitiveConfigPermission("config.ini"))
+                {
+                    initLog.log0(__func__,Logs::LEVEL_SECURITY_ALERT, "The permissions of the 'config.ini' has been changed to 0600.");
+                }
+                else
+                {
+                    initLog.log0(__func__,Logs::LEVEL_CRITICAL, "The permissions of the 'config.ini' file can't be changed.");
+                    return false;
+                }
+            }
+
+            boost::property_tree::ini_parser::read_ini("config.ini",config_main);
         }
 
         *(Globals::getConfig_main()) = config_main;

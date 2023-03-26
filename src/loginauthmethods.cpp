@@ -1,8 +1,8 @@
 #include "loginauthmethods.h"
 
 #include <Mantids29/Program_Logs/applog.h>
+#include <Mantids29/Auth/manager.h>
 
-#include "Auth/manager.h"
 #include "defs.h"
 #include "globals.h"
 
@@ -10,7 +10,7 @@
 #include <boost/algorithm/string.hpp>
 
 using namespace AUTHSERVER;
-using namespace Mantids29::Application;
+using namespace Mantids29::Program;
 using namespace Mantids29::RPC;
 using namespace Mantids29;
 
@@ -32,7 +32,7 @@ std::string readFile2String(const std::string &fileName)
     return std::string(bytes.data(), iFileSize);
 }
 
-void Mantids29::RPC::Templates::LoginAuth::AddLoginAuthMethods(Mantids29::Authentication::Manager *auth, Mantids29::RPC::Fast::FastRPC *fastRPC)
+void Mantids29::RPC::Templates::LoginAuth::AddLoginAuthMethods(Mantids29::Authentication::Manager *auth, Mantids29::Network::Protocols::FastRPC::FastRPC1 *fastRPC)
 {
     // AUTHENTICATION FUNCTIONS:
     fastRPC->addMethod("authenticate",{&authenticate,auth});
@@ -580,6 +580,7 @@ json Mantids29::RPC::Templates::LoginAuth::accountValidateAttribute(void *obj, c
     return payloadOut;
 }
 
+// TODO: no more this... auth should be carried via oath2 and client access this resources directly on the auth server...
 json Templates::LoginAuth::getStaticContent(void *, const std::string &, const json &, void*, const std::string &)
 {
     json staticContents;
@@ -626,7 +627,6 @@ json Templates::LoginAuth::getStaticContent(void *, const std::string &, const j
         staticContents[i]["content"] = readFile2String(resourcesPath + asset);
         staticContents[i++]["path"] = asset;
     }
-
 
     return staticContents;
 }

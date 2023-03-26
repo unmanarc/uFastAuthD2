@@ -22,8 +22,7 @@ using namespace AUTHSERVER::AUTH;
 using namespace AUTHSERVER;
 
 using namespace Mantids29::Database;
-using namespace Mantids29::Application;
-using namespace Mantids29::RPC;
+using namespace Mantids29::Program;
 using namespace Mantids29;
 
 AuthStorageImpl::AuthStorageImpl()

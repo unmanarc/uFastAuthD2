@@ -3,25 +3,25 @@
 using namespace AUTHSERVER;
 
 Mantids29::Authentication::Manager * Globals::authManager = nullptr;
-Mantids29::Application::Logs::AppLog * Globals::applog = nullptr;
-Mantids29::Application::Logs::RPCLog * Globals::rpclog = nullptr;
+Mantids29::Program::Logs::AppLog * Globals::applog = nullptr;
+Mantids29::Program::Logs::RPCLog * Globals::rpclog = nullptr;
 std::string Globals::rulesDir,Globals::actionsDir;
 std::mutex Globals::mDatabase, Globals::mDirs;
 boost::property_tree::ptree Globals::config_main;
 bool Globals::resetAdminPasswd = false;
 
-Mantids29::RPC::Fast::FastRPC * Globals::fastRPC = nullptr;
+Mantids29::Network::Protocols::FastRPC::FastRPC1 * Globals::fastRPC = nullptr;
 
 Globals::Globals()
 {
 }
 
-Mantids29::Application::Logs::AppLog *Globals::getAppLog()
+Mantids29::Program::Logs::AppLog *Globals::getAppLog()
 {
     return applog;
 }
 
-void Globals::setAppLog(Mantids29::Application::Logs::AppLog *value)
+void Globals::setAppLog(Mantids29::Program::Logs::AppLog *value)
 {
     applog = value;
 }
@@ -63,12 +63,12 @@ void Globals::setActionsDir(const std::string &value)
     mDirs.unlock();
 }
 
-Mantids29::RPC::Fast::FastRPC *Globals::getFastRPC()
+Mantids29::Network::Protocols::FastRPC::FastRPC1 *Globals::getFastRPC()
 {
     return fastRPC;
 }
 
-void Globals::setFastRPC(Mantids29::RPC::Fast::FastRPC *value)
+void Globals::setFastRPC(Mantids29::Network::Protocols::FastRPC::FastRPC1 *value)
 {
     fastRPC = value;
 }
@@ -93,12 +93,12 @@ void Globals::setResetAdminPasswd(bool newResetAdminPasswd)
     resetAdminPasswd = newResetAdminPasswd;
 }
 
-Mantids29::Application::Logs::RPCLog *Globals::getRPCLog()
+Mantids29::Program::Logs::RPCLog *Globals::getRPCLog()
 {
     return rpclog;
 }
 
-void Globals::setRPCLog(Mantids29::Application::Logs::RPCLog *value)
+void Globals::setRPCLog(Mantids29::Program::Logs::RPCLog *value)
 {
     rpclog = value;
 }

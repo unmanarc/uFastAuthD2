@@ -14,7 +14,7 @@
 
 using namespace AUTHSERVER::RPC;
 
-using namespace Mantids29::Application;
+using namespace Mantids29::Program;
 using namespace Mantids29::RPC;
 using namespace Mantids29;
 
@@ -153,12 +153,12 @@ bool LoginRPCServerImpl::createRPCListenerPAB()
 }
 
 
-void FastRPCImpl::eventUnexpectedAnswerReceived(FastRPC::Connection *, const std::string &)
+void FastRPCImpl::eventUnexpectedAnswerReceived(FastRPC1::Connection *, const std::string &)
 {
     LOG_APP->log0(__func__,Logs::LEVEL_ERR, "RPC Error - Unexpected Answer");
 }
 
-void FastRPCImpl::eventFullQueueDrop(FastRPC::ThreadParameters *)
+void FastRPCImpl::eventFullQueueDrop(FastRPC1::ThreadParameters *)
 {
     LOG_APP->log0(__func__,Logs::LEVEL_ERR, "RPC Error - Event Queue Full");
 }

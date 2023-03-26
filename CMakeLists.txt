@@ -35,10 +35,10 @@ find_package(PkgConfig REQUIRED)
 
 # List of Mantids29 libraries to link against
 set(MANTIDS29_LIBRARIES
-    Mantids29_RPC_Fast
-    Mantids29_RPC_WebServer
-    Mantids29_RPC_Common
-    Mantids29_RPC_Templates
+    Mantids29_Protocol_FastRPC1
+    Mantids29_Server_MonolithWebAPI
+    Mantids29_API_Core
+    Mantids29_API_Templates
     Mantids29_Auth
     Mantids29_Auth_DB
     Mantids29_DB
@@ -52,6 +52,8 @@ set(MANTIDS29_LIBRARIES
     Mantids29_Memory
     Mantids29_Helpers
 )
+
+set(ENV{PKG_CONFIG_PATH} "/opt/osslibsl64d/share/pkgconfig:$ENV{PKG_CONFIG_PATH}")
 
 # Iterate over the list of Mantids29 libraries and add include directories and linker flags to the target
 foreach(LIBRARY ${MANTIDS29_LIBRARIES})

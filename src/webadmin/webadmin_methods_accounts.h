@@ -1,5 +1,4 @@
-#ifndef DARPC_METHODS_ACCOUNTS_H
-#define DARPC_METHODS_ACCOUNTS_H
+#pragma once
 
 #include <Mantids30/API_RESTful/methodshandler.h>
 #include <Mantids30/Helpers/json.h>
@@ -49,4 +48,3 @@ private:
     static std::map<std::string, std::string> jsonToMap(const json &jValue);
 };
 
-#endif // DARPC_METHODS_ACCOUNTS_H

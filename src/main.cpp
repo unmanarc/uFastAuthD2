@@ -4,11 +4,8 @@
 #include <Mantids30/Memory/a_bool.h>
 #include <Mantids30/Helpers/file.h>
 
-//#include "webloginwebadmin_serverimpl.h"
-//#include "diradminfastrpc3/darpc_serverimpl.h"
 #include "webadmin/webadmin_serverimpl.h"
 #include "weblogin/weblogin_serverimpl.h"
-/*#include "loginauthfastrpc1/loginauthfastrpc1_serverimpl.h"*/
 
 #include "authstorageimpl.h"
 
@@ -17,7 +14,6 @@
 
 #include <sys/types.h>
 
-//#include <signal.h>
 #include <dirent.h>
 #include <unistd.h>
 #include <inttypes.h>
@@ -55,21 +51,6 @@ public:
             _exit(-3);
         }
 
-/*        // RPC (Login) support:
-        Globals::setLoginFastRPC(new LoginAuthFastRPC1_Connector);
-
-        // Initiate the Login RPC Listener Using Certificate Authentication...
-        if (!LoginAuthFastRPC1_ServerImpl::createRPCListenerCAB())
-        {
-            _exit(-2);
-        }
-
-        // Initiate the Login RPC Listener Using Password Authentication...
-        if (!LoginAuthFastRPC1_ServerImpl::createRPCListenerPAB())
-        {
-            _exit(-4);
-        }
-*/
         // Dir Web Admin:
         if (!WebAdmin_ServerImpl::createService())
         {

@@ -13,9 +13,6 @@
 #include <Mantids30/Helpers/json.h>
 #include <Mantids30/Protocol_HTTP/httpv1_base.h>
 
-// TODO: remover fastrpc3 de este proyecto.
-
-// This template is for FastRPC
 class WebAdmin_Methods : private WebAdminMethods_Accounts, private WebAdminMethods_Applications,
  private WebAdminMethods_ApplicationsPermissions, private WebAdminMethods_Roles
 {
@@ -25,10 +22,9 @@ public:
     using RequestParameters = Mantids30::API::RESTful::RequestParameters;
 
     /**
-     * @brief addMethods Add selected/reduced/filtered set of login authentication methods as server functions to the fastrpc connection for remote web applications
-     * @param auth authentication manager (with full access to the authentication interface)
-     * @param methods RPC engine to expose the methods
-     */
+    * @brief Adds the available login authentication methods as server functions.
+    * @param methods The MethodsHandler to which the authentication methods will be added.
+    */
     static void addMethods(std::shared_ptr<MethodsHandler> methods);
 
     // Helpers:

@@ -1,6 +1,4 @@
-#ifndef DARPC_METHODS_APPLICATIONS_H
-#define DARPC_METHODS_APPLICATIONS_H
-
+#pragma once
 
 #include <Mantids30/API_RESTful/methodshandler.h>
 #include <Mantids30/Helpers/json.h>
@@ -51,5 +49,3 @@ protected:
 
 
 };
-
-#endif // DARPC_METHODS_APPLICATIONS_H

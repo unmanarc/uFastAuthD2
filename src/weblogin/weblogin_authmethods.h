@@ -15,11 +15,10 @@ public:
     using APIReturn = Mantids30::API::APIReturn;
     using RequestParameters = Mantids30::API::RESTful::RequestParameters;
 
-    /**
-     * @brief addMethods Add selected/reduced/filtered set of login authentication methods as server functions to the fastrpc connection for remote web applications
-     * @param auth authentication manager (with full access to the authentication interface)
-     * @param fastRPC RPC engine to expose the methods
-     */
+   /**
+    * @brief Adds the available login authentication methods as server functions.
+    * @param methods The MethodsHandler to which the authentication methods will be added.
+    */
     static void addMethods(std::shared_ptr<MethodsHandler> methods);
 
     static Mantids30::Network::Protocols::HTTP::Status::eRetCode handleDynamicRequest(const std::string &appName, Mantids30::Network::Protocols::HTTP::HTTPv1_Base::Request *request, Mantids30::Network::Protocols::HTTP::HTTPv1_Base::Response *response);

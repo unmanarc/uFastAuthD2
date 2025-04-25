@@ -1,5 +1,4 @@
-#ifndef DARPC_METHODS_ROLES_H
-#define DARPC_METHODS_ROLES_H
+#pragma once
 
 #include <Mantids30/API_RESTful/methodshandler.h>
 #include <Mantids30/Helpers/json.h>
@@ -31,5 +30,3 @@ protected:
     static void getRoleInfo(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails);
 
 };
-
-#endif // DARPC_METHODS_ROLES_H

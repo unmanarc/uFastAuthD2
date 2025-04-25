@@ -1,5 +1,4 @@
-#ifndef DARPC_METHODS_APPLICATIONSPERMISSIONS_H
-#define DARPC_METHODS_APPLICATIONSPERMISSIONS_H
+#pragma once
 
 #include <Mantids30/API_RESTful/methodshandler.h>
 #include <Mantids30/Helpers/json.h>
@@ -30,6 +29,3 @@ protected:
     static void permissionsLeftListForRole(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails);
     static void getApplicationPermissionDescription(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails);
 };
-
-#endif // DARPC_METHODS_APPLICATIONSPERMISSIONS_H
-

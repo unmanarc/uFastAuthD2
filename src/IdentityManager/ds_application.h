@@ -1,5 +1,4 @@
-#ifndef DS_APPLICATION_H
-#define DS_APPLICATION_H
+#pragma once
 
 #include <string>
 #include <stdint.h>
@@ -29,4 +28,3 @@ struct ApplicationPermissionDetails
     std::string permissionId;
     std::string description;
 };
-#endif // DS_APPLICATION_H

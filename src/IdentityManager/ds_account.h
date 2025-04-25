@@ -1,6 +1,4 @@
-#ifndef DS_ACCOUNT_H
-#define DS_ACCOUNT_H
-
+#pragma once
 
 #include <Mantids30/Helpers/json.h>
 #include <ctime>
@@ -132,4 +130,3 @@ struct AccountDetails
     }
 };
 
-#endif // DS_ACCOUNT_H

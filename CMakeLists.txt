@@ -76,8 +76,6 @@ target_link_libraries(${APP_NAME} ${OPENSSL_STATIC_LDFLAGS})
 ################################################################################
 # List of Mantids30 libraries to link against
 set(Mantids30_LIBRARIES
-    Mantids30_Protocol_FastRPC1
-    Mantids30_Protocol_FastRPC3
     Mantids30_Server_RESTfulWebAPI
     Mantids30_API_RESTful
     Mantids30_API_Monolith

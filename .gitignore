@@ -5,6 +5,16 @@
 aclocal.m4
 autom4te.cache/*
 
+var/www/ufastauthd2/assets/*
+var/www/node_modules/*
+var/www/package-lock.json
+
+build/*
+borrame/*
+*/borrame/*
+
+CMakeCache.txt
+
 config.hin
 config.h
 .qmake.stash

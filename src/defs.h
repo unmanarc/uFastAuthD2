@@ -1,7 +1,6 @@
-#ifndef DEFS_H
-#define DEFS_H
+#pragma once
 
-#define DB_APPNAME "UFASTAUTHD2"
+#define DB_APPNAME "IAM"
+#define DB_APPDESCRIPTION "Identity Access Management"
 #define AUTHSERVER_WEBDIR "/var/www/ufastauthd2"
 
-#endif // DEFS_H

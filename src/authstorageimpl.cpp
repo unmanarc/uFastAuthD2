@@ -1,16 +1,17 @@
 #include "authstorageimpl.h"
+#include "Mantids30/Program_Logs/loglevels.h"
 #include "globals.h"
 #include "config.h"
 
 #include <sys/stat.h>
 
-#include <Mantids29/Program_Logs/applog.h>
+#include <Mantids30/Program_Logs/applog.h>
 
 #include <boost/algorithm/string/case_conv.hpp>
 
-#include <Mantids29/DB_SQLite3/sqlconnector_sqlite3.h>
-#include <Mantids29/Helpers/random.h>
-#include <Mantids29/Helpers/crypto.h>
+#include <Mantids30/DB_SQLite3/sqlconnector_sqlite3.h>
+#include <Mantids30/Helpers/random.h>
+#include <Mantids30/Helpers/crypto.h>
 
 #include "defs.h"
 
@@ -18,35 +19,29 @@
 #include <windows.h>
 #endif
 
-using namespace AUTHSERVER::AUTH;
-using namespace AUTHSERVER;
-
-using namespace Mantids29::Database;
-using namespace Mantids29::Program;
-using namespace Mantids29;
-
-AuthStorageImpl::AuthStorageImpl()
-{
-
-}
+using namespace Mantids30::Database;
+using namespace Mantids30::Program;
+using namespace Mantids30;
 
 bool AuthStorageImpl::createAuth()
 {
-    std::string sDriverName = Globals::getConfig_main()->get<std::string>("Auth.Driver","");
+    std::string sDriverName = Globals::getConfig()->get<std::string>("Auth.Driver","");
+    std::string sDefaultUser = Globals::getConfig()->get<std::string>("Auth.DefaultUser","admin");
 
-    Authentication::Manager_DB * authManager = nullptr;
+    IdentityManager_DB * identityManager = nullptr;
 
     if (boost::to_lower_copy(sDriverName) == "sqlite3")
     {
-        std::string dbFilePath = Globals::getConfig_main()->get<std::string>("Auth.File","");
+        std::string dbFilePath = Globals::getConfig()->get<std::string>("Auth.File","");
         SQLConnector_SQLite3 * sqlConnector = new SQLConnector_SQLite3;
+        sqlConnector->setThrowCPPErrorOnQueryFailure(true);
         if (!sqlConnector->connect(dbFilePath))
         {
             LOG_APP->log0(__func__,Logs::LEVEL_CRITICAL, "Error, Failed to open/create SQLite3 file: '%s'", dbFilePath.c_str());
             return false;
         }
 
-        authManager = new Authentication::Manager_DB(sqlConnector);
+        identityManager = new IdentityManager_DB(sqlConnector);
     }
     /*    else if (boost::to_lower_copy(driver) == "postgresql")
     {
@@ -63,70 +58,144 @@ bool AuthStorageImpl::createAuth()
         LOG_APP->log0(__func__,Logs::LEVEL_CRITICAL, "Error, Authentication driver '%s' not implemented", sDriverName.c_str());
     }
 
-    if (!authManager)
+    if (!identityManager)
         return false;
 
-    if (!authManager->initScheme())
+    std::string sInitPW;
+
+    if (!identityManager->initializeDatabase())
     {
         LOG_APP->log0(__func__,Logs::LEVEL_CRITICAL, "Error (Driver: %s), Unknown error during database scheme initialization.", sDriverName.c_str());
         return false;
     }
 
+    bool r = true;
+    bool appExisted,userExisted,defaultPasswordSchemesExisted;
+
+    uint32_t schemeId = r?identityManager->authController->initializateDefaultPasswordSchemes(&defaultPasswordSchemesExisted):UINT32_MAX;
+    if ( defaultPasswordSchemesExisted )
+    {
+        if (schemeId == UINT32_MAX)
+        {
+            r = false;
+            LOG_APP->log0(__func__,Logs::LEVEL_ERR, "Default password scheme for simple login does not exist anymore.");
+        }
+        else
+        {
+            // Perfect, continue.
+        }
+    }
+    else
+    {
+        if (schemeId == UINT32_MAX)
+        {
+            r = false;
+            LOG_APP->log0(__func__,Logs::LEVEL_ERR, "Default password scheme for simple login can't be created.");
+        }
+        else
+        {
+            LOG_APP->log0(__func__, Logs::LEVEL_INFO, "Default password scheme for simple login successfully created.");
+        }
+    }
+
+    if (r)
+    {
+        r=r&&identityManager->initializeAdminAccountWithPassword(sDefaultUser,&sInitPW,schemeId,&userExisted);
+
+        if ( userExisted )
+        {
+            // User exist, do nothing.
+            LOG_APP->log0(__func__, Logs::LEVEL_DEBUG, "Default user '%s' already exist.",sDefaultUser.c_str());
+        }
+        else
+        {
+            if (r)
+            {
+                LOG_APP->log0(__func__, Logs::LEVEL_INFO, "Default user '%s' successfully created.",sDefaultUser.c_str());
+            }
+            else
+            {
+                LOG_APP->log0(__func__,Logs::LEVEL_CRITICAL, "Default user '%s' can't be created.",sDefaultUser.c_str());
+                return false;
+            }
+        }
+    }
+
+    if (r)
+    {
+        r=r&&identityManager->initializeApplicationWithScheme(  DB_APPNAME,
+                                                                DB_APPDESCRIPTION,
+                                                                schemeId,
+                                                                sDefaultUser,
+                                                                &appExisted
+                                                                  );
+        if ( appExisted )
+        {
+            // User exist, do nothing.
+            LOG_APP->log0(__func__, Logs::LEVEL_DEBUG, "App '%s' already exist.", DB_APPNAME);
+        }
+        else
+        {
+            if (r)
+            {
+                LOG_APP->log0(__func__, Logs::LEVEL_INFO, "APP '%s' successfully created.",DB_APPNAME);
+            }
+            else
+            {
+                LOG_APP->log0(__func__,Logs::LEVEL_CRITICAL, "APP '%s' can't be created.",DB_APPNAME);
+                return false;
+            }
+        }
+    }
+
+    // Check account flags:
+    auto accountFlags = identityManager->users->getAccountFlags(sDefaultUser);
 
     // Check for admin accounts:
-    if ( authManager->accountExist("admin") && !authManager->isAccountSuperUser("admin") )
+    if ( identityManager->users->doesAccountExist(sDefaultUser) && !accountFlags.superuser )
     {
         // This account should be marked as superuser.
-        LOG_APP->log0(__func__,Logs::LEVEL_ERR, "Admin account exist but is not super user, change this by hand.");
+        LOG_APP->log0(__func__,Logs::LEVEL_ERR, "Account '%s' detected without superuser privileges. Manual intervention required to grant superuser status.",sDefaultUser.c_str());
     }
-    else if ( authManager->accountExist("admin") && authManager->isAccountExpired("admin") )
+    else if ( identityManager->users->doesAccountExist(sDefaultUser) && identityManager->users->isAccountExpired(sDefaultUser) )
     {
         // This account should not expire.
-        LOG_APP->log0(__func__,Logs::LEVEL_ERR, "Admin account exist but is expired, change this by hand.");
+        LOG_APP->log0(__func__,Logs::LEVEL_ERR, "Account '%s' is currently expired. Reactivation required immediately to ensure proper system management.", sDefaultUser.c_str());
     }
-    else if ( authManager->accountExist("admin") && authManager->isAccountDisabled("admin") )
+    else if ( identityManager->users->doesAccountExist(sDefaultUser) && !accountFlags.enabled )
     {
         // This account should not be disabled.
-        LOG_APP->log0(__func__,Logs::LEVEL_ERR, "Admin account exist but is disabled, change this by hand.");
+        LOG_APP->log0(__func__,Logs::LEVEL_ERR, "Account '%s' is disabled. Enable the account to maintain essential administrative functions.", sDefaultUser.c_str());
     }
-    else if ( authManager->accountExist("admin") && !authManager->isAccountConfirmed("admin") )
+    else if ( identityManager->users->doesAccountExist(sDefaultUser) && !accountFlags.confirmed )
     {
         // This account should not be disabled.
-        LOG_APP->log0(__func__,Logs::LEVEL_ERR, "Admin account exist but is not confirmed, change this by hand.");
-    }
-    else if (!authManager->accountExist("admin"))
-    {
-        LOG_APP->log0(__func__,Logs::LEVEL_WARN, "Super User Account does not exist. Creating 'admin' account.");
-
-        std::string sInitPW;
-
-        if (!createAdmin(authManager,&sInitPW))
-            return false;
-
-        if (!createPassFile(sInitPW))
-            return false;
+        LOG_APP->log0(__func__,Logs::LEVEL_ERR, "Account '%s' exists but is unconfirmed. Confirmation is necessary for full functionality.",sDefaultUser.c_str());
     }
 
-
+    // If password marked for reset, reset:
     if (Globals::getResetAdminPasswd())
     {
         LOG_APP->log0(__func__,Logs::LEVEL_WARN, "Password marked to be reseted...");
-
-        std::string sInitPW;
-
-        if (!resetAdminPwd(authManager,&sInitPW))
+        std::string sInitPW;      
+        if (!identityManager->authController->setAccountPasswordOnScheme(sDefaultUser,&sInitPW,schemeId))
         {
-            LOG_APP->log0(__func__,Logs::LEVEL_ERR, "Password not resetted (Maybe the admin account is not admin)...");
+            LOG_APP->log0(__func__,Logs::LEVEL_ERR, "Password not resetted (Maybe the account '%s' does not have admin privileges?)...",sDefaultUser.c_str());
             return false;
         }
+    }
+
+    if (!sInitPW.empty())
+    {
+        // Create the password file if there is a new password...
         if (!createPassFile(sInitPW))
             return false;
     }
 
-    if (!createApp(authManager))
+    if (!configureApplication(identityManager,sDefaultUser))
         return false;
 
-    Globals::setAuthManager(authManager);
+    Globals::setIdentityManager(identityManager);
 
     return true;
 }
@@ -135,11 +204,11 @@ bool AuthStorageImpl::createPassFile(const std::string & sInitPW)
 {
 
 #ifndef WIN32
-    std::string initPassOutFile = "/tmp/syspwd-" +Mantids29::Helpers::Random::createRandomString(8) ;
+    std::string initPassOutFile = "/tmp/syspwd-" +Mantids30::Helpers::Random::createRandomString(8) ;
 #else
     char tempPath[MAX_PATH+1];
     GetTempPathA(MAX_PATH,tempPath);
-    std::string initPassOutFile = tempPath + "\\syspwd-" +Mantids29::Helpers::Random::createRandomString(8) + ".txt";
+    std::string initPassOutFile = tempPath + "\\syspwd-" +Mantids30::Helpers::Random::createRandomString(8) + ".txt";
 #endif
     std::ofstream ofstr(initPassOutFile);
     if (ofstr.fail())
@@ -161,103 +230,97 @@ bool AuthStorageImpl::createPassFile(const std::string & sInitPW)
     return true;
 }
 
-bool AuthStorageImpl::createAdmin(Authentication::Manager_DB *authManager,std::string *sInitPW)
+/*
+bool AuthStorageImpl::resetAdminPwd(IdentityManager_DB *identityManager, std::string *sInitPW)
 {
-    *sInitPW = Mantids29::Helpers::Random::createRandomString(16);
+    *sInitPW = Mantids30::Helpers::Random::createRandomString(16);
 
-    Authentication::Secret secretData;
-    secretData.hash = Helpers::Crypto::calcSHA256(*sInitPW);
-    secretData.passwordFunction = Authentication::FN_SHA256;
-    secretData.forceExpiration = true; // Expired (to be changed on the first login).
+    Credential credentialData;
+    credentialData.hash = Helpers::Crypto::calcSHA256(*sInitPW);
 
-    Mantids29::Authentication::AccountDetailsWExtraData accountDetails;
-    accountDetails.description = "Auto-generated Superuser Account";
-    accountDetails.email = "";
-    accountDetails.extraData = "";
-    accountDetails.givenName = "";
-    accountDetails.lastName = "";
+    credentialData.
+    credentialData.passwordFunction = FN_SHA256;
+    credentialData.forceExpiration = true; // Expired (to be changed on the first login).
 
-    Mantids29::Authentication::AccountBasicAttributes accountAttribs;
-    accountAttribs.confirmed = true;
-    accountAttribs.enabled = true;
-    accountAttribs.superuser = true;
+    return identityManager->authController->changeCredential("admin", credentialData);
+}*/
 
-    if (!authManager->accountAdd(   "admin",
-                                    secretData,
-                                    accountDetails,
-                                    0, // Expiration (don't expire)
-                                    accountAttribs))
+bool AuthStorageImpl::configureApplication(IdentityManager_DB *identityManager, const std::string &owner)
+{
+    if (!identityManager->applications->doesApplicationExist(DB_APPNAME))
     {
-        LOG_APP->log0(__func__,Logs::LEVEL_CRITICAL, "Failed to create admin account.");
+        LOG_APP->log0(__func__,Logs::LEVEL_CRITICAL, "Application '%s' does not exist, aborting.", DB_APPNAME);
         return false;
     }
-
-    return true;
-}
-
-bool AuthStorageImpl::resetAdminPwd(Mantids29::Authentication::Manager_DB *authManager, std::string *sInitPW)
-{
-    *sInitPW = Mantids29::Helpers::Random::createRandomString(16);
-
-    Authentication::Secret secretData;
-    secretData.hash = Helpers::Crypto::calcSHA256(*sInitPW);
-    secretData.passwordFunction = Authentication::FN_SHA256;
-    secretData.forceExpiration = true; // Expired (to be changed on the first login).
-
-    return authManager->accountChangeSecret("admin", secretData);
-}
-
-bool AuthStorageImpl::createApp(Authentication::Manager_DB *authManager)
-{
-    if (!authManager->applicationExist(DB_APPNAME))
+    // TODO:
+ /*   std::list<std::pair<ApplicationPermission,std::string>> appPermissions =
     {
-        LOG_APP->log0(__func__,Logs::LEVEL_WARN, "Application '%s' does not exist, creating it.", DB_APPNAME);
-
-        if (!authManager->applicationAdd(DB_APPNAME,PROJECT_DESCRIPTION, Mantids29::Helpers::Random::createRandomString(32) ,"admin"))
-        {
-            LOG_APP->log0(__func__,Logs::LEVEL_CRITICAL, "Failed to create the application '%s'.",DB_APPNAME);
-            return false;
-        }
-    }
-
-    std::list<std::pair<Mantids29::Authentication::ApplicationAttribute,std::string>> appAttributes =
+        {{DB_APPNAME,"DIRREAD"},"Directory Read Permission"},
+        {{DB_APPNAME,"DIRWRITE"},"Directory Write Permission"},
+    };*/
+    std::list<std::pair<ApplicationPermission, std::string>> appPermissions =
     {
-        {{DB_APPNAME,"DIRREAD"},"Directory Read Attribute"},
-        {{DB_APPNAME,"DIRWRITE"},"Directory Write Attribute"},
+        {{DB_APPNAME, "SELF_PWDCHANGE"}, "Permission to change my own password"},
+        {{DB_APPNAME, "SELF_READ"}, "Permission to read my own user data from the IAM system"},
+        {{DB_APPNAME, "SELF_DELETE"}, "Permission to delete my own user"},
+
+        {{DB_APPNAME, "USER_READ"},   "Permission to read users data from the IAM system"},
+        {{DB_APPNAME, "USER_DELETE"}, "Permission to delete users from the IAM system"},
+        {{DB_APPNAME, "USER_MODIFY"}, "Permission to edit user details, roles, and permissions"},
+        {{DB_APPNAME, "USER_PWDDCHANGE"}, "Permission to change user passwords"},
+        {{DB_APPNAME, "USER_DISABLE"}, "Permission to disable/lock users"},
+        {{DB_APPNAME, "USER_ENABLE"}, "Permission to enable/unlock users"},
+
+        {{DB_APPNAME, "ROLE_READ"},   "Permission to read roles from the IAM system"},
+        {{DB_APPNAME, "ROLE_DELETE"}, "Permission to remove roles from the IAM system"},
+        {{DB_APPNAME, "ROLE_MODIFY"}, "Permission to modify roles and their associated permissions"},
+
+        {{DB_APPNAME, "APP_CREATE"}, "Permission to create applications on the IAM"},
+        {{DB_APPNAME, "APP_DELETE"}, "Permission to delete application's from the IAM"},
+        {{DB_APPNAME, "APP_MODIFY"}, "Permission to modify application data on the IAM"},
+        {{DB_APPNAME, "APP_READ"}, "Permission to read application data from the IAM"},
+
+        {{DB_APPNAME, "AUTH_CREATE"}, "Permission to create authentication schemes and slots on the IAM"},
+        {{DB_APPNAME, "AUTH_DELETE"}, "Permission to delete authentication schemes and slots on the IAM"},
+        {{DB_APPNAME, "AUTH_MODIFY"}, "Permission to modify authentication schemes and slots on the IAM"},
+        {{DB_APPNAME, "AUTH_READ"},   "Permission to read authentication schemes and slots on the IAM"},
+
+        {{DB_APPNAME, "AUDIT_LOG_VIEW"}, "Permission to access, export and view IAM audit logs"},
+        {{DB_APPNAME, "AUDIT_LOG_CLEAN"}, "Permission to clean/remove audit logs"}
     };
 
-    for ( auto & attrib : appAttributes )
+    for ( auto & permission : appPermissions )
     {
-        if (!authManager->attribExist(attrib.first))
+        if (!identityManager->authController->doesApplicationPermissionExist(permission.first))
         {
-            LOG_APP->log0(__func__,Logs::LEVEL_WARN, "Attribute '%s' does not exist, creating it.", attrib.first.attribName.c_str());
+            LOG_APP->log0(__func__,Logs::LEVEL_WARN, "Permission '%s' does not exist, creating it.", permission.first.permissionId.c_str());
 
-            if (!authManager->attribAdd(attrib.first,attrib.second))
+            if (!identityManager->authController->addApplicationPermission(permission.first,permission.second))
             {
-                LOG_APP->log0(__func__,Logs::LEVEL_CRITICAL, "Failed to create the attrib '%s'.", attrib.first.attribName.c_str());
+                LOG_APP->log0(__func__,Logs::LEVEL_CRITICAL, "Failed to create the permission '%s'.", permission.first.permissionId.c_str());
                 return false;
             }
         }
     }
 
-    if (!authManager->applicationValidateAccount(DB_APPNAME,"admin"))
+    if (!identityManager->applications->validateApplicationAccount(DB_APPNAME,owner))
     {
-        LOG_APP->log0(__func__,Logs::LEVEL_WARN, "Setting up 'admin' user as application '%s' user.", DB_APPNAME);
+        LOG_APP->log0(__func__,Logs::LEVEL_WARN, "Setting up '%s' user as application '%s' user.", owner.c_str(), DB_APPNAME);
 
-        if (!authManager->applicationAccountAdd(DB_APPNAME,"admin"))
+        if (!identityManager->applications->addAccountToApplication(DB_APPNAME,owner))
         {
-            LOG_APP->log0(__func__,Logs::LEVEL_CRITICAL, "Failed to set the 'admin' account as application '%s' user.", DB_APPNAME);
+            LOG_APP->log0(__func__,Logs::LEVEL_CRITICAL, "Failed to set the '%s' account as application '%s' user.", owner.c_str(), DB_APPNAME);
             return false;
         }
     }
 
-    if (!authManager->applicationValidateOwner(DB_APPNAME,"admin"))
+    if (!identityManager->applications->validateApplicationOwner(DB_APPNAME,owner))
     {
-        LOG_APP->log0(__func__,Logs::LEVEL_WARN, "Setting up 'admin' user as application '%s' owner.", DB_APPNAME);
+        LOG_APP->log0(__func__,Logs::LEVEL_WARN, "Setting up '%s' user as application '%s' owner.", owner.c_str(), DB_APPNAME);
 
-        if (!authManager->applicationOwnerAdd(DB_APPNAME,"admin"))
+        if (!identityManager->applications->addApplicationOwner(DB_APPNAME,owner))
         {
-            LOG_APP->log0(__func__,Logs::LEVEL_CRITICAL, "Failed to set the 'admin' account as application '%s' owner.", DB_APPNAME);
+            LOG_APP->log0(__func__,Logs::LEVEL_CRITICAL, "Failed to set the '%s' account as application '%s' owner.", owner.c_str(), DB_APPNAME);
             return false;
         }
     }

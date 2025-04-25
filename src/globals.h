@@ -1,65 +1,61 @@
-#ifndef GLOBALS_H
-#define GLOBALS_H
+#pragma once
 
+#include "weblogin/logindirectorymanager.h"
 
-#include <Mantids29/Protocol_FastRPC1/fastrpc.h>
-#include <Mantids29/Program_Logs/applog.h>
-#include <Mantids29/Program_Logs/rpclog.h>
-#include <Mantids29/Auth/manager.h>
+#include <Mantids30/Protocol_FastRPC1/fastrpc.h>
+#include <Mantids30/Protocol_FastRPC3/fastrpc3.h>
+
+#include <Mantids30/Program_Logs/applog.h>
+#include <Mantids30/Program_Logs/rpclog.h>
+#include "IdentityManager/identitymanager.h"
 
 #include <boost/property_tree/ini_parser.hpp>
 
-#include <mutex>
-#include <list>
+#include <inttypes.h>
+
 
 #define LOG_APP Globals::getAppLog()
 #define LOG_RPC Globals::getRPCLog()
 
-namespace AUTHSERVER {
-
 class Globals
 {
 public:
-    Globals();
+    Globals() = default;
 
-    static Mantids29::Program::Logs::AppLog *getAppLog();
-    static void setAppLog(Mantids29::Program::Logs::AppLog *value);
+    static Mantids30::Program::Logs::AppLog *getAppLog();
+    static void setAppLog(Mantids30::Program::Logs::AppLog *value);
 
-    static Mantids29::Program::Logs::RPCLog *getRPCLog();
-    static void setRPCLog(Mantids29::Program::Logs::RPCLog *value);
+    static Mantids30::Program::Logs::RPCLog *getRPCLog();
+    static void setRPCLog(Mantids30::Program::Logs::RPCLog *value);
 
-    static boost::property_tree::ptree * getConfig_main();
+    static boost::property_tree::ptree * getConfig();
 
-    static std::string getRulesDir();
-    static void setRulesDir(const std::string &value);
+    // This FastRPC1 protocol will manage login from the application to the authenticator (IAM)
+    static Mantids30::Network::Protocols::FastRPC::FastRPC1 *getLoginFastRPC();
+    static void setLoginFastRPC(Mantids30::Network::Protocols::FastRPC::FastRPC1 *value);
 
-    static std::string getActionsDir();
-    static void setActionsDir(const std::string &value);
-
-    static Mantids29::Network::Protocols::FastRPC::FastRPC1 *getFastRPC();
-    static void setFastRPC(Mantids29::Network::Protocols::FastRPC::FastRPC1 *value);
-
-    static Mantids29::Authentication::Manager *getAuthManager();
-    static void setAuthManager(Mantids29::Authentication::Manager *value);
-
+    static IdentityManager *getIdentityManager();
+    static void setIdentityManager(IdentityManager *value);
 
     static bool getResetAdminPasswd();
     static void setResetAdminPasswd(bool newResetAdminPasswd);
 
+    static Mantids30::Network::Protocols::FastRPC::FastRPC3 *getWebAdminManager();
+    static void setWebAdminManager(Mantids30::Network::Protocols::FastRPC::FastRPC3 *newAdminRPC);
+
+    static LoginDirectoryManager *getLoginDirManager();
+    static void setLoginDirManager(LoginDirectoryManager *newLoginDirManager);
+
 private:
     static bool resetAdminPasswd;
-    static std::string rulesDir,actionsDir;
-    static std::mutex mDatabase,mDirs;
-    static boost::property_tree::ptree config_main;
-    static Mantids29::Program::Logs::AppLog * applog;
-    static Mantids29::Program::Logs::RPCLog * rpclog;
-
-
-    static Mantids29::Authentication::Manager * authManager;
-    static Mantids29::Network::Protocols::FastRPC::FastRPC1 * fastRPC;
+    static boost::property_tree::ptree pConfig;
+    static LoginDirectoryManager * loginDirManager;
+    static Mantids30::Program::Logs::AppLog * applog;
+    static Mantids30::Program::Logs::RPCLog * rpclog;
+    static IdentityManager * identityManager;
+    static Mantids30::Network::Protocols::FastRPC::FastRPC1 * loginFastRPC;
+    static Mantids30::Network::Protocols::FastRPC::FastRPC3 * adminRPC;
 
 };
 
-}
 
-#endif // GLOBALS_H

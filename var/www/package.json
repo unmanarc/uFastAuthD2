@@ -1,0 +1,17 @@
+{
+  "name": "www",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build-assets": "mkdir -pv ufastauthd2/assets/js && cp -r node_modules/bootstrap/dist/* ufastauthd2/assets/ && cp -r node_modules/jquery/dist/* ufastauthd2/assets/js/"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bootstrap": "^5.3.3",
+    "jquery": "^3.7.1"
+  }
+}

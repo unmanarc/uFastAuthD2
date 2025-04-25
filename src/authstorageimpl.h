@@ -1,24 +1,17 @@
-#ifndef AUTHSTORAGEIMPL_H
-#define AUTHSTORAGEIMPL_H
+#pragma once
 
+#include "IdentityManager/identitymanager_db.h"
 #include <string>
-#include <Mantids29/Auth_DB/manager_db.h>
-
-
-namespace AUTHSERVER { namespace AUTH {
 
 class AuthStorageImpl
 {
 public:
-    AuthStorageImpl();
+    AuthStorageImpl() = default;
     static bool createAuth();
+
 private:
     static bool createPassFile(const std::string &sInitPW);
-    static bool createAdmin(Mantids29::Authentication::Manager_DB *, std::string *sInitPW);
-    static bool resetAdminPwd(Mantids29::Authentication::Manager_DB *, std::string *sInitPW);
-    static bool createApp(Mantids29::Authentication::Manager_DB *);
+    static bool createAdmin(IdentityManager_DB *, std::string *sInitPW);
+    static bool configureApplication(IdentityManager_DB *, const std::string & owner);
 };
 
-}}
-
-#endif // AUTHSTORAGEIMPL_H

@@ -16,19 +16,19 @@ void WebAdminMethods_Roles::addMethods_Roles(
     using SecurityOptions = Mantids30::API::RESTful::MethodsHandler::SecurityOptions;
 
     // Roles
-    methods->addResource(MethodsHandler::POST, "addRole", &addRole, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"DIRWRITE"});
-    methods->addResource(MethodsHandler::POST, "removeRole", &removeRole, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"DIRWRITE"});
-    methods->addResource(MethodsHandler::POST, "doesRoleExist", &doesRoleExist, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"DIRREAD"});
-    methods->addResource(MethodsHandler::POST, "addAccountToRole", &addAccountToRole, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"DIRWRITE"});
-    methods->addResource(MethodsHandler::POST, "removeAccountFromRole", &removeAccountFromRole, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"DIRWRITE"});
-    methods->addResource(MethodsHandler::POST, "updateRoleDescription", &updateRoleDescription, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"DIRWRITE"});
-    methods->addResource(MethodsHandler::POST, "validateApplicationPermissionOnRole", &validateApplicationPermissionOnRole, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"DIRREAD"});
-    methods->addResource(MethodsHandler::POST, "getRoleDescription", &getRoleDescription, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"DIRREAD"});
-    methods->addResource(MethodsHandler::POST, "getRolesList", &getRolesList, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"DIRREAD"});
-    methods->addResource(MethodsHandler::POST, "getRoleApplicationPermissions", &getRoleApplicationPermissions, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"DIRREAD"});
-    methods->addResource(MethodsHandler::POST, "getRoleAccounts", &getRoleAccounts, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"DIRREAD"});
-    methods->addResource(MethodsHandler::POST, "searchRoles", &searchRoles, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"DIRREAD"});
-    methods->addResource(MethodsHandler::POST, "getRoleInfo", &getRoleInfo, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"DIRREAD"});
+    methods->addResource(MethodsHandler::POST, "addRole", &addRole, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"ROLE_CREATE"});
+    methods->addResource(MethodsHandler::POST, "removeRole", &removeRole, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"ROLE_DELETE"});
+    methods->addResource(MethodsHandler::POST, "addAccountToRole", &addAccountToRole, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"ROLE_MODIFY"});
+    methods->addResource(MethodsHandler::POST, "removeAccountFromRole", &removeAccountFromRole, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"ROLE_MODIFY"});
+    methods->addResource(MethodsHandler::POST, "updateRoleDescription", &updateRoleDescription, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"ROLE_MODIFY"});
+    methods->addResource(MethodsHandler::GET, "doesRoleExist", &doesRoleExist, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"ROLE_READ"});
+    methods->addResource(MethodsHandler::GET, "validateApplicationPermissionOnRole", &validateApplicationPermissionOnRole, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"ROLE_READ"});
+    methods->addResource(MethodsHandler::GET, "getRoleDescription", &getRoleDescription, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"ROLE_READ"});
+    methods->addResource(MethodsHandler::GET, "getRolesList", &getRolesList, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"ROLE_READ"});
+    methods->addResource(MethodsHandler::GET, "getRoleApplicationPermissions", &getRoleApplicationPermissions, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"ROLE_READ"});
+    methods->addResource(MethodsHandler::GET, "getRoleAccounts", &getRoleAccounts, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"ROLE_READ"});
+    methods->addResource(MethodsHandler::GET, "searchRoles", &searchRoles, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"ROLE_READ"});
+    methods->addResource(MethodsHandler::GET, "getRoleInfo", &getRoleInfo, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"ROLE_READ"});
 }
 
 void WebAdminMethods_Roles::addRole(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)

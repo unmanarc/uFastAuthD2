@@ -38,6 +38,10 @@ void WebLogin_AuthMethods::addMethods(std::shared_ptr<MethodsHandler> methods)
     methods->addResource(MethodsHandler::POST, "logout", &logout, nullptr, SecurityOptions::NO_AUTH, {});
     // Account registration:
     methods->addResource(MethodsHandler::POST, "registerAccount", &registerAccount, nullptr, SecurityOptions::NO_AUTH, {});
+
+
+    methods->addResource(MethodsHandler::POST, "getApplicationAuthCallbackURI", &getApplicationAuthCallbackURI, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {});
+
     // When requested by an external webste, no CSRF challenge could be sent by an external website... So your access token will be used to authenticate the refreshal...
     // In this premise, the refresher cookie is not know by your website (so if your website leaks the data),
     //   will not leak the master authentication cookie (refresher token) that can go to any application under your name.
@@ -49,7 +53,6 @@ void WebLogin_AuthMethods::addMethods(std::shared_ptr<MethodsHandler> methods)
     methods->addResource(MethodsHandler::POST, "refreshRefresherToken", &refreshRefresherToken, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {});
     // The change credential dialog/html needs to send the CSRF challenge:
     methods->addResource(MethodsHandler::POST, "changeCredential", &changeCredential, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {});
-
     methods->addResource(MethodsHandler::POST, "listCredentials", &listCredentials, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {});
     methods->addResource(MethodsHandler::POST, "accountCredentialPublicData", &accountCredentialPublicData, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {});
 
@@ -91,7 +94,18 @@ void WebLogin_AuthMethods::configureAccessToken(
     accessToken.setIssuedAt(time(nullptr));
     auto expectedExpirationTime = time(nullptr) + tokenProperties.accessTokenTimeout;
     auto accountExpirationTime = identityManager->users->getAccountExpirationTime(jwtUserId);
-    accessToken.setExpirationTime(accountExpirationTime < expectedExpirationTime ? accountExpirationTime : expectedExpirationTime);
+
+    if (accountExpirationTime==0 || accountExpirationTime>=expectedExpirationTime)
+    {
+        // We can safely use the expected token expiration time
+        accessToken.setExpirationTime(expectedExpirationTime);
+    }
+    else
+    {
+        // The account expires before, so the tokens need to expire before:
+        accessToken.setExpirationTime(accountExpirationTime);
+    }
+
     accessToken.setNotBefore(time(nullptr) - 30);
     accessToken.addClaim("sessionInactivityTimeout", tokenProperties.sessionInactivityTimeout);
     accessToken.addClaim("slotIds", Mantids30::Helpers::setToJSON(slotIds));
@@ -141,16 +155,17 @@ void WebLogin_AuthMethods::configureRefresherToken(APIReturn &response,
     refresherToken.setExpirationTime((accountExpirationTime < expectedRefresherTokenTimeoutTime && accountExpirationTime!=0) ? accountExpirationTime : expectedRefresherTokenTimeoutTime);
     refresherToken.setNotBefore(time(nullptr) - 30);
     refresherToken.addClaim("slotIds", Mantids30::Helpers::setToJSON(currentAuthenticatedSlotIds));
+    refresherToken.addClaim("type", "refresher");
     refresherToken.setJwtId(refreshTokenId);
 
     std::string sAuthToken = request.jwtSigner->signFromToken(refresherToken, false);
 
     // Keep the auth refresher token here:
-    response.cookiesMap["AuthToken"] = Headers::Cookie();
-    response.cookiesMap["AuthToken"].setExpiration( refresherToken.getExpirationTime() );
-    response.cookiesMap["AuthToken"].secure = true;
-    response.cookiesMap["AuthToken"].httpOnly = true;
-    response.cookiesMap["AuthToken"].value = sAuthToken ;
+    response.cookiesMap["AccessToken"] = Headers::Cookie();
+    response.cookiesMap["AccessToken"].setExpiration( refresherToken.getExpirationTime() );
+    response.cookiesMap["AccessToken"].secure = true;
+    response.cookiesMap["AccessToken"].httpOnly = true;
+    response.cookiesMap["AccessToken"].value = sAuthToken ;
 
     response.cookiesMap["loggedIn"] = Headers::Cookie();
     response.cookiesMap["loggedIn"].setExpiration( refresherToken.getExpirationTime() );

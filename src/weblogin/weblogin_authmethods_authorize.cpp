@@ -1,9 +1,10 @@
 #include "IdentityManager/ds_authentication.h"
-#include "Mantids30/Helpers/json.h"
+#include <Mantids30/Helpers/json.h>
 #include "Mantids30/Program_Logs/loglevels.h"
 #include "weblogin_authmethods.h"
 
 #include "../globals.h"
+#include <json/config.h>
 #include <cstdint>
 #include <memory>
 #include <string>
@@ -31,12 +32,14 @@ void WebLogin_AuthMethods::authorize(void *context,
                                      const Mantids30::API::RESTful::RequestParameters &request,
                                      Mantids30::Sessions::ClientDetails &clientDetails)
 {
-    // Environment:
+    // Get the identity manager from global settings to handle authentication.
     IdentityManager *identityManager = Globals::getIdentityManager();
+    // Vector to store the authentication slots used by a particular scheme.
     std::vector<AuthenticationSchemeUsedSlot> authSlots;
-
-    // Configuration parameters:
+    // Retrieve configuration parameters from global settings.
     auto config = Globals::getConfig();
+
+
     uint32_t loginAuthenticationTimeout = config->get<uint32_t>("WebLoginService.AuthenticationTimeout", 300);
 
     std::shared_ptr<AppAuthExtras> authContext = std::make_shared<AppAuthExtras>();
@@ -83,14 +86,13 @@ void WebLogin_AuthMethods::authorize(void *context,
                                                             JSON_ASSTRING(*request.inputJSON, "challengeSalt", ""),
                                                             authContext);
 
-
     LOG_APP->log2(__func__,
                   accountName,
                   clientDetails.ipAddress,
                   authRetCode ? Logs::LEVEL_SECURITY_ALERT : Logs::LEVEL_INFO,
                   "Account Authorization Result: %" PRIu32 " - %s, for application '%s', scheme '%" PRIu32 "' and slotId[%" PRIu32 "] '%" PRIu32 "'",
                   authRetCode,
-                  (*response.outputPayload())["statusMessage"].asCString(),
+                  response.getErrorString().c_str(),
                   authContext->appName.c_str(),
                   authContext->schemeId,
                   authContext->currentSlotPosition,
@@ -123,7 +125,17 @@ void WebLogin_AuthMethods::authorize(void *context,
 
         if ( authContext->currentSlotPosition == authSlots.size()-1 )
         {
+            // Report that it's fully authenticated (all slots id's from the scheme were authenticated OK).
             outgoingToken.addClaim("isFullyAuthenticated", true);
+
+            // Create a Json::Value array to store slot IDs
+            Json::Value slotIds(Json::arrayValue);
+            for(const auto& slot : authSlots)
+            {
+                slotIds.append((Json::UInt)slot.slotId);
+            }
+            outgoingToken.addClaim("slotIds", slotIds);
+
             (*response.outputPayload())["isFullyAuthenticated"] = true;
         }
         else
@@ -133,15 +145,15 @@ void WebLogin_AuthMethods::authorize(void *context,
             outgoingToken.addClaim("currentSlotPosition", authContext->currentSlotPosition+1);
 
             // We can give the credential public data for the next credential:
-            Credential publicData = identityManager->authController->getAccountCredentialPublicData(accountName,authContext->currentSlotPosition+1);
+            Credential publicData = identityManager->authController->getAccountCredentialPublicData(accountName,authSlots[authContext->currentSlotPosition+1].slotId);
             (*response.outputPayload())["credentialPublicData"] = publicData.toJSON( identityManager->authController->getAuthenticationPolicy() );
 
         }
-        response.cookiesMap["AuthToken"] = Headers::Cookie();
-        response.cookiesMap["AuthToken"].secure = true;
-        response.cookiesMap["AuthToken"].httpOnly = true;
-        response.cookiesMap["AuthToken"].setExpirationFromNow(loginAuthenticationTimeout); // 2min expiration...
-        response.cookiesMap["AuthToken"].value = request.jwtSigner->signFromToken(outgoingToken, false);
+        response.cookiesMap["AccessToken"] = Headers::Cookie();
+        response.cookiesMap["AccessToken"].secure = true;
+        response.cookiesMap["AccessToken"].httpOnly = true;
+        response.cookiesMap["AccessToken"].setExpirationFromNow(loginAuthenticationTimeout); // 2min expiration...
+        response.cookiesMap["AccessToken"].value = request.jwtSigner->signFromToken(outgoingToken, false);
     }
     else
     {
@@ -170,159 +182,3 @@ void WebLogin_AuthMethods::authorize(void *context,
 
 
 
-
-
-
-
-
-
-
-
-/*
-    if ( !identityManager->applications->validateApplicationAccount( appName, accountName ) )
-    {
-        // Expecting the first scheme ID.
-        LOG_APP->log2(__func__, accountName, authClientDetails.ipAddress, Logs::LEVEL_WARN, "App:'%s' not registered for user:'%s'.", appName.c_str(), accountName.c_str());
-        prepareAuthenticationErrorResponse(response,  REASON_EXPIRED, Mantids30::Network::Protocols::HTTP::Status::S_401_UNAUTHORIZED);
-        // TODO: clear the jwt to prevent the jwt reutilization? revocarlo?
-        return;
-    }
-
-    std::vector<AuthenticationSchemeUsedSlot> authSlots = identityManager->authController->listAuthenticationSlotsUsedByScheme(schemeId);
-
-    // huh, no auth slots? better to answer invalid password.
-    if (authSlots.empty())
-    {
-        LOG_APP->log2(__func__, accountName, authClientDetails.ipAddress, Logs::LEVEL_WARN, "No authentication slots for scheme id:'%" PRIu32 "'.", schemeId);
-        prepareAuthenticationErrorResponse(response,  REASON_UNAUTHENTICATED, Mantids30::Network::Protocols::HTTP::Status::S_401_UNAUTHORIZED);
-        return;
-    }
-
-    if (jwtTokenId.empty())
-    {
-        // no authentication yet.
-        // Use the first slot:
-        currentSlotPosition = 0;
-        slotSchemeHash = Helpers::Crypto::calcSHA256(authSlotsToJSON( authSlots ).toStyledString());
-    }
-    else
-    {
-        if (slotSchemeHash != Helpers::Crypto::calcSHA256(authSlotsToJSON( authSlots ).toStyledString()))
-        {
-            LOG_APP->log2(__func__, accountName, authClientDetails.ipAddress, Logs::LEVEL_WARN, "Scheme id '%" PRIu32 "' changed during the authentication, aborting.", schemeId);
-            prepareAuthenticationErrorResponse(response,  REASON_UNAUTHENTICATED, Mantids30::Network::Protocols::HTTP::Status::S_401_UNAUTHORIZED);
-            return;
-        }
-    }
-
-    if (currentSlotPosition>=authSlots.size())
-    {
-        LOG_APP->log2(__func__, accountName, authClientDetails.ipAddress, Logs::LEVEL_SECURITY_ALERT, "Slot position '%" PRIu32 "' hacked on scheme id: '%" PRIu32 "'.", currentSlotPosition, schemeId);
-        prepareAuthenticationErrorResponse(response,  REASON_UNAUTHENTICATED, Mantids30::Network::Protocols::HTTP::Status::S_401_UNAUTHORIZED);
-        return;
-    }
-
-    // Now here we authenticate the credential...
-    Reason authRetCode = identityManager->authController->authenticateCredential( authClientDetails,
-                                                                                 accountName,
-                                                                                 JSON_ASSTRING(*request.inputJSON, "password", ""),
-                                                                                 authSlots.at(currentSlotPosition).slotId,
-                                                                                 getAuthModeFromString(JSON_ASSTRING(*request.inputJSON, "authMode", "MODE_PLAIN")),
-                                                                                JSON_ASSTRING(*request.inputJSON, "challengeSalt", ""));
-*/
-
-
-/*
-    std::string password = JSON_ASSTRING(*request.inputJSON, "password", "");
-    std::string authMode = JSON_ASSTRING(*request.inputJSON, "authMode", "");
-    std::string challengeSalt = JSON_ASSTRING(*request.inputJSON, "challengeSalt", "");
-
-    //uint32_t slotId = JSON_ASUINT(*request.inputJSON, "slotId", 0);
-
-    bool clearedForAuthentication = false;
-
-    // There are two modes... the first authentication (zero), or the indexed authentication (n)
-    if (slotId == 0)
-    {
-        // Ok... authenticate is cleared to be used with the first entry...
-        clearedForAuthentication = true;
-        token.setJwtId(Mantids30::Helpers::Random::createRandomString(16));
-
-
-    }
-    else
-    {
-        // The password SlotId is NOT zero. This is a subsequent authentication.
-
-        // The username is the username used in the JWT (not the provided input)
-        accountName = jwtUser;
-//        appName = jwtAppName;
-        token.setJwtId(tokenId);
-
-        // it should be pre-authenticated...
-        if (currentAuthenticatedSlotIds.find(0) != currentAuthenticatedSlotIds.end())
-        {
-            clearedForAuthentication = true;
-        }
-        else
-        {
-            // Otherwise, will not be pre-authed, and you can't try to login with next slotIds. (not cleared).
-            LOG_APP->log2(__func__, accountName, authClientDetails.ipAddress, Logs::LEVEL_SECURITY_ALERT, "Can't authenticate slotId=%" PRIu32 " - for application %s without authenticating slotId=0 first", appName.c_str());
-            prepareAuthenticationErrorResponse(response,  REASON_PASSWORD_INDEX_NOTFOUND, Mantids30::Network::Protocols::HTTP::Status::S_401_UNAUTHORIZED);
-            return;
-        }
-    }
-
-    response.setSuccess(false);
-
-    if (clearedForAuthentication)
-    {
-        std::map<uint32_t, std::string> accountAuthenticationSlotsRequiredForLogin;
-        auto authRetCode = identityManager->authController->authenticateCredential(appName,
-                                                                                   authClientDetails,
-                                                                                   username,
-                                                                                   password,
-                                                                                   slotId,
-                                                                                   getAuthModeFromString(authMode),
-                                                                                   challengeSalt,
-                                                                                   &accountAuthenticationSlotsRequiredForLogin);
-
-        response.setFullStatus(IS_PASSWORD_AUTHENTICATED(authRetCode), (uint32_t) authRetCode, getReasonText(authRetCode));
-
-        (*response.outputPayload())["isFullyAuthenticated"] = false;
-
-        int i = 0;
-        for (const auto &v : accountAuthenticationSlotsRequiredForLogin)
-        {
-            (*response.outputPayload())["accountAuthenticationSlotsRequiredForLogin"][i]["slotId"] = v.first;
-            (*response.outputPayload())["accountAuthenticationSlotsRequiredForLogin"][i]["txt"] = v.second;
-            i++;
-        }
-
-        LOG_APP->log2(__func__,
-                      accountName,
-                      authClientDetails.ipAddress,
-                      authRetCode ? Logs::LEVEL_SECURITY_ALERT : Logs::LEVEL_INFO,
-                      "Account Authorization Result: %" PRIu32 " - %s, for application %s",
-                      authRetCode,
-                      (*response.outputPayload())["statusMessage"].asCString(),
-                      JSON_ASSTRING_D(request.jwtToken->getClaim("applicationName"), "").c_str());
-
-        if (IS_PASSWORD_AUTHENTICATED(authRetCode))
-        {
-            // Password Authenticated... Include...
-            currentAuthenticatedSlotIds.insert(slotId);
-            if (authRetCode == REASON_EXPIRED_PASSWORD)
-            {
-                currentExpiredSlotIds.insert(slotId);
-            }
-
-            if (areAllSlotIdsAuthenticated(currentAuthenticatedSlotIds, accountAuthenticationSlotsRequiredForLogin))
-            {
-                // Login completed. Get the full token using /token.
-                token.addClaim("isFullyAuthenticated", true);
-                (*response.outputPayload())["isFullyAuthenticated"] = true;
-            }
-
-        }
-    }*/

@@ -7,6 +7,49 @@ using namespace Program;
 using namespace API::RESTful;
 using namespace Network::Protocols::HTTP;
 
+
+/**
+ * @brief Refreshes an access token based on a provided refresh token (JWT).
+ *
+ * This function handles the logic for refreshing an access token. It validates the incoming
+ * refresh token, retrieves necessary data from the database, and generates a new access token.
+ *
+ * **HTTP Layer Usage:**
+ *
+ * 1.  **Request Method:** POST
+ * 2.  **Endpoint:**  `/refresh_token` (or similar, as defined by your API)
+ * 3.  **Request Body:**  A JSON object containing the `accessToken` (the refresh token) and potentially other relevant data.
+ *     Example:
+ *     ```json
+ *     {
+ *       "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+ *     }
+ *     ```
+ * 4.  **Headers:** Standard HTTP headers, including `Content-Type: application/json`.
+ * 5.  **Response:**
+ *     *   **Success (200 OK):** A JSON object containing the new `accessToken` and its `expires_in` value (in seconds).
+ *         ```json
+ *         {
+ *           "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+ *           "expiresIn": 3600
+ *         }
+ *         ```
+ *     *   **Failure (401 Unauthorized):**  A JSON object with an error message indicating the reason for the failure (e.g., invalid token, unauthorized account).
+ *
+ * **Function Logic:**
+ *
+ * 1.  **Token Validation:**  The function first validates the incoming `accessToken` (refresh token) by decoding it and verifying its signature against the stored validation key for the associated application.
+ * 2.  **Database Retrieval:**  If the token is valid, it retrieves application-specific configuration data (e.g., token type, validation key) from the database.
+ * 3.  **Account Validation:** It validates the account associated with the token to ensure it's authorized to request a new token.
+ * 4.  **New Token Generation:**  If all validations pass, it generates a new access token with a fresh expiration time.
+ * 5.  **Response Construction:**  Finally, it constructs a JSON response containing the new access token and its expiration time.
+ *
+ * @param context A void pointer for potential context data (not used in this implementation).
+ * @param response The API response object to populate with the result.
+ * @param request The API request object containing the input data.
+ * @param authClientDetails Client details for authentication and logging.
+ */
+
 void WebLogin_AuthMethods::refreshAccessToken(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)
 {
     // INPUT DATA:
@@ -44,8 +87,13 @@ void WebLogin_AuthMethods::refreshAccessToken(void *context, APIReturn &response
 
         // The token is valid here...
         // TODO: invalidar todos los tokens viejos que su parent sea este refresher...
+
         configureAccessToken(newAccessToken, identityManager, request.jwtToken->getJwtId(), jwtUserId, appName, tokenProperties, currentAuthenticatedSlotIds);
+
         (*response.outputPayload())["accessToken"] = signAccessToken(newAccessToken, tokenProperties, appName);
+        (*response.outputPayload())["expiresIn"] = (Json::UInt64) (newAccessToken.getExpirationTime() - time(nullptr));
+
+
         return;
     }
 

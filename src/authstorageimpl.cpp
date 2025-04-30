@@ -252,12 +252,6 @@ bool AuthStorageImpl::configureApplication(IdentityManager_DB *identityManager, 
         LOG_APP->log0(__func__,Logs::LEVEL_CRITICAL, "Application '%s' does not exist, aborting.", DB_APPNAME);
         return false;
     }
-    // TODO:
- /*   std::list<std::pair<ApplicationPermission,std::string>> appPermissions =
-    {
-        {{DB_APPNAME,"DIRREAD"},"Directory Read Permission"},
-        {{DB_APPNAME,"DIRWRITE"},"Directory Write Permission"},
-    };*/
     std::list<std::pair<ApplicationPermission, std::string>> appPermissions =
     {
         {{DB_APPNAME, "SELF_PWDCHANGE"}, "Permission to change my own password"},
@@ -271,6 +265,7 @@ bool AuthStorageImpl::configureApplication(IdentityManager_DB *identityManager, 
         {{DB_APPNAME, "USER_DISABLE"}, "Permission to disable/lock users"},
         {{DB_APPNAME, "USER_ENABLE"}, "Permission to enable/unlock users"},
 
+        {{DB_APPNAME, "ROLE_CREATE"}, "Permission to create roles on the IAM system"},
         {{DB_APPNAME, "ROLE_READ"},   "Permission to read roles from the IAM system"},
         {{DB_APPNAME, "ROLE_DELETE"}, "Permission to remove roles from the IAM system"},
         {{DB_APPNAME, "ROLE_MODIFY"}, "Permission to modify roles and their associated permissions"},

@@ -56,7 +56,7 @@ void WebLogin_AuthMethods::tempMFAToken(void *context, APIReturn &response, cons
     auto authRetCode = identityManager->authController->authenticateCredential(authClientDetails, jwtUserId, password, slotId, getAuthModeFromString(authMode), challengeSalt);
     bool statusOk = IS_PASSWORD_AUTHENTICATED(authRetCode) && authRetCode != REASON_EXPIRED_PASSWORD;
 
-    LOG_APP->log2(__func__, jwtUserId, authClientDetails.ipAddress, authRetCode ? Logs::LEVEL_SECURITY_ALERT : Logs::LEVEL_INFO, "Account Temporal Authorization Result: %" PRIu32 " - %s, for application %s", authRetCode, (*response.outputPayload())["statusMessage"].asCString(), appName.c_str());
+    LOG_APP->log2(__func__, jwtUserId, authClientDetails.ipAddress, authRetCode ? Logs::LEVEL_SECURITY_ALERT : Logs::LEVEL_INFO, "Account Temporal Authorization Result: %" PRIu32 " - %s, for application %s", authRetCode, response.getErrorString().c_str(), appName.c_str());
 
     if (!statusOk)
     {

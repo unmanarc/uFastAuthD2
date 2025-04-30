@@ -81,8 +81,6 @@ bool WebLogin_ServerImpl::createService()
             return false;
         }
 
-        //loginWebServer->config.permittedAPIOrigins = config->get<std::string>("WebLoginService.IAMOriginDomains",{});
-
         std::string rawOrigins = config->get<std::string>("WebLoginService.IAMOriginDomains", "");
         loginWebServer->config.permittedAPIOrigins = parseCommaSeparatedOrigins(rawOrigins);
         loginWebServer->config.dynamicRequestHandlersByRoute["/login"] = &WebLogin_AuthMethods::handleDynamicRequest;

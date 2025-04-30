@@ -1,7 +1,7 @@
-#include "Mantids30/Helpers/json.h"
+#include <Mantids30/Helpers/json.h>
 #include "weblogin_authmethods.h"
 
-#include "json/config.h"
+#include <json/config.h>
 #include <algorithm> // std::find
 
 #include "../globals.h"
@@ -53,11 +53,9 @@ void WebLogin_AuthMethods::token(void *context, APIReturn &response, const Manti
     }
 
     std::list<std::string> redirectURIs = identityManager->applications->listWebLoginRedirectURIsFromApplication(jwtPreAuthApp);
-
     std::string redirectURI = JSON_ASSTRING(*request.inputJSON, "redirectURI", "");
-
     // Verificar si el valor no está en la lista
-    if (std::find(redirectURIs.begin(), redirectURIs.end(), redirectURI) == redirectURIs.end())
+    if (!redirectURI.empty() && std::find(redirectURIs.begin(), redirectURIs.end(), redirectURI) == redirectURIs.end())
     {
         // This token is not available for retrieving app tokens...
         LOG_APP->log2(__func__, jwtPreAuthUser, authClientDetails.ipAddress, Logs::LEVEL_SECURITY_ALERT, "Invalid return URL '%s': The provided URI does not match any recognized redirect URIs for application '%s'.", redirectURI.c_str(), jwtPreAuthApp.c_str());
@@ -72,7 +70,8 @@ void WebLogin_AuthMethods::token(void *context, APIReturn &response, const Manti
 
     // TODO: guardar los tokens en una db interna para el logout (no hacer ahorita)
     (*response.outputPayload())["accessToken"] = signAccessToken(accessToken, tokenProperties, jwtPreAuthApp);
-    (*response.outputPayload())["expires_in"] = (Json::UInt64) (accessToken.getExpirationTime() - time(nullptr));
+    (*response.outputPayload())["callbackURI"] = identityManager->applications->getAuthCallbackURIFromApplication(jwtPreAuthApp);
+    (*response.outputPayload())["expiresIn"] = (Json::UInt64) (accessToken.getExpirationTime() - time(nullptr));
 
     // TODO: la información que requiere la APP para operar, es la configuración de los privilegios, los requisitos de 2nd factor para ciertos privilegios
     /**

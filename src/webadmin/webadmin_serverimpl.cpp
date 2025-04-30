@@ -65,9 +65,29 @@ bool WebAdmin_ServerImpl::createService()
             return false;
         }
 
-      //  adminWebServer->config.dynamicRequestHandlersByRoute["/login"] = &WebAdmin_AuthMethods::handleDynamicRequest;
+        // Set the permitted origin (login IAM location Origin)
+        adminWebServer->config.permittedLoginOrigins.insert(config->get<std::string>("WebAdminService.LoginOrigin", "https://localhost:8443"));
+
+        // Set the login IAM location:
+        adminWebServer->config.defaultLoginRedirect = config->get<std::string>("WebAdminService.LoginRedirectURL", "https://login.localhost:8443/?app=IAM&redirectURI=");
+
         // JWT:
-        adminWebServer->config.jwtValidator = Mantids30::ConfigBuilder::JWT::createJWTValidator(LOG_APP, config, "JWT");
+        auto iamJWTSigningConfig = Globals::getIdentityManager()->applications->getWebLoginJWTConfigFromApplication(DB_APPNAME);
+
+        if ( boost::istarts_with(iamJWTSigningConfig.tokenType,"HS") )
+        {
+            // A jwt validator using sym keys... (using the keys from the database)
+            auto key = Globals::getIdentityManager()->applications->getWebLoginJWTSigningKeyForApplication(DB_APPNAME);
+
+            //LOG_APP->log0(__func__, Logs::LEVEL_CRITICAL, "USING KEY %s", key.c_str());
+
+            adminWebServer->config.jwtValidator = Mantids30::ConfigBuilder::JWT::createJWTValidator(LOG_APP, iamJWTSigningConfig.tokenType, key);
+        }
+        else
+        {
+            // Take it from the config file... (this is not the default, so you have configured it by hand)
+            adminWebServer->config.jwtValidator = Mantids30::ConfigBuilder::JWT::createJWTValidator(LOG_APP, config, "JWT_IAMPublicValidator" );
+        }
 
         if (!adminWebServer->config.jwtValidator)
         {
@@ -78,8 +98,10 @@ bool WebAdmin_ServerImpl::createService()
         // Setup the callbacks:
         adminWebServer->callbacks.onProtocolInitializationFailure = WebAdmin_ServerImpl::handleProtocolInitializationFailure;
         adminWebServer->callbacks.onClientAcceptTimeoutOccurred = WebAdmin_ServerImpl::handleClientAcceptTimeoutOccurred;
+
         // Setup the methods handler for version 1:
         adminWebServer->methodsHandler[1] = std::make_shared<API::RESTful::MethodsHandler>();
+
         // Set the software version:
         adminWebServer->config.setSoftwareVersion(atoi(PROJECT_VER_MAJOR), atoi(PROJECT_VER_MINOR), atoi(PROJECT_VER_PATCH), "a");
 

@@ -16,19 +16,32 @@ void WebAdminMethods_ApplicationsPermissions::addMethods_Permissions(std::shared
 
     // Application Permissions
 
-    methods->addResource(MethodsHandler::POST, "addApplicationPermission", &addApplicationPermission, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"DIRWRITE"});
-    methods->addResource(MethodsHandler::POST, "removeApplicationPermission", &removeApplicationPermission, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"DIRWRITE"});
-    methods->addResource(MethodsHandler::POST, "addApplicationPermissionToRole", &addApplicationPermissionToRole, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"DIRWRITE"});
-    methods->addResource(MethodsHandler::POST, "removeApplicationPermissionFromRole", &removeApplicationPermissionFromRole, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"DIRWRITE"});
-    methods->addResource(MethodsHandler::POST, "addApplicationPermissionToAccount", &addApplicationPermissionToAccount, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"DIRWRITE"});
-    methods->addResource(MethodsHandler::POST, "removeApplicationPermissionFromAccount", &removeApplicationPermissionFromAccount, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"DIRWRITE"});
-    methods->addResource(MethodsHandler::POST, "updateApplicationPermissionDescription", &updateApplicationPermissionDescription, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"DIRWRITE"});
-    methods->addResource(MethodsHandler::GET, "getApplicationPermissionDescription", &getApplicationPermissionDescription, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"DIRREAD"});
-    methods->addResource(MethodsHandler::GET, "listApplicationPermissions", &listApplicationPermissions, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"DIRREAD"});
-    methods->addResource(MethodsHandler::GET, "getApplicationPermissionsForRole", &getApplicationPermissionsForRole, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"DIRREAD"});
-    methods->addResource(MethodsHandler::GET, "listAccountsOnApplicationPermission", &listAccountsOnApplicationPermission, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"DIRREAD"});
-    methods->addResource(MethodsHandler::GET, "searchApplicationPermissions", &searchApplicationPermissions, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"DIRREAD"});
-    methods->addResource(MethodsHandler::GET, "permissionsLeftListForRole", &permissionsLeftListForRole, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"DIRREAD"});
+   methods->addResource(MethodsHandler::POST, "addApplicationPermission", &addApplicationPermission, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"APP_MODIFY"});
+   methods->addResource(MethodsHandler::POST, "removeApplicationPermission", &removeApplicationPermission, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"APP_MODIFY"});
+   methods->addResource(MethodsHandler::POST, "addApplicationPermissionToRole", &addApplicationPermissionToRole, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"APP_MODIFY"});
+   methods->addResource(MethodsHandler::POST, "removeApplicationPermissionFromRole", &removeApplicationPermissionFromRole, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"APP_MODIFY"});
+   methods->addResource(MethodsHandler::POST, "addApplicationPermissionToAccount", &addApplicationPermissionToAccount, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"APP_MODIFY"});
+   methods->addResource(MethodsHandler::POST, "removeApplicationPermissionFromAccount", &removeApplicationPermissionFromAccount, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"APP_MODIFY"});
+   methods->addResource(MethodsHandler::POST, "updateApplicationPermissionDescription", &updateApplicationPermissionDescription, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"APP_MODIFY"});
+   methods->addResource(MethodsHandler::GET, "getApplicationPermissionDescription", &getApplicationPermissionDescription, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"APP_READ"});
+   methods->addResource(MethodsHandler::GET, "listApplicationPermissions", &listApplicationPermissions, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"APP_READ"});
+   methods->addResource(MethodsHandler::GET, "getApplicationPermissionsForRole", &getApplicationPermissionsForRole, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"APP_READ"});
+   methods->addResource(MethodsHandler::GET, "listAccountsOnApplicationPermission", &listAccountsOnApplicationPermission, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"APP_READ"});
+   methods->addResource(MethodsHandler::GET, "searchApplicationPermissions", &searchApplicationPermissions, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"APP_READ"});
+   methods->addResource(MethodsHandler::GET, "permissionsLeftListForRole", &permissionsLeftListForRole, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"APP_READ"});
+   methods->addResource(MethodsHandler::POST, "addApplicationPermission", &addApplicationPermission, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"APP_MODIFY"});
+   methods->addResource(MethodsHandler::POST, "removeApplicationPermission", &removeApplicationPermission, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"APP_MODIFY"});
+   methods->addResource(MethodsHandler::POST, "addApplicationPermissionToRole", &addApplicationPermissionToRole, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"APP_MODIFY"});
+   methods->addResource(MethodsHandler::POST, "removeApplicationPermissionFromRole", &removeApplicationPermissionFromRole, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"APP_MODIFY"});
+   methods->addResource(MethodsHandler::POST, "addApplicationPermissionToAccount", &addApplicationPermissionToAccount, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"APP_MODIFY"});
+   methods->addResource(MethodsHandler::POST, "removeApplicationPermissionFromAccount", &removeApplicationPermissionFromAccount, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"APP_MODIFY"});
+   methods->addResource(MethodsHandler::POST, "updateApplicationPermissionDescription", &updateApplicationPermissionDescription, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"APP_MODIFY"});
+   methods->addResource(MethodsHandler::GET, "getApplicationPermissionDescription", &getApplicationPermissionDescription, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"APP_READ"});
+   methods->addResource(MethodsHandler::GET, "listApplicationPermissions", &listApplicationPermissions, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"APP_READ"});
+   methods->addResource(MethodsHandler::GET, "getApplicationPermissionsForRole", &getApplicationPermissionsForRole, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"APP_READ"});
+   methods->addResource(MethodsHandler::GET, "listAccountsOnApplicationPermission", &listAccountsOnApplicationPermission, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"APP_READ"});
+   methods->addResource(MethodsHandler::GET, "searchApplicationPermissions", &searchApplicationPermissions, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"APP_READ"});
+   methods->addResource(MethodsHandler::GET, "permissionsLeftListForRole", &permissionsLeftListForRole, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"APP_READ"});
 }
 
 void WebAdminMethods_ApplicationsPermissions::addApplicationPermission(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)

@@ -37,7 +37,7 @@ bool IdentityManager_DB::Applications_DB::addApplication(const std::string& appN
         bool tokenInsertSuccess = _parent->m_sqlConnector->query("INSERT INTO iam_applicationsJWTTokenConfig (`f_appName`, `accessTokenSigningKey`) VALUES (:appName, :signingKey);",
                                                         {
                                                             { ":appName", MAKE_VAR(STRING,appName) },
-                                                            { ":signingKey", MAKE_VAR(STRING,randomSecret) }
+                                                            { ":signingKey", MAKE_VAR(STRING, Helpers::Encoders::encodeToBase64Obf(randomSecret,0x8A376C54D999F187) ) }
                                                         });
         return tokenInsertSuccess;
     }
@@ -351,6 +351,55 @@ std::list<std::string> IdentityManager_DB::Applications_DB::listWebLoginRedirect
         redirectURIs.push_back(loginRedirectURI.getValue());
     }
     return redirectURIs;
+}
+
+bool IdentityManager_DB::Applications_DB::setAuthCallbackURIToApplication(const std::string &appName, const std::string &authCallbackURI)
+{
+    Threads::Sync::Lock_RW lock(_parent->m_mutex);
+
+    if (_parent->m_sqlConnector->query("DELETE FROM iam_applicationsAuthCallbackURI WHERE `f_appName`=:appName AND `callbackURI`=:callbackURI;",
+                                          {
+                                              {":appName", MAKE_VAR(STRING, appName)},
+                                              {":callbackURI", MAKE_VAR(STRING, authCallbackURI)}
+                                       }))
+    {
+        return _parent->m_sqlConnector->query("INSERT INTO iam_applicationsAuthCallbackURI (`f_appName`, `callbackURI`) VALUES (:appName, :callbackURI);",
+                                              {
+                                                  {":appName", MAKE_VAR(STRING, appName)},
+                                                  {":callbackURI", MAKE_VAR(STRING, authCallbackURI)}
+                                              });
+    }
+    return false;
+}
+
+bool IdentityManager_DB::Applications_DB::removeAuthCallbackURIToApplication(const std::string &appName, const std::string &authCallbackURI)
+{
+    Threads::Sync::Lock_RW lock(_parent->m_mutex);
+    return _parent->m_sqlConnector->query("DELETE FROM iam_applicationsAuthCallbackURI WHERE `f_appName`=:appName AND `callbackURI`=:callbackURI;",
+                                 {
+                                     {":appName", MAKE_VAR(STRING, appName)},
+                                     {":callbackURI", MAKE_VAR(STRING, authCallbackURI)}
+                                 });
+}
+
+std::string IdentityManager_DB::Applications_DB::getAuthCallbackURIFromApplication(
+    const std::string &appName)
+{
+    Threads::Sync::Lock_RD lock(_parent->m_mutex);
+
+    Abstract::STRING callbackURI;
+
+    std::shared_ptr<SQLConnector::QueryInstance> i = _parent->m_sqlConnector->qSelect("SELECT `callbackURI` FROM iam_applicationsAuthCallbackURI WHERE `f_appName`=:appName;",
+                                                                             {
+                                                                                 {":appName", MAKE_VAR(STRING, appName)}
+                                                                             },
+                                                                             {&callbackURI});
+    if (i->getResultsOK() && i->query->step())
+    {
+        return callbackURI.getValue();
+    }
+
+    return "";
 }
 
 bool IdentityManager_DB::Applications_DB::addWebLoginOriginURLToApplication(const std::string &appName, const std::string &originUrl)

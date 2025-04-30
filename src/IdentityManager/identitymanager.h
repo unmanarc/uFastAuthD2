@@ -355,6 +355,11 @@ public:
         virtual bool removeWebLoginRedirectURIToApplication(const std::string &appName, const std::string &loginRedirectURI) = 0;
         virtual std::list<std::string> listWebLoginRedirectURIsFromApplication(const std::string &appName) = 0;
 
+        // Callback URI.
+        virtual bool setAuthCallbackURIToApplication(const std::string &appName, const std::string &authCallbackURI)=0;
+        virtual bool removeAuthCallbackURIToApplication(const std::string &appName, const std::string &authCallbackURI)=0;
+        virtual std::string getAuthCallbackURIFromApplication(const std::string &appName)=0;
+
         // Application admited origin URLS:
         virtual bool addWebLoginOriginURLToApplication(const std::string &appName, const std::string &originUrl) = 0;
         virtual bool removeWebLoginOriginURLToApplication(const std::string &appName, const std::string &originUrl) = 0;

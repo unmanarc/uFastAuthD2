@@ -127,6 +127,13 @@ bool IdentityManager_DB::initializeDatabase()
                                                   PRIMARY KEY(`f_appName`,`loginRedirectURI`)
                      );
                                     )") &&
+                 m_sqlConnector->query(R"(CREATE TABLE `iam_applicationsAuthCallbackURI` (
+                                             `f_appName`             VARCHAR(256)  NOT NULL,
+                                             `callbackURI`           VARCHAR(4096) NOT NULL,
+                                              FOREIGN KEY(`f_appName`)   REFERENCES iam_applications(`appName`) ON DELETE CASCADE
+                                              PRIMARY KEY(`f_appName`)
+                     );
+                                    )") &&
                  m_sqlConnector->query(R"(CREATE TABLE `iam_applicationActivities` (
                                              `f_appName`             VARCHAR(256)  NOT NULL,
                                              `activityName`          VARCHAR(256)  NOT NULL,

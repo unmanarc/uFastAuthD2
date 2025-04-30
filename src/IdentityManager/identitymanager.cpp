@@ -43,7 +43,8 @@ bool IdentityManager::initializeApplicationWithScheme(const std::string &appName
     if (!applications->doesApplicationExist(appName))
     {
         r = r && applications->addApplication( appName, appDescription,  Mantids30::Helpers::Random::createRandomString(32), owner );
-        r = r && applications->addWebLoginRedirectURIToApplication(appName,"https://localhost/auth/callback");
+        r = r && applications->addWebLoginRedirectURIToApplication(appName,"https://iamadmin.localhost:9443/");
+        r = r && applications->setAuthCallbackURIToApplication(appName,"https://iamadmin.localhost:9443/api/auth/callback");
         r = r && applications->setApplicationActivities( appName, {{"LOGIN",{.description="Main Login", .parentActivity=""}}}  );
         r = r && authController->addAuthenticationSchemesToApplicationActivity( appName, "LOGIN" , schemeId );
         r = r && authController->setApplicationActivityDefaultScheme(appName,"LOGIN", schemeId);

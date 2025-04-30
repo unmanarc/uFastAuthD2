@@ -1,0 +1,644 @@
+<%include:/assets/hidden/inc.main.header.html%>
+<%include:/assets/hidden/inc.accounts.header.html%>
+
+<table width=90% align="center" style=" border-spacing: 15px;   border-collapse: separate;">
+  <tr><td align="right" width=15%>Editing Account: </td><td><input type="username" name="username" id="accountName" class="form-control" placeholder="Account Name" readonly></td></tr>
+</table>
+
+<table width=90% align="center" style=" border-spacing: 15px;   border-collapse: separate;">
+<tr>
+  <td>
+    <ul class="nav nav-tabs" id="myTab" role="tablist">
+      <li class="nav-item">
+        <a class="nav-link active" id="details-tab" data-toggle="tab" href="#details" role="tab" aria-controls="details" aria-selected="true">Details</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" id="groups-tab" data-toggle="tab" href="#groups" role="tab" aria-controls="groups" aria-selected="false">Groups</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" id="applications-tab" data-toggle="tab" href="#applications" role="tab" aria-controls="applications" aria-selected="false">Applications</a>
+      </li>
+      <!-- <li class="nav-item">
+        <a class="nav-link" id="expiration-tab" data-toggle="tab" href="#expiration" role="tab" aria-controls="expiration" aria-selected="false">Expiration</a>
+      </li> -->
+      <li class="nav-item">
+        <a class="nav-link" id="advanced-tab" data-toggle="tab" href="#advanced" role="tab" aria-controls="advanced" aria-selected="false">Advanced Controls</a>
+      </li>
+      <!-- <li class="nav-item">
+        <a class="nav-link" id="logs-tab" data-toggle="tab" href="#logs" role="tab" aria-controls="logs" aria-selected="false">Logs</a>
+      </li> -->
+    </ul>
+  </td>
+</tr>
+</table>
+<div class="tab-content" id="myTabContent">
+
+  <div class="tab-pane fade show active" id="details" role="tabpanel" aria-labelledby="details-tab" style="min-height: 500px;">
+      <table width=70% align="center" style=" border-spacing: 15px;   border-collapse: separate;">
+        <tr><td>
+          <div class="card" style="text-align: center;">
+            <div class="card-header">
+              Account Details
+            </div>
+            <div class="card-body">
+             <table width=100%>
+              <tr><td align="right">Given Name: &nbsp;</td><td><input id="givenName" class="form-control" placeholder="Given Name"></td></tr>
+              <tr><td align="right">Last Name: &nbsp;</td><td><input id="lastName" class="form-control" placeholder="Last Name"></td></tr>
+              <tr><td align="right">Email: &nbsp;</td><td><input id="email" type="email" class="form-control" placeholder="Email"></td></tr>
+              <tr><td  align="right">Description: &nbsp;</td><td><input id="description" class="form-control" placeholder="Description"></td></tr>
+              <tr><td  align="right">Extra Data: &nbsp;</td><td><input id="extraData" class="form-control" placeholder="Extra Data"></td></tr>
+             </table>
+            </div>
+          </div>
+          <br>
+          <div class="card" style="text-align: center;">
+            <div class="card-header">
+            Account Privileges
+            </div>
+            <div class="card-body">
+              <table width=100%>
+                <tr valign=top>
+                  <td width=50%>
+                    <table width=100%>
+                      <tr><td align=""></td> <td align="right">Account Enabled: <input type="checkbox" value="" id="isEnabled"></td></tr>
+                      <tr><td align=""></td> <td align="right">Account Confirmed: <input type="checkbox" value="" id="isConfirmed"></td></tr>     
+          
+                    </table>
+                  </td>
+                  <td width=50%>
+                    <table width=100%>
+                      <tr><td align=""></td> <td align="right">Super User: <input type="checkbox" value="" id="isSuperUser"></td></tr>
+                     </table>
+                  </td>
+                </tr>
+              </table>            
+            </div>
+          </div>
+          
+
+        </td></tr>
+        <tr><td colspan="2" align="right"> <button type="button" class="btn btn-primary" onclick="javascript:modifyAccountDetails()">Modify Account</button>  </td></tr>
+      </table>
+  </div>
+
+  <div class="tab-pane fade" id="groups" role="tabpanel" aria-labelledby="groups-tab" style="min-height: 500px;">
+    <table width=90% align="center" style=" border-spacing: 30px;   border-collapse: separate;">
+
+      <tr> 
+        <td width=50% align="center">Available Groups:<br>
+          <select multiple aria-label="multiple select example" style="min-height: 250px; min-width: 100%;" id="groupsLeft">
+          </select>
+        </td> 
+        <td>
+          <button type="button" class="btn btn-light btn-sm" onclick="javascript:moveToUsedGroup()">&#9658;</button> 
+          <br><br>
+          <button type="button" class="btn btn-light btn-sm" onclick="javascript:moveToUnusedGroup()">&#9668;</button> 
+        </td>
+        <td width=50% align="center">Used Groups:<br>
+          <select multiple aria-label="multiple select example" style="min-height: 250px; min-width: 100%;" id="groupsRight">
+          </select>
+        </td> 
+      </tr>
+    </table>
+  </div>
+
+  <div class="tab-pane fade" id="applications" role="tabpanel" aria-labelledby="applications-tab"
+    style="min-height: 500px;">
+
+    <table width=90% align="center" style=" border-spacing: 15px;   border-collapse: separate;">
+
+      <tr id="addApplicationTR"><td align="right">
+        <select class="form-select" aria-label="Default select example" id="applicationsLeft" style="min-width: 300px;">
+        </select>
+        <button type="button" class="btn btn-sm btn-success" onclick="javascript:addApplication()">Add Application</button>
+      </td></tr>
+
+      <tr>
+        <td align="center">
+          <h5 style="text-align: left;">User Applications:</h5>
+          <hr>
+        </td>
+      </tr>
+
+      <tr>
+        <td align="center" id="accountAttributesTD">
+        </td>
+      </tr>
+      
+    </table>
+  </div>
+
+  <div class="tab-pane fade" id="advanced" role="tabpanel" aria-labelledby="advanced-tab"
+    style="min-height: 500px;">
+
+    <table width=70% align="center" style=" border-spacing: 15px;   border-collapse: separate;">
+
+      <tr>
+        <td align="center">
+
+          <div class="card" style="text-align: center;">
+            <div class="card-header">
+            Passwords / Secrets
+            </div>
+            <div class="card-body">
+              <h5 class="card-title">    Secret Management            </h5>
+              <p class="card-text">You can edit this account password/secrets here.</p>
+              <button type="button" class="btn btn-success btn-sm">Change Account Secrets</button>
+            </div>
+          </div>
+          <br>
+
+          <div class="card" style="text-align: center;">
+            <div class="card-header">
+              Remove This Account
+            </div>
+            <div class="card-body">
+              <h5 class="card-title">    Account Removal Warning!            </h5>
+              <p class="card-text">Removing the account will destroy all the information associated in the database, including possible logs, we strongly recommend to disable it instead.</p>
+
+              <button type="button" class="btn btn-danger btn-sm" onclick="javascript:removeAccount()">Remove Account</button>
+            </div>
+          </div>
+
+        </td>
+      </tr>
+      
+    </table>
+  </div>
+
+
+  <div class="tab-pane fade" id="logs" role="tabpanel" aria-labelledby="logs-tab"
+    style="min-height: 500px;">
+
+    <table width=70% align="center" style=" border-spacing: 15px;   border-collapse: separate;">
+
+      <tr>
+        <td align="center">
+
+          <div class="card" style="text-align: center;">
+            <div class="card-header">
+            Last Login Information...
+            </div>
+            <div class="card-body">
+             
+              <table width=100%>
+                <tr valign=top><td  align="right">Date: &nbsp;</td><td>Ene 1 2020</td><td align="left">Location: &nbsp;Not detected.</td></tr>
+                <tr valign=top><td  align="right">IP: &nbsp;</td><td>192.168.0.1</td><td align="left">GPS: &nbsp; ..</td></tr>    
+               </table>
+
+            </div>
+          </div>
+          <br>
+         
+
+        </td>
+      </tr>
+      
+    </table>
+  </div>
+
+</div>
+
+<hr>
+
+<script>
+  document.getElementById("apptitle").innerHTML = "Accounts &#9658; Edit Account";
+
+  function attribRemove(appId,attribId)
+  {
+    $.ajax({
+      url: '/japi_exec?method=attribAccountRemove',
+      headers: { "CSRFToken": csrfToken },
+      data: {
+        payload: JSON.stringify(
+          {
+            appName: document.getElementById(`userapp-key-${appId}`).value,
+            attribName: document.getElementById(`ulist-attribNameById-${appId}-${attribId}`).value,
+            accountName: $(`#accountName`).val()
+          }
+        )
+      },
+      type: 'POST',
+      success: function (response) {
+        if (response["statusCode"] == true) {
+          populateAccount();
+        }
+        else {
+          alert("Internal error modifying the account applications attributes.");
+        }
+      },
+      error: commonFunctionError
+    });
+
+  }
+
+  function addApplicationAttribute(appId)
+  {
+    var appItems = document.getElementById(`applicationsAttribsLeft-${appId}`);
+    var selItem = appItems.selectedIndex;
+    if (selItem == -1) 
+    {
+      alert('Please select an attribute');
+      document.getElementById(`applicationsAttribsLeft-${appId}`).focus();
+      return;
+    }
+
+    $.ajax({
+      url: '/japi_exec?method=attribAccountAdd',
+      headers: { "CSRFToken": csrfToken },
+      data: {
+        payload: JSON.stringify(
+          {
+            appName: $(`#userapp-key-${appId}`).val(),
+            attribName: appItems.value,
+            accountName: $(`#accountName`).val()
+          }
+        )
+      },
+      type: 'POST',
+      success: function (response) {
+        if (response["statusCode"] == true) {
+          populateAccount();
+        }
+        else {
+          alert("Internal error modifying the account applications attributes.");
+        }
+      },
+      error: commonFunctionError
+    });
+  }
+
+  function removeApplication(appId)
+  {
+    var appName = document.getElementById(`userapp-key-${appId}`).value;
+
+    $.ajax({
+      url: '/japi_exec?method=applicationAccountRemove',
+      headers: { "CSRFToken": csrfToken },
+      data: {
+        payload: JSON.stringify(
+          {
+            accountName: $("#accountName").val(),
+            appName: appName
+          }
+        )
+      },
+      type: 'POST',
+      success: function (response) {
+        if (response["statusCode"] == true) {
+          populateAccount();
+        }
+        else {
+          alert("Internal error modifying the account applications.");
+        }
+      },
+      error: commonFunctionError
+    });
+  }
+
+  function addApplication() {
+    var appItems = document.getElementById("applicationsLeft");
+    var selItem = appItems.selectedIndex;
+    if (selItem == -1) 
+    {
+      alert('Please select an application');
+      document.getElementById("applicationsLeft").focus();
+      return;
+    }
+
+    $.ajax({
+      url: '/japi_exec?method=applicationAccountAdd',
+      headers: { "CSRFToken": csrfToken },
+      data: {
+        payload: JSON.stringify(
+          {
+            accountName: $("#accountName").val(),
+            appName: appItems.value
+          }
+        )
+      },
+      type: 'POST',
+      success: function (response) {
+        if (response["statusCode"] == true) {
+          populateAccount();
+        }
+        else {
+          alert("Internal error modifying the account applications.");
+        }
+      },
+      error: commonFunctionError
+    });
+  }
+
+  function moveToUsedGroup() {
+    var leftlist = document.getElementById("groupsLeft");
+    while (true) {
+      var selItem = leftlist.selectedIndex;
+      if (selItem == -1) break;
+      var rightlist = document.getElementById("groupsRight");
+      var newOption = leftlist[selItem].cloneNode(true);
+
+      leftlist.removeChild(leftlist[selItem]);
+      rightlist.appendChild(newOption);
+    }
+    modifyAccountGroups();
+  }
+
+  function moveToUnusedGroup() {
+    var leftlist = document.getElementById("groupsRight");
+    while (true) {
+      var selItem = leftlist.selectedIndex;
+      if (selItem == -1) break;
+      var rightlist = document.getElementById("groupsLeft");
+      var newOption = leftlist[selItem].cloneNode(true);
+
+      leftlist.removeChild(leftlist[selItem]);
+      rightlist.appendChild(newOption);
+    }
+    modifyAccountGroups();
+  }
+
+  function modifyAccountGroups() {
+    var select1 = document.getElementById("groupsRight");
+    var selected1 = [];
+    for (var i = 0; i < select1.length; i++) {
+      selected1.push(select1.options[i].value);
+    }
+    $.ajax({
+      url: '/japi_exec?method=accountChangeGroupSet',
+      headers: { "CSRFToken": csrfToken },
+      data: {
+        payload: JSON.stringify(
+          {
+            accountName: $("#accountName").val(),
+            groups: selected1
+          }
+        )
+      },
+      type: 'POST',
+      success: function (response) {
+        if (response["statusCode"] == true) {
+        }
+        else {
+          alert("Internal error modifying the account groups.");
+          location.reload();
+        }
+      },
+      error: commonFunctionError
+    });
+  }
+
+  function modifyAccountDetails() {
+    $.ajax({
+      url: '/japi_exec?method=accountChangeBasicInfo',
+      headers: { "CSRFToken": csrfToken },
+      data: {
+        payload: JSON.stringify(
+          {
+            accountName: $("#accountName").val(),
+            description: $("#description").val(),
+            givenName: $("#givenName").val(),
+            lastName: $("#lastName").val(),
+            email: $("#email").val(),
+            extraData: $("#extraData").val(),
+            isConfirmed: $("#isConfirmed:checked").length > 0,
+            isEnabled: $("#isEnabled:checked").length > 0,
+            isSuperuser: $("#isSuperUser:checked").length > 0
+          }
+        )
+      },
+      type: 'POST',
+      success: function (response) {
+        if (response["statusCode"] == true) {
+        //  populateAccount();
+          alert("Account Information Modified!");
+        }
+        else {
+          alert("Internal error modifying the account.");
+        }
+        //   populateAccount();
+      },
+      error: commonFunctionError
+    });
+  }
+
+  function removeAccount() {
+    var r = confirm("Do you really want to completly remove this account?\nConsider disabling it instead.");
+    if (r == true) {
+      $.ajax({
+        url: '/japi_exec?method=accountRemove',
+        headers: { "CSRFToken": csrfToken },
+        data: { payload: JSON.stringify({ accountName: $("#accountName").val() }) },
+        type: 'POST',
+        success: function (response) {
+          if (response["statusCode"] == true) {
+            alert("Account Removed!");
+          }
+          else {
+            alert("Internal error removing the account.");
+          }
+          window.location = "/accounts";
+        },
+        error: commonFunctionError
+      });
+    } else {
+      alert("Remove Operation Aborted!");
+    }
+  }
+
+  function populateAccount() {
+
+    var accountName = $("#accountName").val();
+    $.ajax({
+      url: '/japi_exec?method=accountBasicInfo',
+      headers: { "CSRFToken": csrfToken },
+      data: { payload: JSON.stringify({ accountName: $("#accountName").val() }) },
+      type: 'POST',
+      success: function (response) {
+
+        document.getElementById("givenName").value = response["givenName"];
+        document.getElementById("lastName").value = response["lastName"];
+        document.getElementById("description").value = response["description"];
+        document.getElementById("email").value = response["email"];
+        document.getElementById("extraData").value = response["extraData"];
+
+        document.getElementById("isEnabled").checked = response["enabled"] == true;
+        document.getElementById("isConfirmed").checked = response["confirmed"] == true;
+        document.getElementById("isSuperUser").checked = response["superuser"] == true;
+
+        document.getElementById('groupsRight').innerHTML = "";
+        document.getElementById('groupsLeft').innerHTML = "";
+        document.getElementById('accountAttributesTD').innerHTML = "";
+        document.getElementById('applicationsLeft').innerHTML = "";
+
+        if (response["groups"] != null) {
+          for (let group of response["groups"]) {
+            var sel = document.getElementById('groupsRight');
+            var opt = document.createElement('option');
+            opt.appendChild(document.createTextNode("[" + group['name'] + "] " + group['description']));
+            opt.value = group['name'];
+            sel.appendChild(opt);
+          }
+        }
+        if (response["groupsLeft"] != null) {
+          for (let groupLeft of response["groupsLeft"]) {
+            var sel = document.getElementById('groupsLeft');
+            var opt = document.createElement('option');
+            opt.appendChild(document.createTextNode("[" + groupLeft['name'] + "] " + groupLeft['description']));
+            opt.value = groupLeft['name'];
+            sel.appendChild(opt);
+          }
+        }
+
+
+        if (response["applicationsLeft"]!=null)
+        {
+          for (let applicationLeft of response["applicationsLeft"]) {
+           
+            var sel = document.getElementById('applicationsLeft');
+            var opt = document.createElement('option');
+            opt.appendChild(document.createTextNode(applicationLeft["name"] + ': ' + applicationLeft["description"]));
+            opt.value = applicationLeft["name"];
+            sel.appendChild(opt);
+          }
+        }
+
+        if (response["applications"] != null) {
+          let appId = 0;
+          for (let application of response["applications"]) {
+
+            $("#accountAttributesTD").append(
+              `
+              <input type=hidden id="userapp-key-${appId}">
+              <div class="card" style="max-width: 80%; text-align: left;">
+              <div class="card-header">
+                  <h5 style="float: left; width: 50%; text-align: left;" id="userapp-title-${appId}">Text Left</h2>
+                  <p style="float: left; width: 50%; text-align: right;">  <button type="button" class="btn btn-sm btn-light" onclick="javascript:removeApplication('${appId}')">	&#10006;</button> </p>
+              </div>
+
+              <div class="card-body">
+                <table width=100%><tr><td align=right>
+                  <select class="form-select" aria-label="Default select example" id="applicationsAttribsLeft-${appId}" style="min-width: 300px;">
+                  </select>
+                  <button type="button" class="btn btn-sm btn-success" onclick="javascript:addApplicationAttribute('${appId}')">Add Application Attribute</button>
+                  </td></tr>
+                </table>
+
+              <br>
+              <p class="card-text">
+                  <table class="table table-hover">
+                    <thead class="thead-light">
+                      <tr bgcolor=grey>
+                        <th scope="col">Attribute Name</th>
+                        <th scope="col">Description</th>
+                        <th scope="col" style="text-align: right;">Controls</th>
+                      </tr>
+                    </thead>
+                    <tbody id="applicationsDirectAttribs-${appId}">
+                    </tbody>
+                  </table>
+               </p>
+
+              </div>
+              </div>
+              <br>
+              `
+            );
+            $(`#userapp-title-${appId}`).text(application["name"] + ': ' + application["description"]);
+            $(`#userapp-key-${appId}`).val(application["name"]);
+
+            if (application["directAttribsLeft"] != null)
+            {
+              for (let attribLeft of application["directAttribsLeft"]) {
+                var sel = document.getElementById(`applicationsAttribsLeft-${appId}`);
+                var opt = document.createElement('option');
+                opt.appendChild(document.createTextNode(attribLeft["name"] + ': ' + attribLeft["description"]));
+                opt.value = attribLeft["name"];
+                sel.appendChild(opt);
+              }
+            }
+
+
+            if (application["directAttribs"] != null)
+            {
+              let attribId = 0;
+
+              for (let directAttrib of application["directAttribs"]) {
+
+                document.getElementById(`applicationsDirectAttribs-${appId}`).innerHTML+= `<tr> 
+                    <th scope="row" id=ulist-attribName-${appId}-${attribId} width=20%></th>
+                    <td id=ulist-attribDescription-${appId}-${attribId}></td>
+                    <td style="text-align: right;">
+                      <input type=hidden id="ulist-attribNameById-${appId}-${attribId}">
+                      <button type="button" class="btn btn-light btn-sm" onclick="javascript:attribRemove(${appId},${attribId});">&#10006;</button>
+                    </td>
+                  </tr>`;
+
+
+                document.getElementById(`ulist-attribNameById-${appId}-${attribId}`).value = directAttrib["name"];
+                $(`#ulist-attribName-${appId}-${attribId}`).text(directAttrib["name"]);
+                $(`#ulist-attribDescription-${appId}-${attribId}`).text(directAttrib["description"]);
+                attribId++;
+              }
+            }
+            appId++;
+          }
+        }
+
+        //accountAttributesTD
+
+
+        superUserToggled();
+
+      },
+      error: commonFunctionError
+    });
+  }
+
+  function ajaxValidateAndPopulateAccount() {
+    var accountName = window.atob(location.search.substr(1));
+    $.ajax({
+      url: '/japi_exec?method=accountExist',
+      headers: { "CSRFToken": csrfToken },
+      data: { payload: JSON.stringify({ accountName: $("#accountName").val() }) },
+      type: 'POST',
+      success: function (response) {
+        document.getElementById("accountName").value = accountName;
+        populateAccount();
+      },
+      error: commonFunctionError
+    });
+  }
+
+  function csrfReady() {
+    ajaxValidateAndPopulateAccount();
+
+    var hash = location.hash;
+    if (hash == "#applications")
+    {
+      $('#applications-tab').trigger('click');
+    }
+
+  }
+
+  /* var select1 = document.getElementById("groupsLeft");
+   var selected1 = [];
+   for (var i = 0; i < select1.length; i++) {
+       if (select1.options[i].selected)
+       {
+
+        // selected1.push(select1.options[i].value);
+       }
+   }
+   console.log(selected1);*/
+
+</script>
+
+
+<%include:/assets/hidden/inc.accounts.footer.html%>
+<%include:/assets/hidden/inc.main.footer.html%>
+
+
+
+
+

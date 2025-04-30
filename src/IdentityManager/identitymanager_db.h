@@ -205,6 +205,11 @@ public:
         bool removeWebLoginRedirectURIToApplication(const std::string &appName, const std::string &loginRedirectURI) override;
         std::list<std::string> listWebLoginRedirectURIsFromApplication(const std::string &appName) override;
 
+        bool setAuthCallbackURIToApplication(const std::string &appName, const std::string &authCallbackURI) override;
+        bool removeAuthCallbackURIToApplication(const std::string &appName, const std::string &authCallbackURI) override;
+        std::string getAuthCallbackURIFromApplication(const std::string &appName) override;
+
+
         // Weblogin origin urls:
         bool addWebLoginOriginURLToApplication(const std::string &appName, const std::string &originUrl) override;
         bool removeWebLoginOriginURLToApplication(const std::string &appName, const std::string &originUrl) override;

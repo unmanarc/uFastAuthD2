@@ -56,7 +56,10 @@ void WebLogin_AuthMethods::registerAccount(void *context, APIReturn &response, c
                                                             request.jwtToken->getSubject());
     }
 
-    response.setFullStatus(success == true, success ? "Account Successfully Created" : "Failed to create the account");
+    if (!success)
+    {
+        response.setError( Status::S_500_INTERNAL_SERVER_ERROR, "internal_error", "Failed to create the account");
+    }
 
     LOG_APP->log2(__func__,
                   request.jwtToken->getSubject(),
@@ -68,7 +71,6 @@ void WebLogin_AuthMethods::registerAccount(void *context, APIReturn &response, c
 
     // Set the credential:
     std::string newPass = JSON_ASSTRING(*request.inputJSON,"newPass","");
-
 
     // TODO: mejorar el nivel de log...
 
@@ -101,6 +103,7 @@ void WebLogin_AuthMethods::registerAccount(void *context, APIReturn &response, c
                       );
     }
 }
+
 
 // TODO: llenar los details del user.
 

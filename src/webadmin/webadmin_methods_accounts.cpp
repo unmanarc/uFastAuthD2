@@ -148,29 +148,29 @@ void WebAdminMethods_Accounts::doesAccountExist(void *context, APIReturn &respon
 
 void WebAdminMethods_Accounts::getAccountBlockToken(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)
 {
-    (*response.outputPayload()) = Globals::getIdentityManager()->users->getAccountBlockToken(JSON_ASSTRING(*request.inputJSON,"accountName",""));
+    (*response.responseJSON()) = Globals::getIdentityManager()->users->getAccountBlockToken(JSON_ASSTRING(*request.inputJSON,"accountName",""));
 }
 
 void WebAdminMethods_Accounts::getAccountDirectApplicationPermissions(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)
 {
-    (*response.outputPayload()) = WebAdmin_Methods::permissionListToJSON(Globals::getIdentityManager()->authController->getAccountDirectApplicationPermissions(JSON_ASSTRING(*request.inputJSON,"accountName","")));
+    (*response.responseJSON()) = WebAdmin_Methods::permissionListToJSON(Globals::getIdentityManager()->authController->getAccountDirectApplicationPermissions(JSON_ASSTRING(*request.inputJSON,"accountName","")));
 }
 
 void WebAdminMethods_Accounts::getAccountDetails(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)
 {
     auto getAccountDetails = Globals::getIdentityManager()->users->getAccountDetails(JSON_ASSTRING(*request.inputJSON, "accountName", ""));
     // Llenar el payloadOut con los detalles de la cuenta
-    (*response.outputPayload()) = getAccountDetails.toJSON();
+    (*response.responseJSON()) = getAccountDetails.toJSON();
 }
 
 void WebAdminMethods_Accounts::getAccountExpirationTime(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)
 {
-    (*response.outputPayload()) = Json::Int64(Globals::getIdentityManager()->users->getAccountExpirationTime(JSON_ASSTRING(*request.inputJSON,"accountName","")));
+    (*response.responseJSON()) = Json::Int64(Globals::getIdentityManager()->users->getAccountExpirationTime(JSON_ASSTRING(*request.inputJSON,"accountName","")));
 }
 
 void WebAdminMethods_Accounts::getAccountFlags(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)
 {
-    (*response.outputPayload()) = Globals::getIdentityManager()->users->getAccountFlags(JSON_ASSTRING(*request.inputJSON,"accountName","")).toJSON();
+    (*response.responseJSON()) = Globals::getIdentityManager()->users->getAccountFlags(JSON_ASSTRING(*request.inputJSON,"accountName","")).toJSON();
 }
 
 void WebAdminMethods_Accounts::getAccountInfo(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)
@@ -181,9 +181,9 @@ void WebAdminMethods_Accounts::getAccountInfo(void *context, APIReturn &response
     auto getAccountRoles = Globals::getIdentityManager()->users->getAccountRoles(JSON_ASSTRING(*request.inputJSON,"accountName",""));
     for (const auto & roleName : getAccountRoles)
     {
-        (*response.outputPayload())["roles"][i]["name"] = roleName;
+        (*response.responseJSON())["roles"][i]["name"] = roleName;
         // TODO: optimize:
-        (*response.outputPayload())["roles"][i]["description"] = Globals::getIdentityManager()->roles->getRoleDescription(roleName);
+        (*response.responseJSON())["roles"][i]["description"] = Globals::getIdentityManager()->roles->getRoleDescription(roleName);
         i++;
     }
 
@@ -192,8 +192,8 @@ void WebAdminMethods_Accounts::getAccountInfo(void *context, APIReturn &response
     {
         if (getAccountRoles.find(roleName)==getAccountRoles.end())
         {
-            (*response.outputPayload())["rolesLeft"][i]["name"] = roleName;
-            (*response.outputPayload())["rolesLeft"][i]["description"] = Globals::getIdentityManager()->roles->getRoleDescription(roleName);
+            (*response.responseJSON())["rolesLeft"][i]["name"] = roleName;
+            (*response.responseJSON())["rolesLeft"][i]["description"] = Globals::getIdentityManager()->roles->getRoleDescription(roleName);
             i++;
         }
     }
@@ -205,17 +205,17 @@ void WebAdminMethods_Accounts::getAccountInfo(void *context, APIReturn &response
     i=0;
     for (const auto & applicationName : listAccountApplications)
     {
-        (*response.outputPayload())["applications"][i]["name"] = applicationName;
+        (*response.responseJSON())["applications"][i]["name"] = applicationName;
         // TODO: optimize:
-        (*response.outputPayload())["applications"][i]["description"] = Globals::getIdentityManager()->applications->getApplicationDescription(applicationName);
+        (*response.responseJSON())["applications"][i]["description"] = Globals::getIdentityManager()->applications->getApplicationDescription(applicationName);
 
         int j=0;
         for (const auto & directApplicationPermission : directPermissions)
         {
             if (directApplicationPermission.appName == applicationName)
             {
-                (*response.outputPayload())["applications"][i]["directPermissions"][j]["id"] = directApplicationPermission.permissionId;
-                (*response.outputPayload())["applications"][i]["directPermissions"][j]["description"] = Globals::getIdentityManager()->authController->getApplicationPermissionDescription(directApplicationPermission);
+                (*response.responseJSON())["applications"][i]["directPermissions"][j]["id"] = directApplicationPermission.permissionId;
+                (*response.responseJSON())["applications"][i]["directPermissions"][j]["description"] = Globals::getIdentityManager()->authController->getApplicationPermissionDescription(directApplicationPermission);
                 j++;
             }
         }
@@ -225,8 +225,8 @@ void WebAdminMethods_Accounts::getAccountInfo(void *context, APIReturn &response
         {
             if (directPermissions.find(permission)==directPermissions.end())
             {
-                (*response.outputPayload())["applications"][i]["directPermissionsLeft"][j]["id"] = permission.permissionId;
-                (*response.outputPayload())["applications"][i]["directPermissionsLeft"][j]["description"] = Globals::getIdentityManager()->authController->getApplicationPermissionDescription(permission);
+                (*response.responseJSON())["applications"][i]["directPermissionsLeft"][j]["id"] = permission.permissionId;
+                (*response.responseJSON())["applications"][i]["directPermissionsLeft"][j]["description"] = Globals::getIdentityManager()->authController->getApplicationPermissionDescription(permission);
                 j++;
             }
         }
@@ -236,8 +236,8 @@ void WebAdminMethods_Accounts::getAccountInfo(void *context, APIReturn &response
         {
             if (usablePermission.appName == applicationName)
             {
-                (*response.outputPayload())["applications"][i]["usablePermissions"][j]["id"] = usablePermission.permissionId;
-                (*response.outputPayload())["applications"][i]["usablePermissions"][j]["description"] = Globals::getIdentityManager()->authController->getApplicationPermissionDescription(usablePermission);
+                (*response.responseJSON())["applications"][i]["usablePermissions"][j]["id"] = usablePermission.permissionId;
+                (*response.responseJSON())["applications"][i]["usablePermissions"][j]["description"] = Globals::getIdentityManager()->authController->getApplicationPermissionDescription(usablePermission);
                 j++;
             }
         }
@@ -251,8 +251,8 @@ void WebAdminMethods_Accounts::getAccountInfo(void *context, APIReturn &response
     {
         if ( listAccountApplications.find(applicationName) == listAccountApplications.end()  )
         {
-            (*response.outputPayload())["applicationsLeft"][i]["name"] = applicationName;
-            (*response.outputPayload())["applicationsLeft"][i]["description"] = Globals::getIdentityManager()->applications->getApplicationDescription(applicationName);
+            (*response.responseJSON())["applicationsLeft"][i]["name"] = applicationName;
+            (*response.responseJSON())["applicationsLeft"][i]["description"] = Globals::getIdentityManager()->applications->getApplicationDescription(applicationName);
             i++;
         }
     }
@@ -262,27 +262,27 @@ void WebAdminMethods_Accounts::getAccountInfo(void *context, APIReturn &response
 
 void WebAdminMethods_Accounts::getAccountLastLogin(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)
 {
-    (*response.outputPayload()) = Globals::getIdentityManager()->authController->getAccountLastLogin(JSON_ASSTRING(*request.inputJSON,"accountName",""));
+    (*response.responseJSON()) = Globals::getIdentityManager()->authController->getAccountLastLogin(JSON_ASSTRING(*request.inputJSON,"accountName",""));
 }
 
 void WebAdminMethods_Accounts::getAccountRoles(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)
 {
-    (*response.outputPayload()) = Helpers::setToJSON(Globals::getIdentityManager()->users->getAccountRoles(JSON_ASSTRING(*request.inputJSON,"accountName","")));
+    (*response.responseJSON()) = Helpers::setToJSON(Globals::getIdentityManager()->users->getAccountRoles(JSON_ASSTRING(*request.inputJSON,"accountName","")));
 }
 
 void WebAdminMethods_Accounts::getAccountUsableApplicationPermissions(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)
 {
-    (*response.outputPayload()) = WebAdmin_Methods::permissionListToJSON(Globals::getIdentityManager()->authController->getAccountUsableApplicationPermissions(JSON_ASSTRING(*request.inputJSON,"accountName","")));
+    (*response.responseJSON()) = WebAdmin_Methods::permissionListToJSON(Globals::getIdentityManager()->authController->getAccountUsableApplicationPermissions(JSON_ASSTRING(*request.inputJSON,"accountName","")));
 }
 
 void WebAdminMethods_Accounts::isAccountExpired(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)
 {
-    (*response.outputPayload()) = Globals::getIdentityManager()->users->isAccountExpired(JSON_ASSTRING(*request.inputJSON,"accountName",""));
+    (*response.responseJSON()) = Globals::getIdentityManager()->users->isAccountExpired(JSON_ASSTRING(*request.inputJSON,"accountName",""));
 }
 
 void WebAdminMethods_Accounts::listAccounts(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)
 {
-    (*response.outputPayload()) = Helpers::setToJSON(Globals::getIdentityManager()->users->listAccounts());
+    (*response.responseJSON()) = Helpers::setToJSON(Globals::getIdentityManager()->users->listAccounts());
 }
 
 void WebAdminMethods_Accounts::removeAccount(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)
@@ -311,7 +311,7 @@ void WebAdminMethods_Accounts::searchAccounts(void *context, APIReturn &response
         x[i] = strVal.toJSON();
         i++;
     }
-    (*response.outputPayload()) = x;
+    (*response.responseJSON()) = x;
 }
 
 void WebAdminMethods_Accounts::updateAccountInfo(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)
@@ -389,7 +389,7 @@ void WebAdminMethods_Accounts::updateAccountRoles(void *context, APIReturn &resp
 
 void WebAdminMethods_Accounts::validateAccountApplicationPermission(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)
 {
-    (*response.outputPayload()) = Globals::getIdentityManager()->authController->validateAccountApplicationPermission(JSON_ASSTRING(*request.inputJSON,"accountName",""),  {JSON_ASSTRING(*request.inputJSON,"appName",""),JSON_ASSTRING(*request.inputJSON,"id","")});
+    (*response.responseJSON()) = Globals::getIdentityManager()->authController->validateAccountApplicationPermission(JSON_ASSTRING(*request.inputJSON,"accountName",""),  {JSON_ASSTRING(*request.inputJSON,"appName",""),JSON_ASSTRING(*request.inputJSON,"id","")});
 }
 
 void WebAdminMethods_Accounts::blockAccountUsingToken(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)

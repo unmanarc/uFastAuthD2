@@ -49,7 +49,7 @@ void WebAdminMethods_Roles::removeRole(void *context, APIReturn &response, const
 
 void WebAdminMethods_Roles::doesRoleExist(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)
 {
-    (*response.outputPayload()) = Globals::getIdentityManager()->roles->doesRoleExist(JSON_ASSTRING(*request.inputJSON,"roleName",""));
+    (*response.responseJSON()) = Globals::getIdentityManager()->roles->doesRoleExist(JSON_ASSTRING(*request.inputJSON,"roleName",""));
 }
 
 void WebAdminMethods_Roles::addAccountToRole(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)
@@ -78,27 +78,27 @@ void WebAdminMethods_Roles::updateRoleDescription(void *context, APIReturn &resp
 
 void WebAdminMethods_Roles::validateApplicationPermissionOnRole(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)
 {
-    (*response.outputPayload()) = Globals::getIdentityManager()->authController->validateApplicationPermissionOnRole(JSON_ASSTRING(*request.inputJSON,"roleName",""), {JSON_ASSTRING(*request.inputJSON,"appName",""),JSON_ASSTRING(*request.inputJSON,"id","")});
+    (*response.responseJSON()) = Globals::getIdentityManager()->authController->validateApplicationPermissionOnRole(JSON_ASSTRING(*request.inputJSON,"roleName",""), {JSON_ASSTRING(*request.inputJSON,"appName",""),JSON_ASSTRING(*request.inputJSON,"id","")});
 }
 
 void WebAdminMethods_Roles::getRoleDescription(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)
 {
-    (*response.outputPayload()) = Globals::getIdentityManager()->roles->getRoleDescription(JSON_ASSTRING(*request.inputJSON,"roleName",""));
+    (*response.responseJSON()) = Globals::getIdentityManager()->roles->getRoleDescription(JSON_ASSTRING(*request.inputJSON,"roleName",""));
 }
 
 void WebAdminMethods_Roles::getRolesList(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)
 {
-    (*response.outputPayload()) = Helpers::setToJSON(Globals::getIdentityManager()->roles->getRolesList());
+    (*response.responseJSON()) = Helpers::setToJSON(Globals::getIdentityManager()->roles->getRolesList());
 }
 
 void WebAdminMethods_Roles::getRoleApplicationPermissions(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)
 {
-    (*response.outputPayload()) = WebAdmin_Methods::permissionListToJSON(Globals::getIdentityManager()->authController->getRoleApplicationPermissions(JSON_ASSTRING(*request.inputJSON,"roleName","")));
+    (*response.responseJSON()) = WebAdmin_Methods::permissionListToJSON(Globals::getIdentityManager()->authController->getRoleApplicationPermissions(JSON_ASSTRING(*request.inputJSON,"roleName","")));
 }
 
 void WebAdminMethods_Roles::getRoleAccounts(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)
 {
-    (*response.outputPayload()) = Helpers::setToJSON(Globals::getIdentityManager()->roles->getRoleAccounts(JSON_ASSTRING(*request.inputJSON,"roleName","")));
+    (*response.responseJSON()) = Helpers::setToJSON(Globals::getIdentityManager()->roles->getRoleAccounts(JSON_ASSTRING(*request.inputJSON,"roleName","")));
 }
 
 void WebAdminMethods_Roles::searchRoles(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)
@@ -115,7 +115,7 @@ void WebAdminMethods_Roles::searchRoles(void *context, APIReturn &response, cons
         x[i]["roleName"] = strVal.roleName;
         i++;
     }
-    (*response.outputPayload()) = x;
+    (*response.responseJSON()) = x;
 }
 
 void WebAdminMethods_Roles::getRoleInfo(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)
@@ -196,5 +196,5 @@ void WebAdminMethods_Roles::getRoleInfo(void *context, APIReturn &response, cons
         }
     }
 
-    (*response.outputPayload()) = payloadOut;
+    (*response.responseJSON()) = payloadOut;
 }

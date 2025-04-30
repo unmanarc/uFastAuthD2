@@ -25,12 +25,21 @@ void WebLogin_AuthMethods::retokenize(void *context, APIReturn &response, const 
     // JWT Info.
     std::string accountName = request.jwtToken->getSubject();
     Json::Value jAuthenticatedSlotIds = request.jwtToken->getClaim("slotIds");
+    std::string tokenType = JSON_ASSTRING_D(request.jwtToken->getClaim("type"),"");
 
     // Validate the refresher token...
-    if (!request.jwtToken->hasClaim("isFullyAuthenticated"))
+    if (!request.jwtToken->hasClaim("type"))
     {
         // This token is not available for retrieving app tokens...
         LOG_APP->log2(__func__, accountName, authClientDetails.ipAddress, Logs::LEVEL_SECURITY_ALERT, "Trying to retokenize without being fully logged in (1).");
+        response.setError(Status::S_401_UNAUTHORIZED,"AUTH_ERR_" + std::to_string(REASON_UNAUTHENTICATED), getReasonText(REASON_UNAUTHENTICATED));
+        return;
+    }
+
+    if (tokenType!="refresher")
+    {
+        // This token is not available for retrieving app tokens...
+        LOG_APP->log2(__func__, accountName, authClientDetails.ipAddress, Logs::LEVEL_SECURITY_ALERT, "Trying to retokenize without being fully logged in (2).");
         response.setError(Status::S_401_UNAUTHORIZED,"AUTH_ERR_" + std::to_string(REASON_UNAUTHENTICATED), getReasonText(REASON_UNAUTHENTICATED));
         return;
     }
@@ -39,7 +48,7 @@ void WebLogin_AuthMethods::retokenize(void *context, APIReturn &response, const 
     {
         // Already logged in.
         // This token is not available for retrieving app tokens...
-        LOG_APP->log2(__func__, request.jwtToken->getSubject(), authClientDetails.ipAddress, Logs::LEVEL_SECURITY_ALERT, "Trying to retokenize without being fully logged in (2).");
+        LOG_APP->log2(__func__, accountName, authClientDetails.ipAddress, Logs::LEVEL_SECURITY_ALERT, "Trying to retokenize without being fully logged in (3).");
         response.setError(Status::S_401_UNAUTHORIZED,"AUTH_ERR_" + std::to_string(REASON_UNAUTHENTICATED), getReasonText(REASON_UNAUTHENTICATED));
         return;
     }
@@ -47,7 +56,7 @@ void WebLogin_AuthMethods::retokenize(void *context, APIReturn &response, const 
     // Validate that the user belongs to the application.
     if ( ! identityManager->applications->validateApplicationAccount( appName, accountName )  )
     {
-        LOG_APP->log2(__func__, request.jwtToken->getSubject(), authClientDetails.ipAddress, Logs::LEVEL_SECURITY_ALERT, "Unauthorized access attempt: User is not associated with the application '%s'.", appName.c_str());
+        LOG_APP->log2(__func__, accountName, authClientDetails.ipAddress, Logs::LEVEL_SECURITY_ALERT, "Unauthorized access attempt: User is not associated with the application '%s'.", appName.c_str());
         response.setError(Status::S_403_FORBIDDEN, "AUTH_ERR_" + std::to_string(REASON_ACCOUNT_NOT_IN_APP), getReasonText(REASON_ACCOUNT_NOT_IN_APP));
         return;
     }
@@ -112,9 +121,9 @@ void WebLogin_AuthMethods::retokenize(void *context, APIReturn &response, const 
             DataFormat::JWT::Token accessToken;
             configureAccessToken(accessToken, identityManager, request.jwtToken->getJwtId(), accountName, appName, tokenProperties, authenticatedSlotsIdsSet);
 
-            (*response.outputPayload())["accessToken"] = signAccessToken(accessToken, tokenProperties, appName);
-            (*response.outputPayload())["callbackURI"] = identityManager->applications->getAuthCallbackURIFromApplication(appName);
-            (*response.outputPayload())["expiresIn"] = (Json::UInt64) (accessToken.getExpirationTime() - time(nullptr));
+            (*response.responseJSON())["accessToken"] = signAccessToken(accessToken, tokenProperties, appName);
+            (*response.responseJSON())["callbackURI"] = identityManager->applications->getAuthCallbackURIFromApplication(appName);
+            (*response.responseJSON())["expiresIn"] = (Json::UInt64) (accessToken.getExpirationTime() - time(nullptr));
 
             return;
         }

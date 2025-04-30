@@ -90,8 +90,8 @@ void WebLogin_AuthMethods::refreshAccessToken(void *context, APIReturn &response
 
         configureAccessToken(newAccessToken, identityManager, request.jwtToken->getJwtId(), jwtUserId, appName, tokenProperties, currentAuthenticatedSlotIds);
 
-        (*response.outputPayload())["accessToken"] = signAccessToken(newAccessToken, tokenProperties, appName);
-        (*response.outputPayload())["expiresIn"] = (Json::UInt64) (newAccessToken.getExpirationTime() - time(nullptr));
+        (*response.responseJSON())["accessToken"] = signAccessToken(newAccessToken, tokenProperties, appName);
+        (*response.responseJSON())["expiresIn"] = (Json::UInt64) (newAccessToken.getExpirationTime() - time(nullptr));
 
 
         return;

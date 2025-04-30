@@ -87,7 +87,7 @@ void WebAdminMethods_Applications::doesApplicationExist(void *context, APIReturn
 
 void WebAdminMethods_Applications::getApplicationDescription(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)
 {
-    (*response.outputPayload()) = Globals::getIdentityManager()->applications->getApplicationDescription( JSON_ASSTRING(*request.inputJSON,"appName",""));
+    (*response.responseJSON()) = Globals::getIdentityManager()->applications->getApplicationDescription( JSON_ASSTRING(*request.inputJSON,"appName",""));
 }
 /*
 void WebAdminMethods_Applications::getApplicationAPIKey(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)
@@ -126,7 +126,7 @@ void WebAdminMethods_Applications::getApplicationInfo(void *context, APIReturn &
         i++;
     }
 
-    (*response.outputPayload()) = payloadOut;
+    (*response.responseJSON()) = payloadOut;
 }
 
 void WebAdminMethods_Applications::updateApplicationDescription(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)
@@ -147,7 +147,7 @@ void WebAdminMethods_Applications::updateApplicationAPIKey(void *context, APIRet
 
 void WebAdminMethods_Applications::listApplications(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)
 {
-    (*response.outputPayload()) = Helpers::setToJSON(Globals::getIdentityManager()->applications->listApplications());
+    (*response.responseJSON()) = Helpers::setToJSON(Globals::getIdentityManager()->applications->listApplications());
 }
 
 void WebAdminMethods_Applications::validateApplicationOwner(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)
@@ -168,17 +168,17 @@ void WebAdminMethods_Applications::validateApplicationAccount(void *context, API
 
 void WebAdminMethods_Applications::listApplicationOwners(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)
 {
-    (*response.outputPayload()) = Helpers::setToJSON(Globals::getIdentityManager()->applications->listApplicationOwners( JSON_ASSTRING(*request.inputJSON,"applicationName","")));
+    (*response.responseJSON()) = Helpers::setToJSON(Globals::getIdentityManager()->applications->listApplicationOwners( JSON_ASSTRING(*request.inputJSON,"applicationName","")));
 }
 
 void WebAdminMethods_Applications::listApplicationAccounts(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)
 {
-    (*response.outputPayload()) = Helpers::setToJSON(Globals::getIdentityManager()->applications->listApplicationAccounts( JSON_ASSTRING(*request.inputJSON,"applicationName","")));
+    (*response.responseJSON()) = Helpers::setToJSON(Globals::getIdentityManager()->applications->listApplicationAccounts( JSON_ASSTRING(*request.inputJSON,"applicationName","")));
 }
 
 void WebAdminMethods_Applications::listAccountApplications(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)
 {
-    (*response.outputPayload()) = Helpers::setToJSON(Globals::getIdentityManager()->applications->listAccountApplications( JSON_ASSTRING(*request.inputJSON,"accountName","")));
+    (*response.responseJSON()) = Helpers::setToJSON(Globals::getIdentityManager()->applications->listAccountApplications( JSON_ASSTRING(*request.inputJSON,"accountName","")));
 }
 
 void WebAdminMethods_Applications::addAccountToApplication(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)
@@ -228,7 +228,7 @@ void WebAdminMethods_Applications::searchApplications(void *context, APIReturn &
         x[i]["description"] = strVal.description;
         i++;
     }
-    (*response.outputPayload()) = x;
+    (*response.responseJSON()) = x;
 }
 
 void WebAdminMethods_Applications::addWebLoginRedirectURIToApplication(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)
@@ -249,7 +249,7 @@ void WebAdminMethods_Applications::removeWebLoginRedirectURIToApplication(void *
 
 void WebAdminMethods_Applications::listWebLoginRedirectURIsFromApplication(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)
 {
-    (*response.outputPayload()) = Helpers::listToJSON(Globals::getIdentityManager()->applications->listWebLoginRedirectURIsFromApplication(JSON_ASSTRING(*request.inputJSON, "appName", "")));
+    (*response.responseJSON()) = Helpers::listToJSON(Globals::getIdentityManager()->applications->listWebLoginRedirectURIsFromApplication(JSON_ASSTRING(*request.inputJSON, "appName", "")));
 }
 
 void WebAdminMethods_Applications::addWebLoginOriginURLToApplication(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)
@@ -271,7 +271,7 @@ void WebAdminMethods_Applications::removeWebLoginOriginURLToApplication(void *co
 void WebAdminMethods_Applications::listWebLoginOriginUrlsFromApplication(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)
 {
 
-    (*response.outputPayload()) = Helpers::listToJSON(Globals::getIdentityManager()->applications->listWebLoginOriginUrlsFromApplication(JSON_ASSTRING(*request.inputJSON, "appName", "")));
+    (*response.responseJSON()) = Helpers::listToJSON(Globals::getIdentityManager()->applications->listWebLoginOriginUrlsFromApplication(JSON_ASSTRING(*request.inputJSON, "appName", "")));
 }
 
 void WebAdminMethods_Applications::modifyWebLoginJWTConfigForApplication(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)
@@ -305,7 +305,7 @@ void WebAdminMethods_Applications::getWebLoginJWTConfigFromApplication(void *con
     payloadOut["accessTokenTimeout"] = tokenInfo.accessTokenTimeout;
     // ... [Continúa agregando el resto de campos de tokenInfo al payloadOut] ...
 
-    (*response.outputPayload()) = payloadOut;
+    (*response.responseJSON()) = payloadOut;
 }
 
 
@@ -325,5 +325,5 @@ void WebAdminMethods_Applications::getWebLoginJWTSigningKeyForApplication(void *
 {
     std::string appName = JSON_ASSTRING(*request.inputJSON, "appName", "");
     std::string signingKey = Globals::getIdentityManager()->applications->getWebLoginJWTSigningKeyForApplication(appName);
-    (*response.outputPayload()) = signingKey;
+    (*response.responseJSON()) = signingKey;
 }

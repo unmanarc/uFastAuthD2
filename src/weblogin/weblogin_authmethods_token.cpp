@@ -69,9 +69,9 @@ void WebLogin_AuthMethods::token(void *context, APIReturn &response, const Manti
     configureRefresherToken(response, request, identityManager, refreshTokenId, jwtPreAuthUser, currentAuthenticatedSlotIds);
 
     // TODO: guardar los tokens en una db interna para el logout (no hacer ahorita)
-    (*response.outputPayload())["accessToken"] = signAccessToken(accessToken, tokenProperties, jwtPreAuthApp);
-    (*response.outputPayload())["callbackURI"] = identityManager->applications->getAuthCallbackURIFromApplication(jwtPreAuthApp);
-    (*response.outputPayload())["expiresIn"] = (Json::UInt64) (accessToken.getExpirationTime() - time(nullptr));
+    (*response.responseJSON())["accessToken"] = signAccessToken(accessToken, tokenProperties, jwtPreAuthApp);
+    (*response.responseJSON())["callbackURI"] = identityManager->applications->getAuthCallbackURIFromApplication(jwtPreAuthApp);
+    (*response.responseJSON())["expiresIn"] = (Json::UInt64) (accessToken.getExpirationTime() - time(nullptr));
 
     // TODO: la información que requiere la APP para operar, es la configuración de los privilegios, los requisitos de 2nd factor para ciertos privilegios
     /**

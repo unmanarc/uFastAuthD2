@@ -33,6 +33,6 @@ void WebLogin_AuthMethods::preAuthorize(void *context,
         return;
     }
 
-    (*response.outputPayload()) = identityManager->authController->getApplicableAuthenticationSchemesForUser(app,activity,username);
-    (*response.outputPayload())["loginAuthenticationTimeout"] = loginAuthenticationTimeout;
+    (*response.responseJSON()) = identityManager->authController->getApplicableAuthenticationSchemesForUser(app,activity,username);
+    (*response.responseJSON())["loginAuthenticationTimeout"] = loginAuthenticationTimeout;
 }

@@ -40,5 +40,5 @@ void WebLogin_AuthMethods::getApplicationAuthCallbackURI(
     }
 
 
-    (*response.outputPayload())["callbackURI"] = callbackURI;
+    (*response.responseJSON())["callbackURI"] = callbackURI;
 }

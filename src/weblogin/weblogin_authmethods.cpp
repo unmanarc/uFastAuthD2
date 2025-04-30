@@ -36,11 +36,9 @@ void WebLogin_AuthMethods::addMethods(std::shared_ptr<MethodsHandler> methods)
     methods->addResource(MethodsHandler::POST, "authorize", &authorize, nullptr, SecurityOptions::NO_AUTH, {});
     methods->addResource(MethodsHandler::POST, "token", &token, nullptr, SecurityOptions::NO_AUTH, {});
     methods->addResource(MethodsHandler::POST, "logout", &logout, nullptr, SecurityOptions::NO_AUTH, {});
+
     // Account registration:
     methods->addResource(MethodsHandler::POST, "registerAccount", &registerAccount, nullptr, SecurityOptions::NO_AUTH, {});
-
-
-    methods->addResource(MethodsHandler::POST, "getApplicationAuthCallbackURI", &getApplicationAuthCallbackURI, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {});
 
     // When requested by an external webste, no CSRF challenge could be sent by an external website... So your access token will be used to authenticate the refreshal...
     // In this premise, the refresher cookie is not know by your website (so if your website leaks the data),
@@ -49,6 +47,11 @@ void WebLogin_AuthMethods::addMethods(std::shared_ptr<MethodsHandler> methods)
     //   the only thing you want to do is to limit the amount of time of that access...
     //   then... we should implement some kind of anti-CSRF, tokens are discarded because they are in the same domain of the access token (the browser)
     //   and... what you can do is: to validate the origin/referer.
+
+    // Post-authenticated API:
+    methods->addResource(MethodsHandler::POST, "retokenize", &retokenize, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {});
+    methods->addResource(MethodsHandler::POST, "getApplicationAuthCallbackURI", &getApplicationAuthCallbackURI, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {});
+
     methods->addResource(MethodsHandler::POST, "refreshAccessToken", &refreshAccessToken, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {});
     methods->addResource(MethodsHandler::POST, "refreshRefresherToken", &refreshRefresherToken, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {});
     // The change credential dialog/html needs to send the CSRF challenge:

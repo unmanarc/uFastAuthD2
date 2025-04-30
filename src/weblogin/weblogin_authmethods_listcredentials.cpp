@@ -25,7 +25,7 @@ void WebLogin_AuthMethods::listCredentials(void *context, APIReturn &response, c
         for (const auto &publicData : r)
         {
 
-            (*response.outputPayload())[std::to_string(publicData.first)] = publicData.second.toJSON(identityManager->authController->getAuthenticationPolicy());
+            (*response.responseJSON())[std::to_string(publicData.first)] = publicData.second.toJSON(identityManager->authController->getAuthenticationPolicy());
         }
     }
 

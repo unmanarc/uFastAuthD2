@@ -18,7 +18,7 @@ void WebLogin_AuthMethods::accountCredentialPublicData(
     if (identityManager->applications->validateApplicationAccount(JSON_ASSTRING_D(request.jwtToken->getClaim("app"), ""), user))
     {
         auto v = identityManager->authController->getAccountCredentialPublicData(user, slotId);
-        (*response.outputPayload()) = v.toJSON(identityManager->authController->getAuthenticationPolicy());
+        (*response.responseJSON()) = v.toJSON(identityManager->authController->getAuthenticationPolicy());
     }
 }
 

@@ -136,17 +136,17 @@ void WebLogin_AuthMethods::authorize(void *context,
             }
             outgoingToken.addClaim("slotIds", slotIds);
 
-            (*response.outputPayload())["isFullyAuthenticated"] = true;
+            (*response.responseJSON())["isFullyAuthenticated"] = true;
         }
         else
         {
-            (*response.outputPayload())["isFullyAuthenticated"] = false;
+            (*response.responseJSON())["isFullyAuthenticated"] = false;
             outgoingToken.addClaim("isFullyAuthenticated", false);
             outgoingToken.addClaim("currentSlotPosition", authContext->currentSlotPosition+1);
 
             // We can give the credential public data for the next credential:
             Credential publicData = identityManager->authController->getAccountCredentialPublicData(accountName,authSlots[authContext->currentSlotPosition+1].slotId);
-            (*response.outputPayload())["credentialPublicData"] = publicData.toJSON( identityManager->authController->getAuthenticationPolicy() );
+            (*response.responseJSON())["credentialPublicData"] = publicData.toJSON( identityManager->authController->getAuthenticationPolicy() );
 
         }
         response.cookiesMap["AccessToken"] = Headers::Cookie();

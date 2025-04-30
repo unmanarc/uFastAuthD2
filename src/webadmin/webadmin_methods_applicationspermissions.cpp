@@ -129,22 +129,22 @@ void WebAdminMethods_ApplicationsPermissions::updateApplicationPermissionDescrip
 
 void WebAdminMethods_ApplicationsPermissions::listApplicationPermissions(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)
 {
-    (*response.outputPayload()) = WebAdmin_Methods::permissionListToJSON(Globals::getIdentityManager()->authController->listApplicationPermissions(JSON_ASSTRING(*request.inputJSON,"appName","")));
+    (*response.responseJSON()) = WebAdmin_Methods::permissionListToJSON(Globals::getIdentityManager()->authController->listApplicationPermissions(JSON_ASSTRING(*request.inputJSON,"appName","")));
 }
 
 void WebAdminMethods_ApplicationsPermissions::getApplicationPermissionsForRole(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)
 {
-    (*response.outputPayload()) = Helpers::setToJSON(Globals::getIdentityManager()->authController->getApplicationPermissionsForRole( {JSON_ASSTRING(*request.inputJSON,"appName",""),JSON_ASSTRING(*request.inputJSON,"id","")}));
+    (*response.responseJSON()) = Helpers::setToJSON(Globals::getIdentityManager()->authController->getApplicationPermissionsForRole( {JSON_ASSTRING(*request.inputJSON,"appName",""),JSON_ASSTRING(*request.inputJSON,"id","")}));
 }
 
 void WebAdminMethods_ApplicationsPermissions::listAccountsOnApplicationPermission(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)
 {
-    (*response.outputPayload()) = Helpers::setToJSON(Globals::getIdentityManager()->authController->listAccountsOnApplicationPermission( {JSON_ASSTRING(*request.inputJSON,"appName",""),JSON_ASSTRING(*request.inputJSON,"id","")}));
+    (*response.responseJSON()) = Helpers::setToJSON(Globals::getIdentityManager()->authController->listAccountsOnApplicationPermission( {JSON_ASSTRING(*request.inputJSON,"appName",""),JSON_ASSTRING(*request.inputJSON,"id","")}));
 }
 
 void WebAdminMethods_ApplicationsPermissions::getApplicationPermissionDescription(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)
 {
-    (*response.outputPayload()) = Globals::getIdentityManager()->authController->getApplicationPermissionDescription({JSON_ASSTRING(*request.inputJSON,"appName",""),JSON_ASSTRING(*request.inputJSON,"id","")});
+    (*response.responseJSON()) = Globals::getIdentityManager()->authController->getApplicationPermissionDescription({JSON_ASSTRING(*request.inputJSON,"appName",""),JSON_ASSTRING(*request.inputJSON,"id","")});
 }
 
 void WebAdminMethods_ApplicationsPermissions::searchApplicationPermissions(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)
@@ -163,12 +163,12 @@ void WebAdminMethods_ApplicationsPermissions::searchApplicationPermissions(void 
         payloadOut[i]["description"] = strVal.description;
         i++;
     }
-    (*response.outputPayload()) = payloadOut;
+    (*response.responseJSON()) = payloadOut;
 }
 
 void WebAdminMethods_ApplicationsPermissions::permissionsLeftListForRole(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)
 {
     auto permissionsLeft = WebAdmin_Methods::iPermissionsLeftListForRole(JSON_ASSTRING(*request.inputJSON,"appName",""),JSON_ASSTRING(*request.inputJSON,"roleName",""));
-    (*response.outputPayload()) = WebAdmin_Methods::permissionListToJSON(permissionsLeft);
+    (*response.responseJSON()) = WebAdmin_Methods::permissionListToJSON(permissionsLeft);
 }
 

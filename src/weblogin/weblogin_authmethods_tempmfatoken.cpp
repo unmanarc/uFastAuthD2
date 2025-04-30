@@ -70,7 +70,7 @@ void WebLogin_AuthMethods::tempMFAToken(void *context, APIReturn &response, cons
         auto expectedExpirationTime = time(nullptr) + tokenProperties.tempMFATokenTimeout;
         auto accountExpirationTime = identityManager->users->getAccountExpirationTime(jwtUserId);
         tempMFAToken.setExpirationTime(accountExpirationTime < expectedExpirationTime ? accountExpirationTime : expectedExpirationTime);
-        (*response.outputPayload())["tempMFAToken"] = signAccessToken(tempMFAToken, tokenProperties, appName);
+        (*response.responseJSON())["tempMFAToken"] = signAccessToken(tempMFAToken, tokenProperties, appName);
     }
 }
 

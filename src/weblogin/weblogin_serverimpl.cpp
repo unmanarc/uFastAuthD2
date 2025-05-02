@@ -83,7 +83,8 @@ bool WebLogin_ServerImpl::createService()
 
         std::string rawOrigins = config->get<std::string>("WebLoginService.IAMOriginDomains", "");
         loginWebServer->config.permittedAPIOrigins = parseCommaSeparatedOrigins(rawOrigins);
-        loginWebServer->config.dynamicRequestHandlersByRoute["/login"] = &WebLogin_AuthMethods::handleDynamicRequest;
+        loginWebServer->config.dynamicRequestHandlersByRoute["/login"] = &WebLogin_AuthMethods::handleLoginDynamicRequest;
+        loginWebServer->config.dynamicRequestHandlersByRoute["/retokenizeHTML"] = &WebLogin_AuthMethods::handleRetokenizeHTMLDynamicRequest;
 
         // TODO: el JWT va a tener una firma distinta por aplicacion, ya que la app necesita validar esto y no puedes compartir la misma clave con todos (en caso de HS).
         // JWT:
@@ -101,6 +102,7 @@ bool WebLogin_ServerImpl::createService()
         loginWebServer->callbacks.onClientAcceptTimeoutOccurred = WebLogin_ServerImpl::handleClientAcceptTimeoutOccurred;
         // Setup the methods handler for version 1:
         loginWebServer->methodsHandler[1] = std::make_shared<API::RESTful::MethodsHandler>();
+
         // Set the software version:
         loginWebServer->config.setSoftwareVersion(atoi(PROJECT_VER_MAJOR), atoi(PROJECT_VER_MINOR), atoi(PROJECT_VER_PATCH), "a");
 

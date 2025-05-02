@@ -14,6 +14,7 @@ public:
     using MethodsHandler = Mantids30::API::RESTful::MethodsHandler;
     using APIReturn = Mantids30::API::APIReturn;
     using RequestParameters = Mantids30::API::RESTful::RequestParameters;
+    using HTTPv1_Base = Mantids30::Network::Protocols::HTTP::HTTPv1_Base;
 
    /**
     * @brief Adds the available login authentication methods as server functions.
@@ -21,7 +22,10 @@ public:
     */
     static void addMethods(std::shared_ptr<MethodsHandler> methods);
 
-    static Mantids30::Network::Protocols::HTTP::Status::eRetCode handleDynamicRequest(const std::string &appName, Mantids30::Network::Protocols::HTTP::HTTPv1_Base::Request *request, Mantids30::Network::Protocols::HTTP::HTTPv1_Base::Response *response);
+    static Mantids30::Network::Protocols::HTTP::Status::eRetCode handleLoginDynamicRequest(const std::string &appName, HTTPv1_Base::Request *request, HTTPv1_Base::Response *response);
+
+    // Dynamic requests for retokenization:
+    static Mantids30::Network::Protocols::HTTP::Status::eRetCode handleRetokenizeHTMLDynamicRequest(const std::string &appName, HTTPv1_Base::Request *request, HTTPv1_Base::Response *response);
 
 private:
     static void preAuthorize(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails);
@@ -46,7 +50,6 @@ private:
     static APIReturn confirmPasswordReset(void* context, const RequestParameters& inputParameters);
 */
 
-private:
     static std::set<uint32_t> getSlotIdsFromJSON(const json &input);
     static json getJSONFromSlotIds(const std::set<uint32_t> &input);
     static bool areAllSlotIdsAuthenticated(const std::set<uint32_t> &currentAuthenticatedSlotIds, const std::map<uint32_t, std::string> &getAccountAuthenticationSlotsUsedForLogin);
@@ -77,9 +80,8 @@ private:
         USING_HEADER_REFERER
     };
 
-    static bool retrieveAndValidateAppOrigin(Mantids30::Network::Protocols::HTTP::HTTPv1_Base::Request *request, const std::string &appName, const OriginSource &originSource);
+    static bool retrieveAndValidateAppOrigin(HTTPv1_Base::Request *request, const std::string &appName, const OriginSource &originSource);
     static std::regex originPattern;
 
-
-
+    static Mantids30::Network::Protocols::HTTP::Status::eRetCode retokenizeUsingJS(HTTPv1_Base::Response *response, const std::string &url);
 };

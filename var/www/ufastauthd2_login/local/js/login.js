@@ -36,7 +36,7 @@ function createAndSubmitRedirectForm(actionUrl, data, method = 'POST') {
 
 let decodedRedirectURI = "";
 let loggedIn = false;
-let loggedInParamx = true;
+let loggedInGETParsedParam = true;
 
 const urlParams = new URLSearchParams(window.location.search);
 
@@ -84,7 +84,7 @@ function retokenizeApplication()
 
 function redirectToAuthenticatedSite() {
 
-    if (loggedInParamx === false)
+    if (loggedInGETParsedParam === false)
     {
         // Reinject the application token.
         retokenizeApplication();
@@ -122,17 +122,17 @@ $(document).ready(function () {
 
     updateMessage('Please enter your username');
 
-    const loggedInParam = urlParams.get('loggedIn');
+    const loggedInGETParam = urlParams.get('loggedIn');
 
-    if (loggedInParam === "false")
+    if (loggedInGETParam === "false")
     {
         // Remove the 'loggedIn' parameter from the URL
         const newUrlSearchParams = new URLSearchParams(window.location.search);
         newUrlSearchParams.delete('loggedIn');
         window.history.replaceState(null, '', `${window.location.pathname}?${newUrlSearchParams.toString()}${window.location.hash}`);
-        loggedInParamx = false;
+        loggedInGETParsedParam = false;
     }
-
+    
     if (!appName)
     {
         updateMessage('ERROR: Invalid Application Name.');
@@ -151,6 +151,7 @@ $(document).ready(function () {
         return;
     }
 
+
     // Load refresh token from cookie
     const cookies = document.cookie.split(';');
     cookies.forEach(cookie => {
@@ -161,6 +162,7 @@ $(document).ready(function () {
 
             $("#usernameForm").addClass("d-none");
             $("#logoutForm").removeClass("d-none");
+
             updateMessage('Already logged in.');
         }
     });

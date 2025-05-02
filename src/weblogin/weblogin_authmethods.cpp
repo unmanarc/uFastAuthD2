@@ -64,6 +64,7 @@ void WebLogin_AuthMethods::addMethods(std::shared_ptr<MethodsHandler> methods)
     //    methods->addResource("addAccount",{&addAccount,auth});
 }
 
+
 std::set<uint32_t> WebLogin_AuthMethods::getSlotIdsFromJSON(const json &input)
 {
     std::set<uint32_t> slotIds;
@@ -228,18 +229,14 @@ std::string WebLogin_AuthMethods::signAccessToken(Mantids30::DataFormat::JWT::To
     return jwtAccessSigner.signFromToken(accessToken, false);
 }
 
-Status::eRetCode WebLogin_AuthMethods::handleDynamicRequest(const std::string &appName, HTTPv1_Base::Request *request, HTTPv1_Base::Response *response)
+// Handle personalized login forrms:
+Status::eRetCode WebLogin_AuthMethods::handleLoginDynamicRequest(const std::string &appName, HTTPv1_Base::Request *request, HTTPv1_Base::Response *response)
 {
     std::string page;
     auto status = Globals::getLoginDirManager()->retrieveFile(appName, page);
     bool originValidated = retrieveAndValidateAppOrigin(request, appName,USING_HEADER_REFERER);
     auto currentOrigin = request->getHeaderOption("Origin");
 
-    if (status != LoginDirectoryManager::ErrorCode::SUCCESS)
-    {
-        LOG_APP->log2(__func__, "", request->networkClientInfo.REMOTE_ADDR, Logs::LEVEL_WARN, "Failed to obtain the HTML for application '%s': %s", appName.c_str(), LoginDirectoryManager::getErrorMessage(status).c_str());
-        return Status::S_404_NOT_FOUND;
-    }
 
     if (!originValidated)
     {
@@ -248,6 +245,13 @@ Status::eRetCode WebLogin_AuthMethods::handleDynamicRequest(const std::string &a
         return Status::S_403_FORBIDDEN;
     }
 
+    if (status != LoginDirectoryManager::ErrorCode::SUCCESS)
+    {
+        LOG_APP->log2(__func__, "", request->networkClientInfo.REMOTE_ADDR, Logs::LEVEL_WARN, "Failed to obtain the HTML for application '%s': %s", appName.c_str(), LoginDirectoryManager::getErrorMessage(status).c_str());
+        return Status::S_404_NOT_FOUND;
+    }
+
+
     LOG_APP->log2(__func__, "", request->networkClientInfo.REMOTE_ADDR, Logs::LEVEL_INFO, "HTML Login for application '%s' requested from '%s'", appName.c_str(), currentOrigin.c_str());
 
     response->content.writer()->writeString(page);
@@ -255,7 +259,47 @@ Status::eRetCode WebLogin_AuthMethods::handleDynamicRequest(const std::string &a
 
     return Status::S_200_OK;
 }
-bool WebLogin_AuthMethods::retrieveAndValidateAppOrigin(Mantids30::Network::Protocols::HTTP::HTTPv1_Base::Request *request, const std::string &appName, const OriginSource &originSource)
+
+
+// Handle the retokenization HTML.
+Status::eRetCode WebLogin_AuthMethods::handleRetokenizeHTMLDynamicRequest(
+    const std::string &internalPath, HTTPv1_Base::Request *request, HTTPv1_Base::Response *response)
+{
+    // TODO: security: sanitize appName in DB, so you can't use escapes in the HTML ;)
+
+    /*
+    scheme:
+
+        webapp -> ( https://IAM/retokenizeHTML/?app=... ) via iframe (checking the origin on destination, it's a valid app+origin?)
+        HTML( https://IAM/retokenizeHTML/?app=... ) -> https://IAM/api/v1/retokenize via AJAX returning back the app callback endpoint.
+        HTML( https://IAM/retokenizeHTML/?app=... ) -> app callback endpoint (eg. webapp/api/auth/callback) via FORM POST injecting the token
+        webapp/api/auth/callback called with #retokenize won't go anywhere (maybe must close the parent iframe to prevent anything)
+
+        TODO: what if retokenization fails and not logged in... must redirect to the auth size (maybe using a floating window on this case?)
+    */
+
+    // GET Input.
+    std::string appName = request->getVars(HTTPv1_Base::HTTP_VARS_GET)->getTValue<std::string>("app","");
+
+    // Origin.
+    bool originValidated = retrieveAndValidateAppOrigin(request, appName,USING_HEADER_REFERER);
+
+    // Current Origin
+    auto currentOrigin = request->getHeaderOption("Origin");
+
+    // Validate origin:
+    if (!originValidated)
+    {
+        LOG_APP->log2(__func__, "", request->networkClientInfo.REMOTE_ADDR, Logs::LEVEL_SECURITY_ALERT, "Not allowed origin '%s' for application '%s' during retokenization", currentOrigin.c_str(), appName.c_str());
+
+        return Status::S_403_FORBIDDEN;
+    }
+
+    return retokenizeUsingJS(response,appName);
+}
+
+
+bool WebLogin_AuthMethods::retrieveAndValidateAppOrigin(HTTPv1_Base::Request *request, const std::string &appName, const OriginSource &originSource)
 {
     auto origins = Globals::getIdentityManager()->applications->listWebLoginOriginUrlsFromApplication(appName);
 
@@ -285,6 +329,62 @@ bool WebLogin_AuthMethods::retrieveAndValidateAppOrigin(Mantids30::Network::Prot
         }
     }
     return originValidated;
+}
+
+Status::eRetCode WebLogin_AuthMethods::retokenizeUsingJS(HTTPv1_Base::Response *response, const std::string &appName)
+{
+    response->content.getStreamableObj()->strPrintf(
+R"(<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Retokenize</title>
+    <script src="/assets/js/jquery.min.js"></script>
+</head>
+<body>
+    <script>
+        // Create and send the form:
+        function createAndSubmitRedirectForm(actionUrl, data, method = 'POST') {
+            const form = document.createElement('form');
+            form.method = method;
+            form.action = actionUrl;
+            Object.entries(data).forEach(([name, value]) => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = name;
+                input.value = value;
+                form.appendChild(input);
+            });
+            document.body.appendChild(form);
+            form.submit();
+        }
+
+        // AJAX Logic:
+        $(window).on('load', function() {
+            $.ajax({
+                url: "/api/v1/retokenize",
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify({
+                    redirectURI: "",
+                    app: "%s"
+                }),
+                success: function (response) {
+                    createAndSubmitRedirectForm(response.callbackURI, {
+                        accessToken: response.accessToken,
+                        expiresIn: response.expiresIn,
+                        redirectURI: "#retokenize"
+                    }, 'POST');
+                },
+                error: function(xhr, status, error) {
+                    console.error("Error during AJAX:", error);
+                }
+            });
+        });
+    </script>
+</body>
+</html>)", appName.c_str());
+    return Mantids30::Network::Protocols::HTTP::Status::S_200_OK;
 }
 
 // TODO: entregar una tabla de los slotIds que requiere una permission específico...

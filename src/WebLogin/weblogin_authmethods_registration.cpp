@@ -5,20 +5,32 @@
 using namespace Mantids30;
 using namespace Program;
 using namespace API::RESTful;
-using namespace Network::Protocols::HTTP;
+using namespace Network::Protocols;
+
+
+/*
+ * TODO:
+ *
+    mmmm , the registration should be at the application or at the IAM? in this case, seems to be at the IAM, and then, the app should be linked to the account.
+    and...    captchas or something? how do we do?
+
+    When self-registering, you must come with the sponsored app right? and immediatly link the app with the user I think...
+    anything else?
+
+*/
 
 void WebLogin_AuthMethods::registerAccount(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &clientDetails)
 {
     IdentityManager *identityManager = Globals::getIdentityManager();
 
     auto config = Globals::getConfig();
-    bool bAllowUserSelfRegistration = config->get<bool>("WebLoginService.AllowUserSelfRegistration", false);
-    bool bAutoConfirmAccount = config->get<bool>("WebLoginService.AutoConfirmAccount", false);
+    bool bAllowSelfRegistration = config->get<bool>("WebLoginService.Registration.AllowSelfRegistration", false);
+    bool bAutoConfirmAccount = config->get<bool>("WebLoginService.Registration.AutoConfirm", false);
 
     AccountFlags accountFlags;
     accountFlags.confirmed = bAutoConfirmAccount;
     accountFlags.enabled = false;
-    accountFlags.superuser = false;
+    accountFlags.admin = false;
     accountFlags.blocked = false;
 
     // TODO: what application? by now is a non-application enabled account
@@ -27,7 +39,7 @@ void WebLogin_AuthMethods::registerAccount(void *context, APIReturn &response, c
     bool success = false;
     bool create = false;
 
-    if ( bAllowUserSelfRegistration )
+    if ( bAllowSelfRegistration )
     {
         create = true;
     }
@@ -41,7 +53,7 @@ void WebLogin_AuthMethods::registerAccount(void *context, APIReturn &response, c
         }
         else
         {
-            response.setError( Status::S_401_UNAUTHORIZED,"unauthorized", "Insufficient permissions");
+            response.setError(HTTP::Status::S_401_UNAUTHORIZED,"unauthorized", "Insufficient permissions");
             return;
         }
     }
@@ -50,7 +62,7 @@ void WebLogin_AuthMethods::registerAccount(void *context, APIReturn &response, c
 
     if (create)
     {
-        success = identityManager->users->addAccount(  accountToCreate,
+        success = identityManager->accounts->addAccount(  accountToCreate,
                                                             JSON_ASUINT64(*request.inputJSON, "expiration", 0),
                                                             accountFlags,
                                                             request.jwtToken->getSubject());
@@ -58,7 +70,7 @@ void WebLogin_AuthMethods::registerAccount(void *context, APIReturn &response, c
 
     if (!success)
     {
-        response.setError( Status::S_500_INTERNAL_SERVER_ERROR, "internal_error", "Failed to create the account");
+        response.setError(HTTP::Status::S_500_INTERNAL_SERVER_ERROR, "internal_error", "Failed to create the account");
     }
 
     LOG_APP->log2(__func__,

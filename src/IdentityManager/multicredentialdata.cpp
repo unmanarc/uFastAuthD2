@@ -34,7 +34,7 @@ void MultiCredentialData::print()
     {
         Memory::Streams::StreamableJSON s;
         s.setValue(i.second.toJSON());
-        std::cout << ">>>> With auth: " << s.getString() << std::endl << std::flush;
+        std::cout << ">>>> With auth: " << s.toString() << std::endl << std::flush;
     }
 }*/
 

@@ -7,7 +7,7 @@
 
 using namespace Mantids30::Program;
 using namespace Mantids30;
-using namespace Mantids30::Network::Protocols::HTTP;
+using namespace Mantids30::Network::Protocols;
 
 
 void WebAdminMethods_ApplicationsPermissions::addMethods_Permissions(std::shared_ptr<MethodsHandler> methods)
@@ -51,14 +51,14 @@ void WebAdminMethods_ApplicationsPermissions::addApplicationPermission(void *con
     // Don't modify permissions from our directory.
     if ( appName == DB_APPNAME )
     {
-        response.setError(Status::S_400_BAD_REQUEST,"invalid_request","Can't add application permission to the IAM");
+        response.setError(HTTP::Status::S_400_BAD_REQUEST,"invalid_request","Can't add application permission to the IAM");
         return;
     }
 
     if (!Globals::getIdentityManager()->authController->addApplicationPermission({appName,JSON_ASSTRING(*request.inputJSON,"id","")},
                                                                                  JSON_ASSTRING(*request.inputJSON,"description","")))
     {
-        response.setError(Status::S_500_INTERNAL_SERVER_ERROR,"internal_error", "Internal Error");
+        response.setError(HTTP::Status::S_500_INTERNAL_SERVER_ERROR,"internal_error", "Internal Error");
     }
 }
 
@@ -69,13 +69,13 @@ void WebAdminMethods_ApplicationsPermissions::removeApplicationPermission(void *
     // Don't modify permissions from our directory.
     if ( appName == DB_APPNAME )
     {
-        response.setError(Status::S_400_BAD_REQUEST,"invalid_request","Can't remove application permission to the IAM");
+        response.setError(HTTP::Status::S_400_BAD_REQUEST,"invalid_request","Can't remove application permission to the IAM");
         return;
     }
 
     if (!Globals::getIdentityManager()->authController->removeApplicationPermission( {appName,JSON_ASSTRING(*request.inputJSON,"id","")}))
     {
-        response.setError(Status::S_500_INTERNAL_SERVER_ERROR,"internal_error", "Internal Error");
+        response.setError(HTTP::Status::S_500_INTERNAL_SERVER_ERROR,"internal_error", "Internal Error");
     }
 }
 
@@ -83,7 +83,7 @@ void WebAdminMethods_ApplicationsPermissions::addApplicationPermissionToRole(voi
 {
     if (!Globals::getIdentityManager()->authController->addApplicationPermissionToRole( {JSON_ASSTRING(*request.inputJSON,"appName",""),JSON_ASSTRING(*request.inputJSON,"id","")},JSON_ASSTRING(*request.inputJSON,"roleName","")))
     {
-        response.setError(Status::S_500_INTERNAL_SERVER_ERROR,"internal_error", "Internal Error");
+        response.setError(HTTP::Status::S_500_INTERNAL_SERVER_ERROR,"internal_error", "Internal Error");
     }
 }
 
@@ -91,7 +91,7 @@ void WebAdminMethods_ApplicationsPermissions::removeApplicationPermissionFromRol
 {
     if (!Globals::getIdentityManager()->authController->removeApplicationPermissionFromRole( {JSON_ASSTRING(*request.inputJSON,"appName",""),JSON_ASSTRING(*request.inputJSON,"id","")},JSON_ASSTRING(*request.inputJSON,"roleName","")))
     {
-        response.setError(Status::S_500_INTERNAL_SERVER_ERROR,"internal_error", "Internal Error");
+        response.setError(HTTP::Status::S_500_INTERNAL_SERVER_ERROR,"internal_error", "Internal Error");
     }
 }
 
@@ -99,7 +99,7 @@ void WebAdminMethods_ApplicationsPermissions::addApplicationPermissionToAccount(
 {
     if (!Globals::getIdentityManager()->authController->addApplicationPermissionToAccount( {JSON_ASSTRING(*request.inputJSON,"appName",""),JSON_ASSTRING(*request.inputJSON,"id","")},JSON_ASSTRING(*request.inputJSON,"accountName","")))
     {
-        response.setError(Status::S_500_INTERNAL_SERVER_ERROR,"internal_error", "Internal Error");
+        response.setError(HTTP::Status::S_500_INTERNAL_SERVER_ERROR,"internal_error", "Internal Error");
     }
 }
 
@@ -107,7 +107,7 @@ void WebAdminMethods_ApplicationsPermissions::removeApplicationPermissionFromAcc
 {
     if (!Globals::getIdentityManager()->authController->removeApplicationPermissionFromAccount( {JSON_ASSTRING(*request.inputJSON,"appName",""),JSON_ASSTRING(*request.inputJSON,"id","")},JSON_ASSTRING(*request.inputJSON,"accountName","")))
     {
-        response.setError(Status::S_500_INTERNAL_SERVER_ERROR,"internal_error", "Internal Error");
+        response.setError(HTTP::Status::S_500_INTERNAL_SERVER_ERROR,"internal_error", "Internal Error");
     }
 }
 
@@ -118,12 +118,12 @@ void WebAdminMethods_ApplicationsPermissions::updateApplicationPermissionDescrip
     // Don't modify permissions from our directory.
     if ( appName == DB_APPNAME )
     {
-        response.setError(Status::S_400_BAD_REQUEST,"invalid_request","Can't update application permission to the IAM");
+        response.setError(HTTP::Status::S_400_BAD_REQUEST,"invalid_request","Can't update application permission to the IAM");
     }
 
     if (!Globals::getIdentityManager()->authController->removeApplicationPermissionFromAccount( {appName,JSON_ASSTRING(*request.inputJSON,"id","")},JSON_ASSTRING(*request.inputJSON,"getApplicationPermissionDescription","")))
     {
-        response.setError(Status::S_500_INTERNAL_SERVER_ERROR,"internal_error", "Internal Error");
+        response.setError(HTTP::Status::S_500_INTERNAL_SERVER_ERROR,"internal_error", "Internal Error");
     }
 }
 

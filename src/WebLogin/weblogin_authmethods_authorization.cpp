@@ -4,6 +4,9 @@
 #include "weblogin_authmethods.h"
 
 #include "../globals.h"
+
+
+#include <inttypes.h>
 #include <json/config.h>
 #include <cstdint>
 #include <memory>
@@ -12,7 +15,8 @@
 using namespace Mantids30;
 using namespace Program;
 using namespace API::RESTful;
-using namespace Network::Protocols::HTTP;
+using namespace Network::Protocols;
+using namespace Mantids30::DataFormat;
 
 bool WebLogin_AuthMethods::areAllSlotIdsAuthenticated(const std::set<uint32_t> &currentAuthenticatedSlotIds, const std::map<uint32_t, std::string> &accountAuthenticationSlotsUsedForLogin)
 {
@@ -25,6 +29,36 @@ bool WebLogin_AuthMethods::areAllSlotIdsAuthenticated(const std::set<uint32_t> &
     }
     return true;
 }
+
+// Validate user and get authorization flow:
+void WebLogin_AuthMethods::preAuthorize(void *context,
+    APIReturn &response,
+    const API::RESTful::RequestParameters &request,
+    Sessions::ClientDetails &authClientDetails)
+{
+    // Environment:
+    JWT::Token token;
+    IdentityManager *identityManager = Globals::getIdentityManager();
+
+    //  Configuration parameters:
+    auto config = Globals::getConfig();
+    uint32_t loginAuthenticationTimeout = config->get<uint32_t>("WebLoginService.AuthenticationTimeout", 300);
+
+    // Input parameters:
+    std::string app = JSON_ASSTRING(*request.inputJSON, "app", "");           // APPNAME.
+    std::string accountName = JSON_ASSTRING(*request.inputJSON, "accountName", ""); // ACCOUNT ID.
+    std::string activity = JSON_ASSTRING(*request.inputJSON, "activity", ""); // APP ACTIVITY NAME.
+
+    if ( ! identityManager->applications->doesApplicationExist(app) )
+    {
+        response.setError(HTTP::Status::S_404_NOT_FOUND,"not_found", "Invalid Application");
+        return;
+    }
+
+    (*response.responseJSON()) = identityManager->authController->getApplicableAuthenticationSchemesForAccount(app,activity,accountName);
+    (*response.responseJSON())["loginAuthenticationTimeout"] = loginAuthenticationTimeout;
+}
+
 
 // Validate credential:
 void WebLogin_AuthMethods::authorize(void *context,
@@ -39,15 +73,13 @@ void WebLogin_AuthMethods::authorize(void *context,
     // Retrieve configuration parameters from global settings.
     auto config = Globals::getConfig();
 
-
     uint32_t loginAuthenticationTimeout = config->get<uint32_t>("WebLoginService.AuthenticationTimeout", 300);
 
     std::shared_ptr<AppAuthExtras> authContext = std::make_shared<AppAuthExtras>();
 
-
     // JWT Signed Parameters:
     std::string accountName          = JSON_ASSTRING_D(request.jwtToken->getClaim("preAuthUser"), "");
-    authContext->appName             = JSON_ASSTRING_D(request.jwtToken->getClaim("applicationName"), "");
+    authContext->appName             = JSON_ASSTRING_D(request.jwtToken->getClaim("app"), "");
     authContext->slotSchemeHash      = JSON_ASSTRING_D(request.jwtToken->getClaim("slotSchemeHash"), "");
     authContext->schemeId            = JSON_ASUINT_D(request.jwtToken->getClaim("schemeId"), UINT32_MAX);
     authContext->currentSlotPosition = JSON_ASUINT_D(request.jwtToken->getClaim("currentSlotPosition"), UINT32_MAX);
@@ -58,7 +90,7 @@ void WebLogin_AuthMethods::authorize(void *context,
     {
         // When there is no token, override initial token parameters with the input parameters...
         accountName = JSON_ASSTRING(*request.inputJSON, "preAuthUser", "");
-        authContext->appName = JSON_ASSTRING(*request.inputJSON, "applicationName", "");
+        authContext->appName = JSON_ASSTRING(*request.inputJSON, "app", "");
         authContext->schemeId = JSON_ASUINT(*request.inputJSON, "schemeId", UINT32_MAX);
         authContext->currentSlotPosition = 0;
     }
@@ -66,7 +98,7 @@ void WebLogin_AuthMethods::authorize(void *context,
     if (authContext->currentSlotPosition == std::numeric_limits<uint32_t>::max())
     {
         // You don´t need to authorize anything else!
-        response.setError(Status::S_401_UNAUTHORIZED,"AUTH_ERR_" + std::to_string(REASON_BAD_PASSWORD), getReasonText(REASON_BAD_PASSWORD));
+        response.setError(HTTP::Status::S_401_UNAUTHORIZED,"AUTH_ERR_" + std::to_string(REASON_BAD_PASSWORD), getReasonText(REASON_BAD_PASSWORD));
         return;
     }
 
@@ -92,7 +124,7 @@ void WebLogin_AuthMethods::authorize(void *context,
                   authRetCode ? Logs::LEVEL_SECURITY_ALERT : Logs::LEVEL_INFO,
                   "Account Authorization Result: %" PRIu32 " - %s, for application '%s', scheme '%" PRIu32 "' and slotId[%" PRIu32 "] '%" PRIu32 "'",
                   authRetCode,
-                  response.getErrorString().c_str(),
+                  getReasonText(authRetCode),
                   authContext->appName.c_str(),
                   authContext->schemeId,
                   authContext->currentSlotPosition,
@@ -103,7 +135,7 @@ void WebLogin_AuthMethods::authorize(void *context,
     {
 
         // Set the new JWT here.
-        DataFormat::JWT::Token outgoingToken;
+        JWT::Token outgoingToken;
 
         if (authContext->currentSlotPosition == 0)
         {
@@ -118,7 +150,7 @@ void WebLogin_AuthMethods::authorize(void *context,
         outgoingToken.setIssuedAt(time(nullptr));
         outgoingToken.setNotBefore(time(nullptr) - 30);
 
-        outgoingToken.addClaim("applicationName", authContext->appName);
+        outgoingToken.addClaim("app", authContext->appName);
         outgoingToken.addClaim("preAuthUser", accountName);
         outgoingToken.addClaim("slotSchemeHash", authContext->slotSchemeHash);
         outgoingToken.addClaim("schemeId", authContext->schemeId);
@@ -149,7 +181,7 @@ void WebLogin_AuthMethods::authorize(void *context,
             (*response.responseJSON())["credentialPublicData"] = publicData.toJSON( identityManager->authController->getAuthenticationPolicy() );
 
         }
-        response.cookiesMap["AccessToken"] = Headers::Cookie();
+        response.cookiesMap["AccessToken"] = HTTP::Headers::Cookie();
         response.cookiesMap["AccessToken"].secure = true;
         response.cookiesMap["AccessToken"].httpOnly = true;
         response.cookiesMap["AccessToken"].setExpirationFromNow(loginAuthenticationTimeout); // 2min expiration...
@@ -164,8 +196,17 @@ void WebLogin_AuthMethods::authorize(void *context,
           //  response.setFullStatus(IS_PASSWORD_AUTHENTICATED(authRetCode),IS_PASSWORD_AUTHENTICATED(authRetCode)?Status::S_200_OK : Status::S_401_UNAUTHORIZED, (uint32_t) authRetCode, getReasonText(authRetCode));
         }
 
-        response.setError(Status::S_401_UNAUTHORIZED,"AUTH_ERR_" + std::to_string(authRetCode), getReasonText(authRetCode));
+        response.setError(HTTP::Status::S_401_UNAUTHORIZED,"AUTH_ERR_" + std::to_string(authRetCode), getReasonText(authRetCode));
     }
+
+    LOG_APP->log2(__func__,
+                  accountName,
+                  clientDetails.ipAddress,
+                  response.getHTTPResponseCode()!=HTTP::Status::S_200_OK ? Logs::LEVEL_SECURITY_ALERT : Logs::LEVEL_INFO,
+                  "R/%03" PRIu16 ": %s",
+                  static_cast<uint16_t>(response.getHTTPResponseCode()),
+                  request.clientRequest->getURI().c_str());
+
 }
 
 

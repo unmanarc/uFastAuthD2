@@ -11,14 +11,14 @@ public:
     IdentityManager_DB(Mantids30::Database::SQLConnector *_SQLDirConnection);
     bool initializeDatabase() override;
 
-    class Users_DB : public Users
+    class Accounts_DB : public Accounts
     {
     public:
-        Users_DB(IdentityManager_DB *parent) : Users (parent)
+        Accounts_DB(IdentityManager_DB *parent) : Accounts (parent)
         {
             _parent = parent;
         }
-        virtual ~Users_DB() {
+        virtual ~Accounts_DB() {
         }
 
 
@@ -45,7 +45,7 @@ public:
         std::set<std::string> listAccounts() override;
         std::set<std::string> getAccountRoles(const std::string & accountName, bool lock = true) override;
 
-        bool hasSuperUserAccount() override;
+        bool hasAdminAccount() override;
 
         int32_t getAccountBlockTokenNoRenew(const std::string &accountName, std::string &token);
         void removeBlockToken(const std::string &accountName);
@@ -64,7 +64,7 @@ public:
         std::map<std::string, std::string> getAccountDetailValues(const std::string &accountName, const AccountDetailsToShow & detailsToShow = ACCOUNT_DETAILS_ALL) override;
 
     private:
-        bool isThereAnotherSuperUser(const std::string &accountName);
+        bool isThereAnotherAdmin(const std::string &accountName);
         IdentityManager_DB *_parent;
     };
     class Roles_DB : public Roles
@@ -204,11 +204,6 @@ public:
         bool addWebLoginRedirectURIToApplication(const std::string &appName, const std::string &loginRedirectURI) override;
         bool removeWebLoginRedirectURIToApplication(const std::string &appName, const std::string &loginRedirectURI) override;
         std::list<std::string> listWebLoginRedirectURIsFromApplication(const std::string &appName) override;
-
-        bool setAuthCallbackURIToApplication(const std::string &appName, const std::string &authCallbackURI) override;
-        bool removeAuthCallbackURIToApplication(const std::string &appName, const std::string &authCallbackURI) override;
-        std::string getAuthCallbackURIFromApplication(const std::string &appName) override;
-
 
         // Weblogin origin urls:
         bool addWebLoginOriginURLToApplication(const std::string &appName, const std::string &originUrl) override;

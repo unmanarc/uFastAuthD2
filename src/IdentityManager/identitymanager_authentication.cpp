@@ -26,7 +26,7 @@ void IdentityManager::AuthController::incrementCredentialBadCounts(Reason ret, c
         if ( (pStoredCredentialData.badAttempts + 1) >= m_authenticationPolicy.maxTries )
         {
             // Disable the account...
-            m_parent->users->disableAccount(accountName,true);
+            m_parent->accounts->disableAccount(accountName,true);
         }
         else
         {
@@ -115,10 +115,10 @@ Reason IdentityManager::AuthController::authenticateCredential(const Sessions::C
             // There is no last login.. use the creation date for doing the inactivity calculation...
             if (lastLogin == std::numeric_limits<time_t>::max())
             {
-                lastLogin = m_parent->users->getAccountCreationTime(accountName);
+                lastLogin = m_parent->accounts->getAccountCreationTime(accountName);
             }
 
-            auto flags = m_parent->users->getAccountFlags(accountName);
+            auto flags = m_parent->accounts->getAccountFlags(accountName);
 
             if      (!flags.confirmed)
                 return REASON_UNCONFIRMED_ACCOUNT;
@@ -129,7 +129,7 @@ Reason IdentityManager::AuthController::authenticateCredential(const Sessions::C
             else if (flags.blocked)
                 return REASON_DISABLED_ACCOUNT;
 
-            else if (m_parent->users->isAccountExpired(accountName))
+            else if (m_parent->accounts->isAccountExpired(accountName))
                 return REASON_EXPIRED_ACCOUNT;
 
             else if (lastLogin+m_authenticationPolicy.abandonedAccountExpirationSeconds<time(nullptr))
@@ -274,7 +274,7 @@ bool IdentityManager::AuthController::validateAccountApplicationPermission(const
     {
         return true;
     }
-    for (const std::string & roleName : m_parent->users->getAccountRoles(accountName,false))
+    for (const std::string & roleName : m_parent->accounts->getAccountRoles(accountName,false))
     {
         if (validateApplicationPermissionOnRole(roleName, applicationPermission,false))
         {
@@ -293,7 +293,7 @@ std::set<ApplicationPermission> IdentityManager::AuthController::getAccountUsabl
         x.insert(permission);
 
     // Take the permissions from the belonging roles
-    for (const std::string & roleName : m_parent->users->getAccountRoles(accountName,false))
+    for (const std::string & roleName : m_parent->accounts->getAccountRoles(accountName,false))
     {
         for (const ApplicationPermission & permission : getRoleApplicationPermissions(roleName,false))
             x.insert(permission);
@@ -301,9 +301,8 @@ std::set<ApplicationPermission> IdentityManager::AuthController::getAccountUsabl
     return x;
 }
 
-
-
-bool IdentityManager::AuthController::setAccountPasswordOnScheme(const std::string & userName, std::string *sInitPW, const uint32_t & schemeId)
+bool IdentityManager::AuthController::setAccountPasswordOnScheme(
+    const std::string &accountName, std::string *sInitPW, const uint32_t &schemeId)
 {
     if (schemeId==UINT32_MAX)
         return false;
@@ -333,7 +332,7 @@ bool IdentityManager::AuthController::setAccountPasswordOnScheme(const std::stri
         credentialData = m_parent->authController->createNewCredential(authSlots.begin()->slotId,newPass,true);
     }
 
-    bool r = m_parent->authController->changeCredential(userName,credentialData,authSlots.begin()->slotId);
+    bool r = m_parent->authController->changeCredential(accountName, credentialData, authSlots.begin()->slotId);
 
     if (r)
         *sInitPW = newPass;
@@ -345,7 +344,7 @@ bool IdentityManager::AuthController::setAccountPasswordOnScheme(const std::stri
 
             &&
            _parent->m_sqlConnector->query("INSERT INTO iam_accountCredentials "
-                                "(`f_AuthSlotId`,`f_userName`,`hash`,`expiration`,`salt`,`forcedExpiration`)"
+                                "(`f_AuthSlotId`,`f_accountName`,`hash`,`expiration`,`salt`,`forcedExpiration`)"
                                 " VALUES"
                                 "('0',:account,:hash,:expiration,:salt,:forcedExpiration);",
                                 {
@@ -411,8 +410,8 @@ Credential IdentityManager::AuthController::createNewCredential(const uint32_t &
     return r;
 }
 
-
-json IdentityManager::AuthController::getApplicableAuthenticationSchemesForUser(const std::string &app, const std::string &activity, const std::string &username)
+json IdentityManager::AuthController::getApplicableAuthenticationSchemesForAccount(
+    const std::string &app, const std::string &activity, const std::string &accountName)
 {
     Threads::Sync::Lock_RD lock(m_parent->m_mutex);
 
@@ -421,7 +420,7 @@ json IdentityManager::AuthController::getApplicableAuthenticationSchemesForUser(
     r["defaultScheme"] = UINT32_MAX;
     std::map<uint32_t, std::string> allSchemes = listAuthenticationSchemes();
 
-    if (!m_parent->applications->validateApplicationAccount(app,username))
+    if (!m_parent->applications->validateApplicationAccount(app, accountName))
     {
         // If the user is invalid or not associated, return only the default scheme (reducing risk of user enumeration)
         uint32_t defaultSchemeId = getApplicationActivityDefaultScheme(app, activity);
@@ -442,7 +441,7 @@ json IdentityManager::AuthController::getApplicableAuthenticationSchemesForUser(
 
     // Fetch necessary data
     std::set<uint32_t> availableSchemes = listAuthenticationSchemesForApplicationActivity(app, activity);
-    std::set<uint32_t> userSlots = listUsedAuthenticationSlotsOnAccount(username);
+    std::set<uint32_t> accountUsedAuthSlots = listUsedAuthenticationSlotsOnAccount(accountName);
     uint32_t defaultScheme = getApplicationActivityDefaultScheme(app, activity);
 
     // Iterate through available schemes
@@ -454,7 +453,7 @@ json IdentityManager::AuthController::getApplicableAuthenticationSchemesForUser(
         // Check if all required slots are available for the user
         for (const AuthenticationSchemeUsedSlot &slot : slots)
         {
-            if (userSlots.find(slot.slotId) == userSlots.end())
+            if (accountUsedAuthSlots.find(slot.slotId) == accountUsedAuthSlots.end())
             {
                 allSlotsAvailable = false;
                 break;

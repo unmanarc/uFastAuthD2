@@ -19,6 +19,8 @@
 #include <windows.h>
 #endif
 
+#include <fstream>
+
 using namespace Mantids30::Database;
 using namespace Mantids30::Program;
 using namespace Mantids30;
@@ -149,25 +151,25 @@ bool AuthStorageImpl::createAuth()
     }
 
     // Check account flags:
-    auto accountFlags = identityManager->users->getAccountFlags(sDefaultUser);
+    auto accountFlags = identityManager->accounts->getAccountFlags(sDefaultUser);
 
     // Check for admin accounts:
-    if ( identityManager->users->doesAccountExist(sDefaultUser) && !accountFlags.superuser )
+    if ( identityManager->accounts->doesAccountExist(sDefaultUser) && !accountFlags.admin )
     {
-        // This account should be marked as superuser.
-        LOG_APP->log0(__func__,Logs::LEVEL_ERR, "Account '%s' detected without superuser privileges. Manual intervention required to grant superuser status.",sDefaultUser.c_str());
+        // This account should be marked as admin.
+        LOG_APP->log0(__func__,Logs::LEVEL_ERR, "Account '%s' detected without admin privileges. Manual intervention required to grant admin status.",sDefaultUser.c_str());
     }
-    else if ( identityManager->users->doesAccountExist(sDefaultUser) && identityManager->users->isAccountExpired(sDefaultUser) )
+    else if ( identityManager->accounts->doesAccountExist(sDefaultUser) && identityManager->accounts->isAccountExpired(sDefaultUser) )
     {
         // This account should not expire.
         LOG_APP->log0(__func__,Logs::LEVEL_ERR, "Account '%s' is currently expired. Reactivation required immediately to ensure proper system management.", sDefaultUser.c_str());
     }
-    else if ( identityManager->users->doesAccountExist(sDefaultUser) && !accountFlags.enabled )
+    else if ( identityManager->accounts->doesAccountExist(sDefaultUser) && !accountFlags.enabled )
     {
         // This account should not be disabled.
         LOG_APP->log0(__func__,Logs::LEVEL_ERR, "Account '%s' is disabled. Enable the account to maintain essential administrative functions.", sDefaultUser.c_str());
     }
-    else if ( identityManager->users->doesAccountExist(sDefaultUser) && !accountFlags.confirmed )
+    else if ( identityManager->accounts->doesAccountExist(sDefaultUser) && !accountFlags.confirmed )
     {
         // This account should not be disabled.
         LOG_APP->log0(__func__,Logs::LEVEL_ERR, "Account '%s' exists but is unconfirmed. Confirmation is necessary for full functionality.",sDefaultUser.c_str());
@@ -258,12 +260,12 @@ bool AuthStorageImpl::configureApplication(IdentityManager_DB *identityManager, 
         {{DB_APPNAME, "SELF_READ"}, "Permission to read my own user data from the IAM system"},
         {{DB_APPNAME, "SELF_DELETE"}, "Permission to delete my own user"},
 
-        {{DB_APPNAME, "USER_READ"},   "Permission to read users data from the IAM system"},
-        {{DB_APPNAME, "USER_DELETE"}, "Permission to delete users from the IAM system"},
-        {{DB_APPNAME, "USER_MODIFY"}, "Permission to edit user details, roles, and permissions"},
-        {{DB_APPNAME, "USER_PWDDCHANGE"}, "Permission to change user passwords"},
-        {{DB_APPNAME, "USER_DISABLE"}, "Permission to disable/lock users"},
-        {{DB_APPNAME, "USER_ENABLE"}, "Permission to enable/unlock users"},
+        {{DB_APPNAME, "ACCOUNT_READ"},       "Permission to read accounts data from the IAM system"},
+        {{DB_APPNAME, "ACCOUNT_DELETE"},     "Permission to delete accounts from the IAM system"},
+        {{DB_APPNAME, "ACCOUNT_MODIFY"},     "Permission to edit accounts details, roles, and permissions"},
+        {{DB_APPNAME, "ACCOUNT_PWDDCHANGE"}, "Permission to change account passwords"},
+        {{DB_APPNAME, "ACCOUNT_DISABLE"},    "Permission to disable/lock accounts"},
+        {{DB_APPNAME, "ACCOUNT_ENABLE"},     "Permission to enable/unlock accounts"},
 
         {{DB_APPNAME, "ROLE_CREATE"}, "Permission to create roles on the IAM system"},
         {{DB_APPNAME, "ROLE_READ"},   "Permission to read roles from the IAM system"},

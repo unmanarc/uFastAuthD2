@@ -14,12 +14,14 @@ struct ApplicationTokenProperties
 {
     std::string appName;
     uint32_t accessTokenTimeout;
+    uint32_t refreshTokenTimeout;
     uint32_t tempMFATokenTimeout;
     uint32_t sessionInactivityTimeout;
     std::string tokenType;
+    bool allowRefreshTokenRenovation;
     //std::string accessTokenSigningKey;
-    bool includeApplicationPermissionsInToken;
-    bool includeBasicUserInfoInToken;
+    bool includeApplicationPermissions;
+    bool includeBasicAccountInfo;
     bool maintainRevocationAndLogoutInfo;
 };
 struct ApplicationPermissionDetails

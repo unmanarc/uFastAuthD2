@@ -17,15 +17,15 @@ using namespace Mantids30;
 using namespace Mantids30::Memory;
 using namespace Mantids30::Database;
 
-bool IdentityManager_DB::Users_DB::addAccount(const std::string &accountName, time_t expirationDate, const AccountFlags &accountFlags, const std::string &sCreatorAccountName)
+bool IdentityManager_DB::Accounts_DB::addAccount(const std::string &accountName, time_t expirationDate, const AccountFlags &accountFlags, const std::string &sCreatorAccountName)
 {
     Threads::Sync::Lock_RW lock(_parent->m_mutex);
 
-    bool r = _parent->m_sqlConnector->query("INSERT INTO iam_accounts (`userName`,`isSuperuser`,`isEnabled`,`isBlocked`,`expiration`,`isAccountConfirmed`,`creator`) "
-                                                       "VALUES(:userName,:superuser ,:enabled, :blocked ,:expiration ,:confirmed ,:creator);",
+    bool r = _parent->m_sqlConnector->query("INSERT INTO iam_accounts (`accountName`,`isAdmin`,`isEnabled`,`isBlocked`,`expiration`,`isAccountConfirmed`,`creator`) "
+                                                       "VALUES(:accountName,:admin ,:enabled, :blocked ,:expiration ,:confirmed ,:creator);",
                                {
-                                   {":userName",MAKE_VAR(STRING,accountName)},
-                                   {":superuser",MAKE_VAR(BOOL,accountFlags.superuser)},
+                                   {":accountName",MAKE_VAR(STRING,accountName)},
+                                   {":admin",MAKE_VAR(BOOL,accountFlags.admin)},
                                    {":enabled",MAKE_VAR(BOOL,accountFlags.enabled)},
                                    {":blocked",MAKE_VAR(BOOL,accountFlags.blocked)},
                                    {":expiration",MAKE_VAR(DATETIME,expirationDate)},
@@ -38,7 +38,7 @@ bool IdentityManager_DB::Users_DB::addAccount(const std::string &accountName, ti
     if (r)
     {
         // Now create the activation token...
-        r =            _parent->m_sqlConnector->query("INSERT INTO iam_accountsActivationToken (`f_userName`,`confirmationToken`) "
+        r =            _parent->m_sqlConnector->query("INSERT INTO iam_accountsActivationToken (`f_accountName`,`confirmationToken`) "
                                            "VALUES(:account,:confirmationToken);",
                                            {
                                                {":account",MAKE_VAR(STRING,accountName)},
@@ -56,27 +56,27 @@ bool IdentityManager_DB::Users_DB::addAccount(const std::string &accountName, ti
 
 }
 
-bool IdentityManager_DB::Users_DB::removeAccount(const std::string &accountName)
+bool IdentityManager_DB::Accounts_DB::removeAccount(const std::string &accountName)
 {
     Threads::Sync::Lock_RW lock(_parent->m_mutex);
 
-    if (isThereAnotherSuperUser(accountName))
+    if (isThereAnotherAdmin(accountName))
     {
-        return _parent->m_sqlConnector->query("DELETE FROM iam_accounts WHERE `userName`=:userName;",
+        return _parent->m_sqlConnector->query("DELETE FROM iam_accounts WHERE `accountName`=:accountName;",
                                    {
-                                       {":userName",MAKE_VAR(STRING,accountName)}
+                                       {":accountName",MAKE_VAR(STRING,accountName)}
                                    });
     }
     return false;
 }
 
-bool IdentityManager_DB::Users_DB::doesAccountExist(const std::string &accountName)
+bool IdentityManager_DB::Accounts_DB::doesAccountExist(const std::string &accountName)
 {
     bool ret = false;
     Threads::Sync::Lock_RD lock(_parent->m_mutex);
 
-    std::shared_ptr<SQLConnector::QueryInstance> i = _parent->m_sqlConnector->qSelect("SELECT `isEnabled` FROM iam_accounts WHERE `userName`=:userName LIMIT 1;",
-                                          {{":userName",MAKE_VAR(STRING,accountName)}},
+    std::shared_ptr<SQLConnector::QueryInstance> i = _parent->m_sqlConnector->qSelect("SELECT `isEnabled` FROM iam_accounts WHERE `accountName`=:accountName LIMIT 1;",
+                                          {{":accountName",MAKE_VAR(STRING,accountName)}},
                                           { });
     if (i->getResultsOK() && i->query->step())
     {
@@ -85,122 +85,122 @@ bool IdentityManager_DB::Users_DB::doesAccountExist(const std::string &accountNa
     return ret;
 }
 
-bool IdentityManager_DB::Users_DB::disableAccount(const std::string &accountName, bool disabled)
+bool IdentityManager_DB::Accounts_DB::disableAccount(const std::string &accountName, bool disabled)
 {
     Threads::Sync::Lock_RW lock(_parent->m_mutex);
 
-    if (disabled==true && !isThereAnotherSuperUser(accountName))
+    if (disabled==true && !isThereAnotherAdmin(accountName))
     {
         return false;
     }
 
-    return _parent->m_sqlConnector->query("UPDATE iam_accounts SET `isEnabled`=:enabled WHERE `userName`=:userName;",
+    return _parent->m_sqlConnector->query("UPDATE iam_accounts SET `isEnabled`=:enabled WHERE `accountName`=:accountName;",
                                {
                                    {":enabled",MAKE_VAR(BOOL,!disabled)},
-                                   {":userName",MAKE_VAR(STRING,accountName)}
+                                   {":accountName",MAKE_VAR(STRING,accountName)}
                                });
 }
 
-bool IdentityManager_DB::Users_DB::confirmAccount(const std::string &accountName, const std::string &confirmationToken)
+bool IdentityManager_DB::Accounts_DB::confirmAccount(const std::string &accountName, const std::string &confirmationToken)
 {
     Threads::Sync::Lock_RW lock(_parent->m_mutex);
 
     Abstract::STRING token;
-    std::shared_ptr<SQLConnector::QueryInstance> i = _parent->m_sqlConnector->qSelect("SELECT `confirmationToken` FROM iam_accountsActivationToken WHERE `f_userName`=:userName LIMIT 1;",
-                                          { {":userName",MAKE_VAR(STRING,accountName)} },
+    std::shared_ptr<SQLConnector::QueryInstance> i = _parent->m_sqlConnector->qSelect("SELECT `confirmationToken` FROM iam_accountsActivationToken WHERE `f_accountName`=:accountName LIMIT 1;",
+                                          { {":accountName",MAKE_VAR(STRING,accountName)} },
                                           { &token });
 
     if (i->getResultsOK() && i->query->step())
     {
         if (!token.getValue().empty() && token.getValue() == confirmationToken)
         {
-            return _parent->m_sqlConnector->query("UPDATE iam_accounts SET `isAccountConfirmed`='1' WHERE `userName`=:userName;",
+            return _parent->m_sqlConnector->query("UPDATE iam_accounts SET `isAccountConfirmed`='1' WHERE `accountName`=:accountName;",
                                        {
-                                           {":userName",MAKE_VAR(STRING,accountName)}
+                                           {":accountName",MAKE_VAR(STRING,accountName)}
                                        });
         }
     }
     return false;
 }
 
-bool IdentityManager_DB::Users_DB::changeAccountExpiration(const std::string &accountName, time_t expiration)
+bool IdentityManager_DB::Accounts_DB::changeAccountExpiration(const std::string &accountName, time_t expiration)
 {
     Threads::Sync::Lock_RW lock(_parent->m_mutex);
 
-    return _parent->m_sqlConnector->query("UPDATE iam_accounts SET `expiration`=:expiration WHERE `userName`=:userName;",
+    return _parent->m_sqlConnector->query("UPDATE iam_accounts SET `expiration`=:expiration WHERE `accountName`=:accountName;",
                                {
                                    {":expiration",MAKE_VAR(DATETIME,expiration)},
-                                   {":userName",MAKE_VAR(STRING,accountName)}
+                                   {":accountName",MAKE_VAR(STRING,accountName)}
                                });
 }
 
-AccountFlags IdentityManager_DB::Users_DB::getAccountFlags(const std::string &accountName)
+AccountFlags IdentityManager_DB::Accounts_DB::getAccountFlags(const std::string &accountName)
 {
     AccountFlags r;
 
-    Abstract::BOOL enabled,confirmed,superuser;
-    std::shared_ptr<SQLConnector::QueryInstance> i = _parent->m_sqlConnector->qSelect("SELECT `isEnabled`,`isAccountConfirmed`,`isSuperuser` FROM iam_accounts WHERE `userName`=:userName LIMIT 1;",
-                                          { {":userName",MAKE_VAR(STRING,accountName)} },
-                                          { &enabled,&confirmed,&superuser});
+    Abstract::BOOL enabled,confirmed,admin;
+    std::shared_ptr<SQLConnector::QueryInstance> i = _parent->m_sqlConnector->qSelect("SELECT `isEnabled`,`isAccountConfirmed`,`isAdmin` FROM iam_accounts WHERE `accountName`=:accountName LIMIT 1;",
+                                          { {":accountName",MAKE_VAR(STRING,accountName)} },
+                                          { &enabled,&confirmed,&admin});
 
     if (i->getResultsOK() && i->query->step())
     {
         r.enabled = enabled.getValue();
         r.confirmed = confirmed.getValue();
-        r.superuser = superuser.getValue();
+        r.admin = admin.getValue();
     }
 
 
     return r;
 }
 
-bool IdentityManager_DB::Users_DB::updateAccountRoles(const std::string &accountName, const std::set<std::string> &roleSet)
+bool IdentityManager_DB::Accounts_DB::updateAccountRoles(const std::string &accountName, const std::set<std::string> &roleSet)
 {
     Threads::Sync::Lock_RW lock(_parent->m_mutex);
 
-    if (!_parent->m_sqlConnector->query("DELETE FROM iam_rolesAccounts WHERE `f_userName`=:userName;",
+    if (!_parent->m_sqlConnector->query("DELETE FROM iam_rolesAccounts WHERE `f_accountName`=:accountName;",
     {
-        {":userName",MAKE_VAR(STRING,accountName)}
+        {":accountName",MAKE_VAR(STRING,accountName)}
     }))
         return false;
 
     for (const auto & role : roleSet)
     {
-        if (!_parent->m_sqlConnector->query("INSERT INTO iam_rolesAccounts (`f_roleName`,`f_userName`) VALUES(:roleName,:userName);",
+        if (!_parent->m_sqlConnector->query("INSERT INTO iam_rolesAccounts (`f_roleName`,`f_accountName`) VALUES(:roleName,:accountName);",
         {
             {":roleName",MAKE_VAR(STRING,role)},
-            {":userName",MAKE_VAR(STRING,accountName)}
+            {":accountName",MAKE_VAR(STRING,accountName)}
         }))
         return false;
     }
     return true;
 }
 
-bool IdentityManager_DB::Users_DB::changeAccountFlags(const std::string &accountName, const AccountFlags &accountFlags)
+bool IdentityManager_DB::Accounts_DB::changeAccountFlags(const std::string &accountName, const AccountFlags &accountFlags)
 {
     Threads::Sync::Lock_RW lock(_parent->m_mutex);
 
-    if ((accountFlags.confirmed==false || accountFlags.enabled==false || accountFlags.superuser==false) && !isThereAnotherSuperUser(accountName))
+    if ((accountFlags.confirmed==false || accountFlags.enabled==false || accountFlags.admin==false) && !isThereAnotherAdmin(accountName))
     {
         return false;
     }
 
-    return _parent->m_sqlConnector->query("UPDATE iam_accounts SET `isEnabled`=:enabled,`isAccountConfirmed`=:confirmed,`isSuperuser`=:superuser WHERE `userName`=:userName;",
+    return _parent->m_sqlConnector->query("UPDATE iam_accounts SET `isEnabled`=:enabled,`isAccountConfirmed`=:confirmed,`isAdmin`=:admin WHERE `accountName`=:accountName;",
                                {
                                    {":enabled",MAKE_VAR(BOOL,accountFlags.enabled)},
                                    {":confirmed",MAKE_VAR(BOOL,accountFlags.confirmed)},
-                                   {":superuser",MAKE_VAR(BOOL,accountFlags.superuser)},
-                                   {":userName",MAKE_VAR(STRING,accountName)}
+                                   {":admin",MAKE_VAR(BOOL,accountFlags.admin)},
+                                   {":accountName",MAKE_VAR(STRING,accountName)}
                                });
 }
 
-AccountDetails IdentityManager_DB::Users_DB::getAccountDetails(const std::string &accountName)
+AccountDetails IdentityManager_DB::Accounts_DB::getAccountDetails(const std::string &accountName)
 {
     Threads::Sync::Lock_RD lock(_parent->m_mutex);
 
     // Definir las variables para capturar los valores de la base de datos
     Abstract::STRING creator;
-    Abstract::BOOL isSuperuser, isEnabled, isAccountConfirmed;
+    Abstract::BOOL isAdmin, isEnabled, isAccountConfirmed;
     Abstract::DATETIME creation, expiration;
 
     auto allFields = listAccountDetailFields();
@@ -208,16 +208,16 @@ AccountDetails IdentityManager_DB::Users_DB::getAccountDetails(const std::string
     AccountDetails details;
 
     {
-        std::shared_ptr<SQLConnector::QueryInstance> i = _parent->m_sqlConnector->qSelect("SELECT `isSuperuser`,`creation`, `creator`, `expiration`, `isEnabled`, `isAccountConfirmed` "
-                                                                                 "FROM iam_accounts WHERE `userName`=:userName LIMIT 1;",
-                                                                                 {{":userName", MAKE_VAR(STRING,accountName)}},
-                                                                                 {&isSuperuser, &creation, &creator, &expiration, &isEnabled, &isAccountConfirmed});
+        std::shared_ptr<SQLConnector::QueryInstance> i = _parent->m_sqlConnector->qSelect("SELECT `isAdmin`,`creation`, `creator`, `expiration`, `isEnabled`, `isAccountConfirmed` "
+                                                                                 "FROM iam_accounts WHERE `accountName`=:accountName LIMIT 1;",
+                                                                                 {{":accountName", MAKE_VAR(STRING,accountName)}},
+                                                                                 {&isAdmin, &creation, &creator, &expiration, &isEnabled, &isAccountConfirmed});
 
         if (i->getResultsOK() && i->query->step())
         {
             details.accountName = accountName;
             details.creator = creator.getValue();
-            details.accountFlags.superuser = isSuperuser.getValue();
+            details.accountFlags.admin = isAdmin.getValue();
             details.accountFlags.enabled = isEnabled.getValue();
             details.accountFlags.confirmed = isAccountConfirmed.getValue();
             details.expirationDate = expiration.getValue();
@@ -241,13 +241,13 @@ AccountDetails IdentityManager_DB::Users_DB::getAccountDetails(const std::string
     return details;
 }
 
-time_t IdentityManager_DB::Users_DB::getAccountExpirationTime(const std::string &accountName)
+time_t IdentityManager_DB::Accounts_DB::getAccountExpirationTime(const std::string &accountName)
 {
     Threads::Sync::Lock_RD lock(_parent->m_mutex);
 
     Abstract::DATETIME expiration;
-    std::shared_ptr<SQLConnector::QueryInstance> i = _parent->m_sqlConnector->qSelect("SELECT `expiration` FROM iam_accounts WHERE `userName`=:userName LIMIT 1;",
-                                          { {":userName",MAKE_VAR(STRING,accountName)} },
+    std::shared_ptr<SQLConnector::QueryInstance> i = _parent->m_sqlConnector->qSelect("SELECT `expiration` FROM iam_accounts WHERE `accountName`=:accountName LIMIT 1;",
+                                          { {":accountName",MAKE_VAR(STRING,accountName)} },
                                           { &expiration });
     if (i->getResultsOK() && i->query->step())
     {
@@ -257,14 +257,14 @@ time_t IdentityManager_DB::Users_DB::getAccountExpirationTime(const std::string 
     return 1;
 }
 
-time_t IdentityManager_DB::Users_DB::getAccountCreationTime(const std::string &accountName)
+time_t IdentityManager_DB::Accounts_DB::getAccountCreationTime(const std::string &accountName)
 {
     Threads::Sync::Lock_RD lock(_parent->m_mutex);
 
     Abstract::DATETIME creation;
     std::shared_ptr<SQLConnector::QueryInstance> i = _parent->m_sqlConnector->qSelect(
-        "SELECT `creation` FROM iam_accounts WHERE `userName`=:userName LIMIT 1;",
-        { {":userName", MAKE_VAR(STRING,accountName)} },
+        "SELECT `creation` FROM iam_accounts WHERE `accountName`=:accountName LIMIT 1;",
+        { {":accountName", MAKE_VAR(STRING,accountName)} },
         { &creation }
         );
 
@@ -276,22 +276,22 @@ time_t IdentityManager_DB::Users_DB::getAccountCreationTime(const std::string &a
     return std::numeric_limits<time_t>::max();
 }
 /*
-std::list<AccountDetails> IdentityManager_DB::Users_DB::searchAccounts(std::string sSearchWords, uint64_t limit, uint64_t offset)
+std::list<AccountDetails> IdentityManager_DB::Accounts_DB::searchAccounts(std::string sSearchWords, uint64_t limit, uint64_t offset)
 {
     std::list<AccountDetails> ret;
     Threads::Sync::Lock_RD lock(_parent->m_mutex);
 
     Abstract::STRING accountName;
-    Abstract::BOOL superuser,enabled,confirmed;
+    Abstract::BOOL admin,enabled,confirmed;
     Abstract::DATETIME expiration;
 
-    std::string sSqlQuery = "SELECT `userName`,`isSuperuser`,`isEnabled`,`expiration`,`isAccountConfirmed` FROM iam_accounts";
+    std::string sSqlQuery = "SELECT `accountName`,`isAdmin`,`isEnabled`,`expiration`,`isAccountConfirmed` FROM iam_accounts";
 
     if (!sSearchWords.empty())
     {
         sSearchWords = '%' + sSearchWords + '%';
         // TODO: this is the previous implementation, but now has to be compatible with the new database model
-        //sSqlQuery+=" WHERE (`userName` LIKE :SEARCHWORDS OR `givenName` LIKE :SEARCHWORDS OR `lastName` LIKE :SEARCHWORDS OR `email` LIKE :SEARCHWORDS OR `description` LIKE :SEARCHWORDS)";
+        //sSqlQuery+=" WHERE (`accountName` LIKE :SEARCHWORDS OR `givenName` LIKE :SEARCHWORDS OR `lastName` LIKE :SEARCHWORDS OR `email` LIKE :SEARCHWORDS OR `description` LIKE :SEARCHWORDS)";
     }
 
     if (limit)
@@ -305,14 +305,14 @@ std::list<AccountDetails> IdentityManager_DB::Users_DB::searchAccounts(std::stri
                                               {":LIMIT",MAKE_VAR(UINT64,limit)},
                                               {":OFFSET",MAKE_VAR(UINT64,offset)}
                                           },
-                                          { &accountName, &superuser, &enabled, &expiration, &confirmed });
+                                          { &accountName, &admin, &enabled, &expiration, &confirmed });
     while (i->getResultsOK() && i->query->step())
     {
         AccountDetails rDetail;
 
         rDetail.accountFlags.confirmed = confirmed.getValue();
         rDetail.accountFlags.enabled = enabled.getValue();
-        rDetail.accountFlags.superuser = superuser.getValue();
+        rDetail.accountFlags.admin = admin.getValue();
         rDetail.expired = !expiration.getValue()?false:expiration.getValue()<time(nullptr);
         rDetail.accountName = accountName.getValue();
         rDetail.fieldValues = getAccountDetailValues(accountName.getValue(), ACCOUNT_DETAILS_SEARCH);
@@ -331,21 +331,21 @@ std::list<AccountDetails> IdentityManager_DB::Users_DB::searchAccounts(std::stri
 }*/
 
 
-std::list<AccountDetails> IdentityManager_DB::Users_DB::searchAccounts(std::string sSearchWords, uint64_t limit, uint64_t offset)
+std::list<AccountDetails> IdentityManager_DB::Accounts_DB::searchAccounts(std::string sSearchWords, uint64_t limit, uint64_t offset)
 {
     std::list<AccountDetails> ret;
     Threads::Sync::Lock_RD lock(_parent->m_mutex);
 
     Abstract::STRING accountName;
-    Abstract::BOOL superuser, enabled, confirmed;
+    Abstract::BOOL admin, enabled, confirmed;
     Abstract::DATETIME expiration;
 
-    std::string sSqlQuery = "SELECT DISTINCT va.`userName`, va.`isSuperuser`, va.`isEnabled`, va.`expiration`, va.`isAccountConfirmed` FROM iam_accounts va";
+    std::string sSqlQuery = "SELECT DISTINCT va.`accountName`, va.`isAdmin`, va.`isEnabled`, va.`expiration`, va.`isAccountConfirmed` FROM iam_accounts va";
 
     if (!sSearchWords.empty())
     {
         sSearchWords = '%' + sSearchWords + '%';
-        sSqlQuery += " JOIN iam_accountDetailValues vadv ON va.`userName` = vadv.`f_username`";
+        sSqlQuery += " JOIN iam_accountDetailValues vadv ON va.`accountName` = vadv.`f_accountName`";
         sSqlQuery += " JOIN iam_accountDetailFields vadf ON vadv.`f_fieldName` = vadf.`fieldName`";
         sSqlQuery += " WHERE vadf.`includeInSearch` = 1 AND vadv.`value` LIKE :SEARCHWORDS";
     }
@@ -366,7 +366,7 @@ std::list<AccountDetails> IdentityManager_DB::Users_DB::searchAccounts(std::stri
             {":LIMIT", MAKE_VAR(UINT64,limit)},
             {":OFFSET", MAKE_VAR(UINT64,offset)}
         },
-        { &accountName, &superuser, &enabled, &expiration, &confirmed }
+        { &accountName, &admin, &enabled, &expiration, &confirmed }
         );
 
     while (i->getResultsOK() && i->query->step())
@@ -375,7 +375,7 @@ std::list<AccountDetails> IdentityManager_DB::Users_DB::searchAccounts(std::stri
 
         rDetail.accountFlags.confirmed = confirmed.getValue();
         rDetail.accountFlags.enabled = enabled.getValue();
-        rDetail.accountFlags.superuser = superuser.getValue();
+        rDetail.accountFlags.admin = admin.getValue();
         rDetail.expired = !expiration.getValue() ? false : expiration.getValue() < time(nullptr);
         rDetail.accountName = accountName.getValue();
         rDetail.fieldValues = getAccountDetailValues(accountName.getValue(), ACCOUNT_DETAILS_SEARCH);
@@ -397,13 +397,13 @@ std::list<AccountDetails> IdentityManager_DB::Users_DB::searchAccounts(std::stri
 
 
 
-std::set<std::string> IdentityManager_DB::Users_DB::listAccounts()
+std::set<std::string> IdentityManager_DB::Accounts_DB::listAccounts()
 {
     std::set<std::string> ret;
     Threads::Sync::Lock_RD lock(_parent->m_mutex);
 
     Abstract::STRING accountName;
-    std::shared_ptr<SQLConnector::QueryInstance> i = _parent->m_sqlConnector->qSelect("SELECT `userName` FROM iam_accounts;",
+    std::shared_ptr<SQLConnector::QueryInstance> i = _parent->m_sqlConnector->qSelect("SELECT `accountName` FROM iam_accounts;",
                                           { },
                                           { &accountName });
     while (i->getResultsOK() && i->query->step())
@@ -414,14 +414,14 @@ std::set<std::string> IdentityManager_DB::Users_DB::listAccounts()
     return ret;
 }
 
-std::set<std::string> IdentityManager_DB::Users_DB::getAccountRoles(const std::string &accountName, bool lock)
+std::set<std::string> IdentityManager_DB::Accounts_DB::getAccountRoles(const std::string &accountName, bool lock)
 {
     std::set<std::string> ret;
     if (lock) _parent->m_mutex.lockShared();
 
     Abstract::STRING role;
-    std::shared_ptr<SQLConnector::QueryInstance> i = _parent->m_sqlConnector->qSelect("SELECT `f_roleName` FROM iam_rolesAccounts WHERE `f_userName`=:userName;",
-                                          { {":userName",MAKE_VAR(STRING,accountName)} },
+    std::shared_ptr<SQLConnector::QueryInstance> i = _parent->m_sqlConnector->qSelect("SELECT `f_roleName` FROM iam_rolesAccounts WHERE `f_accountName`=:accountName;",
+                                          { {":accountName",MAKE_VAR(STRING,accountName)} },
                                           { &role });
     while (i->getResultsOK() && i->query->step())
     {
@@ -432,12 +432,12 @@ std::set<std::string> IdentityManager_DB::Users_DB::getAccountRoles(const std::s
     return ret;
 }
 
-bool IdentityManager_DB::Users_DB::hasSuperUserAccount()
+bool IdentityManager_DB::Accounts_DB::hasAdminAccount()
 {
     Threads::Sync::Lock_RD lock(_parent->m_mutex);
 
-    std::shared_ptr<SQLConnector::QueryInstance> i = _parent->m_sqlConnector->qSelect("SELECT `isSuperuser` FROM iam_accounts WHERE `isSuperuser`=:superuser LIMIT 1;",
-                                          { {":superuser",MAKE_VAR(BOOL,true)} },
+    std::shared_ptr<SQLConnector::QueryInstance> i = _parent->m_sqlConnector->qSelect("SELECT `isAdmin` FROM iam_accounts WHERE `isAdmin`=:admin LIMIT 1;",
+                                          { {":admin",MAKE_VAR(BOOL,true)} },
                                           { });
 
     if (i->getResultsOK() && i->query->step())
@@ -446,13 +446,13 @@ bool IdentityManager_DB::Users_DB::hasSuperUserAccount()
     return false;
 }
 
-bool IdentityManager_DB::Users_DB::isThereAnotherSuperUser(const std::string &accountName)
+bool IdentityManager_DB::Accounts_DB::isThereAnotherAdmin(const std::string &accountName)
 {
-    // Check if there is any superuser acount beside this "to be deleted" account...
-    std::shared_ptr<SQLConnector::QueryInstance> i = _parent->m_sqlConnector->qSelect("SELECT `isEnabled` FROM iam_accounts WHERE `userName`!=:userName and `isSuperuser`=:superUser and `isEnabled`=:enabled and `isAccountConfirmed`=:confirmed LIMIT 1;",
+    // Check if there is any admin acount beside this "to be deleted" account...
+    std::shared_ptr<SQLConnector::QueryInstance> i = _parent->m_sqlConnector->qSelect("SELECT `isEnabled` FROM iam_accounts WHERE `accountName`!=:accountName and `isAdmin`=:admin and `isEnabled`=:enabled and `isAccountConfirmed`=:confirmed LIMIT 1;",
                                           {
-                                              {":userName",MAKE_VAR(STRING,accountName)},
-                                              {":superUser",MAKE_VAR(BOOL,true)},
+                                              {":accountName",MAKE_VAR(STRING,accountName)},
+                                              {":admin",MAKE_VAR(BOOL,true)},
                                               {":enabled",MAKE_VAR(BOOL,true)},
                                               {":confirmed",MAKE_VAR(BOOL,true)}
                                           },
@@ -466,7 +466,7 @@ bool IdentityManager_DB::Users_DB::isThereAnotherSuperUser(const std::string &ac
 
 
 
-int32_t IdentityManager_DB::Users_DB::getAccountBlockTokenNoRenew(const std::string &accountName, std::string &token)
+int32_t IdentityManager_DB::Accounts_DB::getAccountBlockTokenNoRenew(const std::string &accountName, std::string &token)
 {
     auto authenticationPolicy = _parent->authController->getAuthenticationPolicy();
     Threads::Sync::Lock_RD lock(_parent->m_mutex);
@@ -474,7 +474,7 @@ int32_t IdentityManager_DB::Users_DB::getAccountBlockTokenNoRenew(const std::str
     Abstract::STRING blockToken;
     Abstract::DATETIME lastAccess;
 
-    std::shared_ptr<SQLConnector::QueryInstance> i = _parent->m_sqlConnector->qSelect("SELECT `blockToken`,`lastAccess` FROM iam_accountsBlockToken WHERE `f_userName`=:userName;", {{":userName", MAKE_VAR(STRING,accountName)}}, {&blockToken, &lastAccess});
+    std::shared_ptr<SQLConnector::QueryInstance> i = _parent->m_sqlConnector->qSelect("SELECT `blockToken`,`lastAccess` FROM iam_accountsBlockToken WHERE `f_accountName`=:accountName;", {{":accountName", MAKE_VAR(STRING,accountName)}}, {&blockToken, &lastAccess});
     if (i->getResultsOK() && i->query->step())
     {
         if (lastAccess.getValue() + authenticationPolicy.blockTokenTimeout > time(nullptr))
@@ -487,22 +487,22 @@ int32_t IdentityManager_DB::Users_DB::getAccountBlockTokenNoRenew(const std::str
     return -2;
 }
 
-void IdentityManager_DB::Users_DB::removeBlockToken(const std::string &accountName)
+void IdentityManager_DB::Accounts_DB::removeBlockToken(const std::string &accountName)
 {
     Threads::Sync::Lock_RW lock(_parent->m_mutex);
-    _parent->m_sqlConnector->query("DELETE FROM iam_accountsBlockToken WHERE `f_userName`=:userName;", {{":userName", MAKE_VAR(STRING,accountName)}});
+    _parent->m_sqlConnector->query("DELETE FROM iam_accountsBlockToken WHERE `f_accountName`=:accountName;", {{":accountName", MAKE_VAR(STRING,accountName)}});
 }
 
-void IdentityManager_DB::Users_DB::updateOrCreateBlockToken(const std::string &accountName)
+void IdentityManager_DB::Accounts_DB::updateOrCreateBlockToken(const std::string &accountName)
 {
     Threads::Sync::Lock_RW lock(_parent->m_mutex);
-    if (!_parent->m_sqlConnector->query("UPDATE iam_accountsBlockToken SET `lastAccess`=CURRENT_TIMESTAMP WHERE `f_userName`=:userName;", {{":userName", MAKE_VAR(STRING,accountName)}}))
+    if (!_parent->m_sqlConnector->query("UPDATE iam_accountsBlockToken SET `lastAccess`=CURRENT_TIMESTAMP WHERE `f_accountName`=:accountName;", {{":accountName", MAKE_VAR(STRING,accountName)}}))
     {
-        _parent->m_sqlConnector->query("INSERT INTO iam_accountsBlockToken (`f_userName`,`blockToken`) VALUES(:account,:blockToken);", {{":account", MAKE_VAR(STRING,accountName)}, {":blockToken", MAKE_VAR(STRING,_parent->authController->genRandomConfirmationToken())}});
+        _parent->m_sqlConnector->query("INSERT INTO iam_accountsBlockToken (`f_accountName`,`blockToken`) VALUES(:account,:blockToken);", {{":account", MAKE_VAR(STRING,accountName)}, {":blockToken", MAKE_VAR(STRING,_parent->authController->genRandomConfirmationToken())}});
     }
 }
 
-std::string IdentityManager_DB::Users_DB::getAccountBlockToken(const std::string &accountName)
+std::string IdentityManager_DB::Accounts_DB::getAccountBlockToken(const std::string &accountName)
 {
     std::string token;
     int32_t i = getAccountBlockTokenNoRenew(accountName, token);
@@ -532,7 +532,7 @@ std::string IdentityManager_DB::Users_DB::getAccountBlockToken(const std::string
     return "";
 }
 
-bool IdentityManager_DB::Users_DB::blockAccountUsingToken(const std::string &accountName, const std::string &blockToken)
+bool IdentityManager_DB::Accounts_DB::blockAccountUsingToken(const std::string &accountName, const std::string &blockToken)
 {
     std::string dbBlockToken;
     if (getAccountBlockTokenNoRenew(accountName, dbBlockToken) == 0)
@@ -546,7 +546,7 @@ bool IdentityManager_DB::Users_DB::blockAccountUsingToken(const std::string &acc
     return false;
 }
 
-bool IdentityManager_DB::Users_DB::addAccountDetailField(const std::string &fieldName, const AccountDetailField & details)
+bool IdentityManager_DB::Accounts_DB::addAccountDetailField(const std::string &fieldName, const AccountDetailField & details)
 {
     Threads::Sync::Lock_RW lock(_parent->m_mutex);
 
@@ -569,7 +569,7 @@ bool IdentityManager_DB::Users_DB::addAccountDetailField(const std::string &fiel
     return true;
 }
 
-bool IdentityManager_DB::Users_DB::removeAccountDetailField(const std::string &fieldName)
+bool IdentityManager_DB::Accounts_DB::removeAccountDetailField(const std::string &fieldName)
 {
     Threads::Sync::Lock_RW lock(_parent->m_mutex);
 
@@ -584,7 +584,7 @@ bool IdentityManager_DB::Users_DB::removeAccountDetailField(const std::string &f
     return true;
 }
 
-std::map<std::string, AccountDetailField> IdentityManager_DB::Users_DB::listAccountDetailFields()
+std::map<std::string, AccountDetailField> IdentityManager_DB::Accounts_DB::listAccountDetailFields()
 {
     Threads::Sync::Lock_RD lock(_parent->m_mutex);
 
@@ -622,23 +622,23 @@ std::map<std::string, AccountDetailField> IdentityManager_DB::Users_DB::listAcco
 
 
 
-bool IdentityManager_DB::Users_DB::changeAccountDetails(const std::string &accountName, const std::map<std::string, std::string> &fieldsValues, bool resetAllValues)
+bool IdentityManager_DB::Accounts_DB::changeAccountDetails(const std::string &accountName, const std::map<std::string, std::string> &fieldsValues, bool resetAllValues)
 {
     Threads::Sync::Lock_RW lock(_parent->m_mutex);
 
     if (resetAllValues)
     {
         // Delete all values for the specified account
-        _parent->m_sqlConnector->query("DELETE FROM iam_accountDetailValues WHERE `f_username` = :userName;",
-                                       {{":userName", MAKE_VAR(STRING,accountName)}});
+        _parent->m_sqlConnector->query("DELETE FROM iam_accountDetailValues WHERE `f_accountName` = :accountName;",
+                                       {{":accountName", MAKE_VAR(STRING,accountName)}});
     }
     else
     {
         // Delete only specified fields for the account
         for (const auto &field : fieldsValues)
         {
-            _parent->m_sqlConnector->query("DELETE FROM iam_accountDetailValues WHERE `f_username` = :userName AND `f_fieldName` = :fieldName;",
-                                           {{":userName", MAKE_VAR(STRING,accountName)},
+            _parent->m_sqlConnector->query("DELETE FROM iam_accountDetailValues WHERE `f_accountName` = :accountName AND `f_fieldName` = :fieldName;",
+                                           {{":accountName", MAKE_VAR(STRING,accountName)},
                                             {":fieldName", MAKE_VAR(STRING,field.first)}});
         }
     }
@@ -661,8 +661,8 @@ bool IdentityManager_DB::Users_DB::changeAccountDetails(const std::string &accou
         }
 
         // Inserting the validated value
-        if (!_parent->m_sqlConnector->query("INSERT INTO iam_accountDetailValues (`f_username`, `f_fieldName`, `value`) VALUES(:userName, :fieldName, :value);",
-                                            { {":userName", MAKE_VAR(STRING,accountName)},
+        if (!_parent->m_sqlConnector->query("INSERT INTO iam_accountDetailValues (`f_accountName`, `f_fieldName`, `value`) VALUES(:accountName, :fieldName, :value);",
+                                            { {":accountName", MAKE_VAR(STRING,accountName)},
                                              {":fieldName", MAKE_VAR(STRING,field.first)},
                                              {":value", MAKE_VAR(STRING,field.second)} }))
         {
@@ -673,15 +673,15 @@ bool IdentityManager_DB::Users_DB::changeAccountDetails(const std::string &accou
     return true;
 }
 
-bool IdentityManager_DB::Users_DB::removeAccountDetail(const std::string &accountName, const std::string &fieldName)
+bool IdentityManager_DB::Accounts_DB::removeAccountDetail(const std::string &accountName, const std::string &fieldName)
 {
     Threads::Sync::Lock_RW lock(_parent->m_mutex);
-    return _parent->m_sqlConnector->query("DELETE FROM iam_accountDetailValues WHERE `f_username` = :userName AND `f_fieldName` = :fieldName;",
-                                   {{":userName", MAKE_VAR(STRING,accountName)},
+    return _parent->m_sqlConnector->query("DELETE FROM iam_accountDetailValues WHERE `f_accountName` = :accountName AND `f_fieldName` = :fieldName;",
+                                   {{":accountName", MAKE_VAR(STRING,accountName)},
                                            {":fieldName", MAKE_VAR(STRING,fieldName)}});
 }
 
-std::map<std::string, std::string> IdentityManager_DB::Users_DB::getAccountDetailValues(const std::string &accountName, const AccountDetailsToShow &detailsToShow)
+std::map<std::string, std::string> IdentityManager_DB::Accounts_DB::getAccountDetailValues(const std::string &accountName, const AccountDetailsToShow &detailsToShow)
 {
     Threads::Sync::Lock_RD lock(_parent->m_mutex);
 
@@ -689,7 +689,7 @@ std::map<std::string, std::string> IdentityManager_DB::Users_DB::getAccountDetai
 
     Abstract::STRING fieldName, value;
 
-    std::string query = "SELECT vadv.`f_fieldName`, vadv.`value` FROM iam_accountDetailValues vadv JOIN iam_accountDetailFields vadf ON vadv.`f_fieldName` = vadf.`fieldName` WHERE vadv.`f_username` = :userName";
+    std::string query = "SELECT vadv.`f_fieldName`, vadv.`value` FROM iam_accountDetailValues vadv JOIN iam_accountDetailFields vadf ON vadv.`f_fieldName` = vadf.`fieldName` WHERE vadv.`f_accountName` = :accountName";
 
     switch (detailsToShow)
     {
@@ -710,7 +710,7 @@ std::map<std::string, std::string> IdentityManager_DB::Users_DB::getAccountDetai
 
     std::shared_ptr<SQLConnector::QueryInstance> i = _parent->m_sqlConnector->qSelect(
         query,
-        { {":userName", MAKE_VAR(STRING,accountName)} },
+        { {":accountName", MAKE_VAR(STRING,accountName)} },
         { &fieldName, &value }
         );
 

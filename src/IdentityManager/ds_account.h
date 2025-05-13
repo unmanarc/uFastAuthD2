@@ -38,11 +38,11 @@ struct AccountDetailField
 };
 struct AccountFlags
 {
-    AccountFlags(bool enabled, bool confirmed, bool superuser, bool blocked)
+    AccountFlags(bool enabled, bool confirmed, bool admin, bool blocked)
     {
         this->enabled = enabled;
         this->confirmed = confirmed;
-        this->superuser = superuser;
+        this->admin = admin;
         this->blocked = blocked;
     }
     AccountFlags() {}
@@ -52,7 +52,7 @@ struct AccountFlags
         Json::Value r;
         r["enabled"] = enabled;
         r["confirmed"] = confirmed;
-        r["superuser"] = superuser;
+        r["admin"] = admin;
         r["blocked"] = blocked;
         return r;
     }
@@ -61,14 +61,14 @@ struct AccountFlags
     {
         enabled = JSON_ASBOOL(r, "enabled", false);
         confirmed = JSON_ASBOOL(r, "confirmed", false);
-        superuser = JSON_ASBOOL(r, "superuser", false);
+        admin = JSON_ASBOOL(r, "admin", false);
         blocked = JSON_ASBOOL(r, "blocked", false);
     }
 
     bool blocked = false;
     bool enabled = false;
     bool confirmed = false;
-    bool superuser = false;
+    bool admin = false;
 };
 struct AccountDetails
 {

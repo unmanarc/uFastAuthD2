@@ -3,10 +3,10 @@
 
 #include "IdentityManager/credentialvalidator.h"
 
-#include "webadmin/webadmin_methods_accounts.h"
-#include "webadmin/webadmin_methods_applications.h"
-#include "webadmin/webadmin_methods_applicationspermissions.h"
-#include "webadmin/webadmin_methods_roles.h"
+#include "WebAdmin/webadmin_methods_accounts.h"
+#include "WebAdmin/webadmin_methods_applications.h"
+#include "WebAdmin/webadmin_methods_applicationspermissions.h"
+#include "WebAdmin/webadmin_methods_roles.h"
 #include <json/json.h>
 
 #include <Mantids30/API_RESTful/methodshandler.h>

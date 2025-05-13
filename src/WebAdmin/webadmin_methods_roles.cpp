@@ -8,7 +8,7 @@
 using namespace Mantids30::Program;
 using namespace Mantids30;
 
-using namespace Mantids30::Network::Protocols::HTTP;
+using namespace Mantids30::Network::Protocols;
 
 void WebAdminMethods_Roles::addMethods_Roles(
     std::shared_ptr<MethodsHandler> methods)
@@ -35,7 +35,7 @@ void WebAdminMethods_Roles::addRole(void *context, APIReturn &response, const Ma
 {
     if (!Globals::getIdentityManager()->roles->addRole(JSON_ASSTRING(*request.inputJSON,"roleName",""), JSON_ASSTRING(*request.inputJSON,"getRoleDescription","")))
     {
-        response.setError(Status::S_500_INTERNAL_SERVER_ERROR,"internal_error", "Internal Error");
+        response.setError(HTTP::Status::S_500_INTERNAL_SERVER_ERROR,"internal_error", "Internal Error");
     }
 }
 
@@ -43,7 +43,7 @@ void WebAdminMethods_Roles::removeRole(void *context, APIReturn &response, const
 {
     if (!Globals::getIdentityManager()->roles->removeRole(JSON_ASSTRING(*request.inputJSON,"roleName","")))
     {
-        response.setError(Status::S_500_INTERNAL_SERVER_ERROR,"internal_error", "Internal Error");
+        response.setError(HTTP::Status::S_500_INTERNAL_SERVER_ERROR,"internal_error", "Internal Error");
     }
 }
 
@@ -56,7 +56,7 @@ void WebAdminMethods_Roles::addAccountToRole(void *context, APIReturn &response,
 {
     if (!Globals::getIdentityManager()->roles->addAccountToRole(JSON_ASSTRING(*request.inputJSON,"roleName",""),JSON_ASSTRING(*request.inputJSON,"accountName","")))
     {
-        response.setError(Status::S_500_INTERNAL_SERVER_ERROR,"internal_error", "Internal Error");
+        response.setError(HTTP::Status::S_500_INTERNAL_SERVER_ERROR,"internal_error", "Internal Error");
     }
 }
 
@@ -64,7 +64,7 @@ void WebAdminMethods_Roles::removeAccountFromRole(void *context, APIReturn &resp
 {
     if (!Globals::getIdentityManager()->roles->removeAccountFromRole(JSON_ASSTRING(*request.inputJSON,"roleName",""),JSON_ASSTRING(*request.inputJSON,"accountName","")))
     {
-        response.setError(Status::S_500_INTERNAL_SERVER_ERROR,"internal_error", "Internal Error");
+        response.setError(HTTP::Status::S_500_INTERNAL_SERVER_ERROR,"internal_error", "Internal Error");
     }
 }
 
@@ -72,7 +72,7 @@ void WebAdminMethods_Roles::updateRoleDescription(void *context, APIReturn &resp
 {
     if (!Globals::getIdentityManager()->roles->updateRoleDescription(JSON_ASSTRING(*request.inputJSON,"roleName",""),JSON_ASSTRING(*request.inputJSON,"getRoleDescription","")))
     {
-        response.setError(Status::S_500_INTERNAL_SERVER_ERROR,"internal_error", "Internal Error");
+        response.setError(HTTP::Status::S_500_INTERNAL_SERVER_ERROR,"internal_error", "Internal Error");
     }
 }
 
@@ -132,7 +132,7 @@ void WebAdminMethods_Roles::getRoleInfo(void *context, APIReturn &response, cons
 
     for (const auto & accountName : roleAccounts)
     {
-        auto getAccountDetails = Globals::getIdentityManager()->users->getAccountDetails(accountName);
+        auto getAccountDetails = Globals::getIdentityManager()->accounts->getAccountDetails(accountName);
         payloadOut["accounts"][i]["name"] = accountName;
 /*        payloadOut["accounts"][i]["description"] = getAccountDetails.description;
         payloadOut["accounts"][i]["lastName"] = getAccountDetails.lastName;

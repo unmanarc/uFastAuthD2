@@ -76,10 +76,10 @@ target_link_libraries(${APP_NAME} ${OPENSSL_STATIC_LDFLAGS})
 ################################################################################
 # List of Mantids30 libraries to link against
 set(Mantids30_LIBRARIES
+    Mantids30_Server_WebCore
     Mantids30_Server_RESTfulWebAPI
     Mantids30_API_RESTful
     Mantids30_API_Monolith
-    Mantids30_Server_WebCore
     Mantids30_Sessions
     Mantids30_DB
     Mantids30_DB_SQLite3
@@ -90,9 +90,10 @@ set(Mantids30_LIBRARIES
     Mantids30_Memory
     Mantids30_Program_Service
     Mantids30_Program_Logs
-    Mantids30_Program_Config
+    Mantids30_Config_Builder
     Mantids30_Helpers
     Mantids30_DataFormat_JWT
+    Mantids30_Protocol_FastRPC1
 )
 
 set(ENV{PKG_CONFIG_PATH} "/home/coding/Devel/ROOT/share/pkgconfig:$ENV{PKG_CONFIG_PATH}")

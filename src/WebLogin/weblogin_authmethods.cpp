@@ -10,7 +10,6 @@
 #include <Mantids30/Protocol_HTTP/rsp_status.h>
 
 #include <boost/algorithm/string.hpp>
-#include <inttypes.h>
 #include <json/value.h>
 #include <string>
 
@@ -19,9 +18,10 @@
 #include "IdentityManager/ds_authentication.h"
 
 using namespace Mantids30;
-using namespace Program;
-using namespace API::RESTful;
-using namespace Network::Protocols::HTTP;
+using namespace Mantids30::Program;
+using namespace Mantids30::API::RESTful;
+using namespace Mantids30::Network::Protocols;
+using namespace Mantids30::DataFormat;
 
 std::regex WebLogin_AuthMethods::originPattern = std::regex("^(https?://[^/]+)");
 
@@ -31,14 +31,21 @@ void WebLogin_AuthMethods::addMethods(std::shared_ptr<MethodsHandler> methods)
 
     // AUTHENTICATION FUNCTIONS:
 
+    // Web triggered events:
+    methods->addResource(MethodsHandler::POST, "webapp/auth/logout", &appLogout, nullptr, SecurityOptions::NO_AUTH, {});
+    methods->addResource(MethodsHandler::POST, "webapp/auth/token", &token, nullptr, SecurityOptions::NO_AUTH, {});
+    methods->addResource(MethodsHandler::POST, "webapp/auth/refreshAccessToken", &refreshAccessToken, nullptr, SecurityOptions::NO_AUTH, {});
+    methods->addResource(MethodsHandler::POST, "webapp/auth/refreshRefresherToken", &refreshRefresherToken, nullptr, SecurityOptions::NO_AUTH, {});
+
+    // TODO: cuando requiere REQUIRE_JWT_COOKIE_AUTH implica que necesita validar que la aplicación sea la correcta (configurada)
+
     // The Login does not need previous authentication:
-    methods->addResource(MethodsHandler::POST, "preAuthorize", &preAuthorize, nullptr, SecurityOptions::NO_AUTH, {});
-    methods->addResource(MethodsHandler::POST, "authorize", &authorize, nullptr, SecurityOptions::NO_AUTH, {});
-    methods->addResource(MethodsHandler::POST, "token", &token, nullptr, SecurityOptions::NO_AUTH, {});
-    methods->addResource(MethodsHandler::POST, "logout", &logout, nullptr, SecurityOptions::NO_AUTH, {});
+    methods->addResource(MethodsHandler::POST, "preAuthorize", &preAuthorize,   nullptr, SecurityOptions::NO_AUTH, {});
+    methods->addResource(MethodsHandler::POST, "authorize",    &authorize,      nullptr, SecurityOptions::NO_AUTH, {});
+    methods->addResource(MethodsHandler::POST, "logout",       &logout,         nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {});
 
     // Account registration:
-    methods->addResource(MethodsHandler::POST, "registerAccount", &registerAccount, nullptr, SecurityOptions::NO_AUTH, {});
+    //methods->addResource(MethodsHandler::POST, "registerAccount", &registerAccount, nullptr, SecurityOptions::NO_AUTH, {});
 
     // When requested by an external webste, no CSRF challenge could be sent by an external website... So your access token will be used to authenticate the refreshal...
     // In this premise, the refresher cookie is not know by your website (so if your website leaks the data),
@@ -49,21 +56,44 @@ void WebLogin_AuthMethods::addMethods(std::shared_ptr<MethodsHandler> methods)
     //   and... what you can do is: to validate the origin/referer.
 
     // Post-authenticated API:
-    methods->addResource(MethodsHandler::POST, "retokenize", &retokenize, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {});
-    methods->addResource(MethodsHandler::POST, "getApplicationAuthCallbackURI", &getApplicationAuthCallbackURI, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {});
-
-    methods->addResource(MethodsHandler::POST, "refreshAccessToken", &refreshAccessToken, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {});
-    methods->addResource(MethodsHandler::POST, "refreshRefresherToken", &refreshRefresherToken, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {});
+    //methods->addResource(MethodsHandler::POST, "retokenize", &retokenize, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {});
     // The change credential dialog/html needs to send the CSRF challenge:
     methods->addResource(MethodsHandler::POST, "changeCredential", &changeCredential, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {});
     methods->addResource(MethodsHandler::POST, "listCredentials", &listCredentials, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {});
     methods->addResource(MethodsHandler::POST, "accountCredentialPublicData", &accountCredentialPublicData, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {});
 
     // Temporal tokens are also given trough an intermediate window...
-    methods->addResource(MethodsHandler::POST, "tempMFAToken", &tempMFAToken, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {});
+    //methods->addResource(MethodsHandler::POST, "tempMFAToken", &tempMFAToken, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {});
     //    methods->addResource("addAccount",{&addAccount,auth});
 }
 
+bool WebLogin_AuthMethods::validateAPIKey(
+    const std::string &app, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Sessions::ClientDetails &authClientDetails)
+{
+    IdentityManager *identityManager = Globals::getIdentityManager();
+
+    // Check if the token generation is called within the app context:
+    std::string apiKey = request.clientRequest->headers.getOptionValueStringByName("x-api-key");
+
+    // Check if the token generation is called within the app context:
+    std::string dbApiKey = identityManager->applications->getApplicationAPIKey(app);
+
+    if (dbApiKey.empty())
+    {
+        LOG_APP->log2(__func__, request.jwtToken->getSubject(), authClientDetails.ipAddress, Logs::LEVEL_SECURITY_ALERT, "Application '%s' does not exist. Pre-Auth JWT Token signature may be compromised!! Change immediately!", app.c_str());
+        response.setError(HTTP::Status::S_400_BAD_REQUEST, "AUTH_ERR_" + std::to_string(REASON_BAD_PARAMETERS), getReasonText(REASON_BAD_PARAMETERS));
+        return false;
+    }
+
+    if (dbApiKey != apiKey)
+    {
+        LOG_APP->log2(__func__, request.jwtToken->getSubject(), authClientDetails.ipAddress, Logs::LEVEL_SECURITY_ALERT, "Application '%s' does not match the web application API Key. Attack or misconfiguration?", app.c_str());
+        response.setError(HTTP::Status::S_404_NOT_FOUND, "not_found", "Not Found.");
+        return false;
+    }
+
+    return true;
+}
 
 std::set<uint32_t> WebLogin_AuthMethods::getSlotIdsFromJSON(const json &input)
 {
@@ -81,23 +111,23 @@ std::set<uint32_t> WebLogin_AuthMethods::getSlotIdsFromJSON(const json &input)
     return slotIds;
 }
 
-json WebLogin_AuthMethods::getAccountDetails(IdentityManager *identityManager, const std::string &userId)
+json WebLogin_AuthMethods::getAccountDetails(IdentityManager *identityManager, const std::string &accountName)
 {
     json accountInfo;
 
-    accountInfo = identityManager->users->getAccountDetails(userId).toJSON();
+    accountInfo = identityManager->accounts->getAccountDetails(accountName).toJSON();
 
     return accountInfo;
 }
 
 void WebLogin_AuthMethods::configureAccessToken(
-    Mantids30::DataFormat::JWT::Token &accessToken, IdentityManager *identityManager, const std::string &refreshTokenId, const std::string &jwtUserId, const std::string &appName, const ApplicationTokenProperties &tokenProperties, const std::set<uint32_t> &slotIds)
+    JWT::Token &accessToken, IdentityManager *identityManager, const std::string &refreshTokenId, const std::string &jwtAccountName, const std::string &appName, const ApplicationTokenProperties &tokenProperties, const std::set<uint32_t> &slotIds)
 {
     auto tokenId = Mantids30::Helpers::Random::createRandomString(16);
-    accessToken.setSubject(jwtUserId);
+    accessToken.setSubject(jwtAccountName);
     accessToken.setIssuedAt(time(nullptr));
     auto expectedExpirationTime = time(nullptr) + tokenProperties.accessTokenTimeout;
-    auto accountExpirationTime = identityManager->users->getAccountExpirationTime(jwtUserId);
+    auto accountExpirationTime = identityManager->accounts->getAccountExpirationTime(jwtAccountName);
 
     if (accountExpirationTime==0 || accountExpirationTime>=expectedExpirationTime)
     {
@@ -118,9 +148,9 @@ void WebLogin_AuthMethods::configureAccessToken(
     accessToken.addClaim("app", appName);
 
     // Get the user permissions if needed for this application...
-    if (tokenProperties.includeApplicationPermissionsInToken)
+    if (tokenProperties.includeApplicationPermissions)
     {
-        auto x = identityManager->authController->getAccountUsableApplicationPermissions(jwtUserId);
+        auto x = identityManager->authController->getAccountUsableApplicationPermissions(jwtAccountName);
         for (const auto &i : x)
         {
             if (i.appName == appName)
@@ -130,31 +160,58 @@ void WebLogin_AuthMethods::configureAccessToken(
         }
     }
     // Get the user basic info if needed for this application...
-    if (tokenProperties.includeBasicUserInfoInToken)
+    if (tokenProperties.includeBasicAccountInfo)
     {
-        accessToken.addClaim("accountInfo", getAccountDetails(identityManager, jwtUserId));
+        accessToken.addClaim("accountInfo", getAccountDetails(identityManager, jwtAccountName));
     }
 
-    if (identityManager->users->getAccountFlags(jwtUserId).superuser)
+    if (identityManager->accounts->getAccountFlags(jwtAccountName).admin)
         accessToken.addClaim("isAdmin", true);
 }
 
-void WebLogin_AuthMethods::configureRefresherToken(APIReturn &response,
+void WebLogin_AuthMethods::configureRefreshToken(
+    JWT::Token &refreshToken, IdentityManager *identityManager, const std::string &refreshTokenId, const std::string &jwtAccountName, const std::string &appName, const ApplicationTokenProperties &tokenProperties, const std::set<uint32_t> &slotIds)
+{
+    refreshToken.setSubject(jwtAccountName);
+    refreshToken.setIssuedAt(time(nullptr));
+
+    auto expectedExpirationTime = time(nullptr) + tokenProperties.refreshTokenTimeout;
+    auto accountExpirationTime = identityManager->accounts->getAccountExpirationTime(jwtAccountName);
+
+    if (accountExpirationTime==0 || accountExpirationTime>=expectedExpirationTime)
+    {
+        // We can safely use the expected token expiration time
+        refreshToken.setExpirationTime(expectedExpirationTime);
+    }
+    else
+    {
+        // The account expires before, so the tokens need to expire before:
+        refreshToken.setExpirationTime(accountExpirationTime);
+    }
+
+    refreshToken.setNotBefore(time(nullptr) - 30);
+    refreshToken.addClaim("slotIds", Mantids30::Helpers::setToJSON(slotIds));
+    refreshToken.setJwtId(refreshTokenId);
+    refreshToken.addClaim("app", appName);
+    refreshToken.addClaim("refresher", true);
+}
+
+void WebLogin_AuthMethods::configureIAMAccessToken(APIReturn &response,
                                                    const RequestParameters &request,
                                                    IdentityManager *identityManager,
                                                    const std::string &refreshTokenId,
-                                                   const std::string &userId,
+                                                   const std::string &accountName,
                                                    const std::set<uint32_t> &currentAuthenticatedSlotIds)
 {
  //   json *jOutput = response.body->getValue();
 
     // TODO: multi-app login, si ya estabas logeado con otra app, entonces debes fusionar los tokens...
 
-    DataFormat::JWT::Token refresherToken;
-    auto accountExpirationTime = identityManager->users->getAccountExpirationTime(userId);
+    JWT::Token refresherToken;
+    auto accountExpirationTime = identityManager->accounts->getAccountExpirationTime(accountName);
     uint32_t expectedRefresherTokenTimeoutTime = time(nullptr) + Globals::getConfig()->get<uint32_t>("WebLoginService.RefreshTokenTimeout", 2592000);
 
-    refresherToken.setSubject(userId);
+    refresherToken.setSubject(accountName);
     refresherToken.setIssuedAt(time(nullptr));
     refresherToken.setExpirationTime((accountExpirationTime < expectedRefresherTokenTimeoutTime && accountExpirationTime!=0) ? accountExpirationTime : expectedRefresherTokenTimeoutTime);
     refresherToken.setNotBefore(time(nullptr) - 30);
@@ -165,13 +222,13 @@ void WebLogin_AuthMethods::configureRefresherToken(APIReturn &response,
     std::string sAuthToken = request.jwtSigner->signFromToken(refresherToken, false);
 
     // Keep the auth refresher token here:
-    response.cookiesMap["AccessToken"] = Headers::Cookie();
+    response.cookiesMap["AccessToken"] = HTTP::Headers::Cookie();
     response.cookiesMap["AccessToken"].setExpiration( refresherToken.getExpirationTime() );
     response.cookiesMap["AccessToken"].secure = true;
     response.cookiesMap["AccessToken"].httpOnly = true;
     response.cookiesMap["AccessToken"].value = sAuthToken ;
 
-    response.cookiesMap["loggedIn"] = Headers::Cookie();
+    response.cookiesMap["loggedIn"] = HTTP::Headers::Cookie();
     response.cookiesMap["loggedIn"].setExpiration( refresherToken.getExpirationTime() );
     response.cookiesMap["loggedIn"].secure = true;
     response.cookiesMap["loggedIn"].httpOnly = false;
@@ -179,11 +236,11 @@ void WebLogin_AuthMethods::configureRefresherToken(APIReturn &response,
     response.cookiesMap["loggedIn"].value = std::to_string(refresherToken.getExpirationTime()) ;
 }
 
-bool WebLogin_AuthMethods::validateAccountForNewToken(IdentityManager *identityManager, const std::string &jwtUserId, Reason &reason, const std::string &appName, bool checkValidAppAccount)
+bool WebLogin_AuthMethods::validateAccountForNewToken(IdentityManager *identityManager, const std::string &jwtAccountName, Reason &reason, const std::string &appName, bool checkValidAppAccount)
 {
     // First, check if the account is disabled, unconfirmed, or expired.
 
-    auto accountFlags = identityManager->users->getAccountFlags(jwtUserId);
+    auto accountFlags = identityManager->accounts->getAccountFlags(jwtAccountName);
 
     if (!accountFlags.enabled)
     {
@@ -195,14 +252,14 @@ bool WebLogin_AuthMethods::validateAccountForNewToken(IdentityManager *identityM
         reason = Reason::REASON_UNCONFIRMED_ACCOUNT;
         return false;
     }
-    else if (identityManager->users->isAccountExpired(jwtUserId))
+    else if (identityManager->accounts->isAccountExpired(jwtAccountName))
     {
         reason = Reason::REASON_EXPIRED_ACCOUNT;
         return false;
     }
 
     // If checkValidAppAccount is true, check if the account is valid for the specified application.
-    if (checkValidAppAccount && !identityManager->applications->validateApplicationAccount(appName, jwtUserId))
+    if (checkValidAppAccount && !identityManager->applications->validateApplicationAccount(appName, jwtAccountName))
     {
         reason = Reason::REASON_BAD_ACCOUNT;
         return false;
@@ -211,26 +268,21 @@ bool WebLogin_AuthMethods::validateAccountForNewToken(IdentityManager *identityM
     // If all checks pass, the account is valid for refreshing the token.
     return true;
 }
-std::string WebLogin_AuthMethods::signAccessToken(Mantids30::DataFormat::JWT::Token &accessToken, const ApplicationTokenProperties &tokenProperties, const std::string &appName)
+
+std::string WebLogin_AuthMethods::signApplicationToken(JWT::Token &accessToken, const ApplicationTokenProperties &tokenProperties)
 {
-    DataFormat::JWT::AlgorithmDetails algorithmDetails(tokenProperties.tokenType.c_str());
-    DataFormat::JWT jwtAccessSigner(algorithmDetails.algorithm);
-    auto signingKey = Globals::getIdentityManager()->applications->getWebLoginJWTSigningKeyForApplication(appName);
-
-    if (algorithmDetails.isUsingHMAC)
+    std::string appName = JSON_ASSTRING_D(accessToken.getClaim("app"),"");
+    auto signingJWT = Globals::getIdentityManager()->applications->getAppJWTSigner(appName);
+    if (!signingJWT)
     {
-        jwtAccessSigner.setSharedSecret(signingKey);
+        return std::string();
     }
-    else
-    {
-        jwtAccessSigner.setPrivateSecret(signingKey);
-    }
-
-    return jwtAccessSigner.signFromToken(accessToken, false);
+    return signingJWT->signFromToken(accessToken, false);
 }
 
-// Handle personalized login forrms:
-Status::eRetCode WebLogin_AuthMethods::handleLoginDynamicRequest(const std::string &appName, HTTPv1_Base::Request *request, HTTPv1_Base::Response *response)
+
+// Handle personalized login forms:
+HTTP::Status::Codes WebLogin_AuthMethods::handleLoginDynamicRequest(const std::string &appName, HTTPv1_Base::Request *request, HTTPv1_Base::Response *response, std::shared_ptr<void>)
 {
     std::string page;
     auto status = Globals::getLoginDirManager()->retrieveFile(appName, page);
@@ -242,13 +294,13 @@ Status::eRetCode WebLogin_AuthMethods::handleLoginDynamicRequest(const std::stri
     {
         LOG_APP->log2(__func__, "", request->networkClientInfo.REMOTE_ADDR, Logs::LEVEL_SECURITY_ALERT, "Not allowed origin '%s' for application '%s'", currentOrigin.c_str(), appName.c_str());
 
-        return Status::S_403_FORBIDDEN;
+        return HTTP::Status::S_403_FORBIDDEN;
     }
 
     if (status != LoginDirectoryManager::ErrorCode::SUCCESS)
     {
         LOG_APP->log2(__func__, "", request->networkClientInfo.REMOTE_ADDR, Logs::LEVEL_WARN, "Failed to obtain the HTML for application '%s': %s", appName.c_str(), LoginDirectoryManager::getErrorMessage(status).c_str());
-        return Status::S_404_NOT_FOUND;
+        return HTTP::Status::S_404_NOT_FOUND;
     }
 
 
@@ -257,29 +309,29 @@ Status::eRetCode WebLogin_AuthMethods::handleLoginDynamicRequest(const std::stri
     response->content.writer()->writeString(page);
     response->setContentType("text/html");
 
-    return Status::S_200_OK;
+    return HTTP::Status::S_200_OK;
 }
-
+/*
 
 // Handle the retokenization HTML.
-Status::eRetCode WebLogin_AuthMethods::handleRetokenizeHTMLDynamicRequest(
-    const std::string &internalPath, HTTPv1_Base::Request *request, HTTPv1_Base::Response *response)
+HTTP::Status::Codes WebLogin_AuthMethods::handleRetokenizeHTMLDynamicRequest(
+    const std::string &internalPath, HTTPv1_Base::Request *request, HTTPv1_Base::Response *response, std::shared_ptr<void>)
 {
     // TODO: security: sanitize appName in DB, so you can't use escapes in the HTML ;)
 
-    /*
-    scheme:
 
-        webapp -> ( https://IAM/retokenizeHTML/?app=... ) via iframe (checking the origin on destination, it's a valid app+origin?)
-        HTML( https://IAM/retokenizeHTML/?app=... ) -> https://IAM/api/v1/retokenize via AJAX returning back the app callback endpoint.
-        HTML( https://IAM/retokenizeHTML/?app=... ) -> app callback endpoint (eg. webapp/api/auth/callback) via FORM POST injecting the token
-        webapp/api/auth/callback called with #retokenize won't go anywhere (maybe must close the parent iframe to prevent anything)
+    // scheme:
 
-        TODO: what if retokenization fails and not logged in... must redirect to the auth size (maybe using a floating window on this case?)
-    */
+    //     webapp -> ( https://IAM/retokenizeHTML/?app=... ) via iframe (checking the origin on destination, it's a valid app+origin?)
+    //     HTML( https://IAM/retokenizeHTML/?app=... ) -> https://IAM/api/v1/retokenize via AJAX returning back the app callback endpoint.
+    //     HTML( https://IAM/retokenizeHTML/?app=... ) -> app callback endpoint (eg. webapp/api/auth/callback) via FORM POST injecting the token
+    //     webapp/api/auth/callback called with #retokenize won't go anywhere (maybe must close the parent iframe to prevent anything)
+
+    //     TODO: what if retokenization fails and not logged in... must redirect to the auth size (maybe using a floating window on this case?)
+
 
     // GET Input.
-    std::string appName = request->getVars(HTTPv1_Base::HTTP_VARS_GET)->getTValue<std::string>("app","");
+    std::string appName = request->getVars(HTTP::VARS_GET)->getTValue<std::string>("app","");
 
     // Origin.
     bool originValidated = retrieveAndValidateAppOrigin(request, appName,USING_HEADER_REFERER);
@@ -292,12 +344,12 @@ Status::eRetCode WebLogin_AuthMethods::handleRetokenizeHTMLDynamicRequest(
     {
         LOG_APP->log2(__func__, "", request->networkClientInfo.REMOTE_ADDR, Logs::LEVEL_SECURITY_ALERT, "Not allowed origin '%s' for application '%s' during retokenization", currentOrigin.c_str(), appName.c_str());
 
-        return Status::S_403_FORBIDDEN;
+        return HTTP::Status::S_403_FORBIDDEN;
     }
 
     return retokenizeUsingJS(response,appName);
 }
-
+*/
 
 bool WebLogin_AuthMethods::retrieveAndValidateAppOrigin(HTTPv1_Base::Request *request, const std::string &appName, const OriginSource &originSource)
 {
@@ -331,7 +383,7 @@ bool WebLogin_AuthMethods::retrieveAndValidateAppOrigin(HTTPv1_Base::Request *re
     return originValidated;
 }
 
-Status::eRetCode WebLogin_AuthMethods::retokenizeUsingJS(HTTPv1_Base::Response *response, const std::string &appName)
+HTTP::Status::Codes WebLogin_AuthMethods::retokenizeUsingJS(HTTPv1_Base::Response *response, const std::string &appName)
 {
     response->content.getStreamableObj()->strPrintf(
 R"(<!DOCTYPE html>
@@ -384,7 +436,7 @@ R"(<!DOCTYPE html>
     </script>
 </body>
 </html>)", appName.c_str());
-    return Mantids30::Network::Protocols::HTTP::Status::S_200_OK;
+    return HTTP::Status::S_200_OK;
 }
 
 // TODO: entregar una tabla de los slotIds que requiere una permission específico...

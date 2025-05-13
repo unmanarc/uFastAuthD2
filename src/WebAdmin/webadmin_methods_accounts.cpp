@@ -10,37 +10,37 @@
 
 using namespace Mantids30::Program;
 using namespace Mantids30;
-using namespace Mantids30::Network::Protocols::HTTP;
+using namespace Mantids30::Network::Protocols;
 
 void WebAdminMethods_Accounts::addMethods_Accounts(std::shared_ptr<MethodsHandler> methods)
 {
     using SecurityOptions = Mantids30::API::RESTful::MethodsHandler::SecurityOptions;
 
     // Accounts
-    methods->addResource(MethodsHandler::POST, "addAccount", &addAccount, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"USER_MODIFY"});
-    methods->addResource(MethodsHandler::POST, "changeAccountExpiration", &changeAccountExpiration, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"USER_MODIFY"});
-    methods->addResource(MethodsHandler::POST, "changeCredential", &changeCredential, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"USER_PWDDCHANGE"});
-    methods->addResource(MethodsHandler::POST, "confirmAccount", &confirmAccount, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"USER_MODIFY"});
-    methods->addResource(MethodsHandler::POST, "disableAccount", &disableAccount, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"USER_DISABLE"});
-    methods->addResource(MethodsHandler::GET, "doesAccountExist", &doesAccountExist, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"USER_READ"});
-    methods->addResource(MethodsHandler::GET, "getAccountBlockToken", &getAccountBlockToken, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"USER_MODIFY"});
-    methods->addResource(MethodsHandler::GET, "getAccountDirectApplicationPermissions", &getAccountDirectApplicationPermissions, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"USER_READ"});
-    methods->addResource(MethodsHandler::GET, "getAccountDetails", &getAccountDetails, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"USER_READ"});
-    methods->addResource(MethodsHandler::GET, "getAccountExpirationTime", &getAccountExpirationTime, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"USER_READ"});
-    methods->addResource(MethodsHandler::GET, "getAccountFlags", &getAccountFlags, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"USER_READ"});
-    methods->addResource(MethodsHandler::GET, "getAccountInfo", &getAccountInfo, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"USER_READ"});
-    methods->addResource(MethodsHandler::GET, "getAccountLastLogin", &getAccountLastLogin, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"USER_READ"});
-    methods->addResource(MethodsHandler::GET, "getAccountRoles", &getAccountRoles, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"USER_READ"});
-    methods->addResource(MethodsHandler::GET, "getAccountUsableApplicationPermissions", &getAccountUsableApplicationPermissions, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"USER_READ"});
-    methods->addResource(MethodsHandler::GET, "isAccountExpired", &isAccountExpired, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"USER_READ"});
-    methods->addResource(MethodsHandler::GET, "listAccounts", &listAccounts, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"USER_READ"});
-    methods->addResource(MethodsHandler::POST, "removeAccount", &removeAccount, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"USER_DELETE"});
-    methods->addResource(MethodsHandler::POST, "resetBadAttemptsOnCredential", &resetBadAttemptsOnCredential, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"USER_MODIFY"});
-    methods->addResource(MethodsHandler::GET, "searchAccounts", &searchAccounts, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"USER_READ"});
-    methods->addResource(MethodsHandler::POST, "updateAccountInfo", &updateAccountInfo, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"USER_MODIFY"});
-    methods->addResource(MethodsHandler::POST, "updateAccountRoles", &updateAccountRoles, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"USER_MODIFY"});
-    methods->addResource(MethodsHandler::GET, "validateAccountApplicationPermission", &validateAccountApplicationPermission, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"USER_READ"});
-    methods->addResource(MethodsHandler::POST, "blockAccountUsingToken", &blockAccountUsingToken, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"USER_MODIFY"});
+    methods->addResource(MethodsHandler::POST, "addAccount", &addAccount, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"ACCOUNT_MODIFY"});
+    methods->addResource(MethodsHandler::POST, "changeAccountExpiration", &changeAccountExpiration, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"ACCOUNT_MODIFY"});
+    methods->addResource(MethodsHandler::POST, "changeCredential", &changeCredential, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"ACCOUNT_PWDDCHANGE"});
+    methods->addResource(MethodsHandler::POST, "confirmAccount", &confirmAccount, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"ACCOUNT_MODIFY"});
+    methods->addResource(MethodsHandler::POST, "disableAccount", &disableAccount, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"ACCOUNT_DISABLE"});
+    methods->addResource(MethodsHandler::GET, "doesAccountExist", &doesAccountExist, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"ACCOUNT_READ"});
+    methods->addResource(MethodsHandler::GET, "getAccountBlockToken", &getAccountBlockToken, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"ACCOUNT_MODIFY"});
+    methods->addResource(MethodsHandler::GET, "getAccountDirectApplicationPermissions", &getAccountDirectApplicationPermissions, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"ACCOUNT_READ"});
+    methods->addResource(MethodsHandler::GET, "getAccountDetails", &getAccountDetails, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"ACCOUNT_READ"});
+    methods->addResource(MethodsHandler::GET, "getAccountExpirationTime", &getAccountExpirationTime, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"ACCOUNT_READ"});
+    methods->addResource(MethodsHandler::GET, "getAccountFlags", &getAccountFlags, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"ACCOUNT_READ"});
+    methods->addResource(MethodsHandler::GET, "getAccountInfo", &getAccountInfo, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"ACCOUNT_READ"});
+    methods->addResource(MethodsHandler::GET, "getAccountLastLogin", &getAccountLastLogin, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"ACCOUNT_READ"});
+    methods->addResource(MethodsHandler::GET, "getAccountRoles", &getAccountRoles, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"ACCOUNT_READ"});
+    methods->addResource(MethodsHandler::GET, "getAccountUsableApplicationPermissions", &getAccountUsableApplicationPermissions, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"ACCOUNT_READ"});
+    methods->addResource(MethodsHandler::GET, "isAccountExpired", &isAccountExpired, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"ACCOUNT_READ"});
+    methods->addResource(MethodsHandler::GET, "listAccounts", &listAccounts, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"ACCOUNT_READ"});
+    methods->addResource(MethodsHandler::POST, "removeAccount", &removeAccount, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"ACCOUNT_DELETE"});
+    methods->addResource(MethodsHandler::POST, "resetBadAttemptsOnCredential", &resetBadAttemptsOnCredential, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"ACCOUNT_MODIFY"});
+    methods->addResource(MethodsHandler::GET, "searchAccounts", &searchAccounts, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"ACCOUNT_READ"});
+    methods->addResource(MethodsHandler::POST, "updateAccountInfo", &updateAccountInfo, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"ACCOUNT_MODIFY"});
+    methods->addResource(MethodsHandler::POST, "updateAccountRoles", &updateAccountRoles, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"ACCOUNT_MODIFY"});
+    methods->addResource(MethodsHandler::GET, "validateAccountApplicationPermission", &validateAccountApplicationPermission, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"ACCOUNT_READ"});
+    methods->addResource(MethodsHandler::POST, "blockAccountUsingToken", &blockAccountUsingToken, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"ACCOUNT_MODIFY"});
 }
 
 void WebAdminMethods_Accounts::addAccount(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)
@@ -48,22 +48,22 @@ void WebAdminMethods_Accounts::addAccount(void *context, APIReturn &response, co
 
     std::string accountName = JSON_ASSTRING(*request.inputJSON,"accountName","");
 
-    if (Globals::getIdentityManager()->users->doesAccountExist(accountName))
+    if (Globals::getIdentityManager()->accounts->doesAccountExist(accountName))
     {
-        response.setError(Status::S_406_NOT_ACCEPTABLE,"unacceptable_request","Account Already Exist");
+        response.setError(HTTP::Status::S_406_NOT_ACCEPTABLE,"unacceptable_request","Account Already Exist");
         return;
     }
 
     if (accountName.empty())
     {
-        response.setError(Status::S_400_BAD_REQUEST,"invalid_request","Account Name is Empty");
+        response.setError(HTTP::Status::S_400_BAD_REQUEST,"invalid_request","Account Name is Empty");
         return;
     }
 
     std::regex accountNameExpr("[a-zA-Z0-9]+");
     if(!regex_match(accountName,accountNameExpr))
     {
-        response.setError(Status::S_400_BAD_REQUEST,"invalid_request","Account name have invalid characters");
+        response.setError(HTTP::Status::S_400_BAD_REQUEST,"invalid_request","Account name have invalid characters");
         return;
     }
 
@@ -79,14 +79,14 @@ void WebAdminMethods_Accounts::addAccount(void *context, APIReturn &response, co
     accountFlags.fromJSON(request.inputJSON);
 
     if (
-        !Globals::getIdentityManager()->users->addAccount(
+        !Globals::getIdentityManager()->accounts->addAccount(
             accountName,
             JSON_ASUINT64(*request.inputJSON,"expirationDate",0),
             accountFlags,
             request.jwtToken->getSubject()
             ))
     {
-        response.setError(Status::S_500_INTERNAL_SERVER_ERROR,"internal_error","Failed to add the new account. Check if user already exists");
+        response.setError(HTTP::Status::S_500_INTERNAL_SERVER_ERROR,"internal_error","Failed to add the new account. Check if user already exists");
         return;
     }
 
@@ -95,7 +95,7 @@ void WebAdminMethods_Accounts::addAccount(void *context, APIReturn &response, co
 
     if (!Globals::getIdentityManager()->authController->changeCredential(accountName,newCredentialData,slotId))
     {
-        response.setError(Status::S_500_INTERNAL_SERVER_ERROR,"internal_error","Failed to change the credential on the new user.");
+        response.setError(HTTP::Status::S_500_INTERNAL_SERVER_ERROR,"internal_error","Failed to change the credential on the new user.");
         return;
     }
 
@@ -106,9 +106,9 @@ void WebAdminMethods_Accounts::addAccount(void *context, APIReturn &response, co
 
 void WebAdminMethods_Accounts::changeAccountExpiration(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)
 {
-    if (!Globals::getIdentityManager()->users->changeAccountExpiration(JSON_ASSTRING(*request.inputJSON,"accountName",""), JSON_ASUINT64(*request.inputJSON,"expiration",0)))
+    if (!Globals::getIdentityManager()->accounts->changeAccountExpiration(JSON_ASSTRING(*request.inputJSON,"accountName",""), JSON_ASUINT64(*request.inputJSON,"expiration",0)))
     {
-        response.setError(Status::S_500_INTERNAL_SERVER_ERROR,"internal_error", "Internal Error");
+        response.setError(HTTP::Status::S_500_INTERNAL_SERVER_ERROR,"internal_error", "Internal Error");
     }
 }
 
@@ -118,37 +118,37 @@ void WebAdminMethods_Accounts::changeCredential(void *context, APIReturn &respon
     credentialData.fromJSON((*request.inputJSON)["credentialData"]);
     if (!Globals::getIdentityManager()->authController->changeCredential(JSON_ASSTRING(*request.inputJSON,"accountName",""),  credentialData, JSON_ASUINT(*request.inputJSON,"slotId",0)))
     {
-        response.setError(Status::S_500_INTERNAL_SERVER_ERROR,"internal_error", "Internal Error");
+        response.setError(HTTP::Status::S_500_INTERNAL_SERVER_ERROR,"internal_error", "Internal Error");
     }
 }
 
 void WebAdminMethods_Accounts::confirmAccount(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)
 {
-    if (!Globals::getIdentityManager()->users->disableAccount(JSON_ASSTRING(*request.inputJSON,"accountName",""), JSON_ASBOOL(*request.inputJSON,"disabled",false)))
+    if (!Globals::getIdentityManager()->accounts->disableAccount(JSON_ASSTRING(*request.inputJSON,"accountName",""), JSON_ASBOOL(*request.inputJSON,"disabled",false)))
     {
-        response.setError(Status::S_500_INTERNAL_SERVER_ERROR,"internal_error", "Internal Error");
+        response.setError(HTTP::Status::S_500_INTERNAL_SERVER_ERROR,"internal_error", "Internal Error");
     }
 }
 
 void WebAdminMethods_Accounts::disableAccount(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)
 {
-    if (!Globals::getIdentityManager()->users->disableAccount(JSON_ASSTRING(*request.inputJSON,"accountName",""), JSON_ASBOOL(*request.inputJSON,"disabled",false)))
+    if (!Globals::getIdentityManager()->accounts->disableAccount(JSON_ASSTRING(*request.inputJSON,"accountName",""), JSON_ASBOOL(*request.inputJSON,"disabled",false)))
     {
-        response.setError(Status::S_500_INTERNAL_SERVER_ERROR,"internal_error", "Internal Error");
+        response.setError(HTTP::Status::S_500_INTERNAL_SERVER_ERROR,"internal_error", "Internal Error");
     }
 }
 
 void WebAdminMethods_Accounts::doesAccountExist(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)
 {
-    if (!Globals::getIdentityManager()->users->doesAccountExist(JSON_ASSTRING(*request.inputJSON,"accountName","")))
+    if (!Globals::getIdentityManager()->accounts->doesAccountExist(JSON_ASSTRING(*request.inputJSON,"accountName","")))
     {
-        response.setError(Status::S_500_INTERNAL_SERVER_ERROR,"internal_error", "Internal Error");
+        response.setError(HTTP::Status::S_500_INTERNAL_SERVER_ERROR,"internal_error", "Internal Error");
     }
 }
 
 void WebAdminMethods_Accounts::getAccountBlockToken(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)
 {
-    (*response.responseJSON()) = Globals::getIdentityManager()->users->getAccountBlockToken(JSON_ASSTRING(*request.inputJSON,"accountName",""));
+    (*response.responseJSON()) = Globals::getIdentityManager()->accounts->getAccountBlockToken(JSON_ASSTRING(*request.inputJSON,"accountName",""));
 }
 
 void WebAdminMethods_Accounts::getAccountDirectApplicationPermissions(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)
@@ -158,19 +158,19 @@ void WebAdminMethods_Accounts::getAccountDirectApplicationPermissions(void *cont
 
 void WebAdminMethods_Accounts::getAccountDetails(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)
 {
-    auto getAccountDetails = Globals::getIdentityManager()->users->getAccountDetails(JSON_ASSTRING(*request.inputJSON, "accountName", ""));
+    auto getAccountDetails = Globals::getIdentityManager()->accounts->getAccountDetails(JSON_ASSTRING(*request.inputJSON, "accountName", ""));
     // Llenar el payloadOut con los detalles de la cuenta
     (*response.responseJSON()) = getAccountDetails.toJSON();
 }
 
 void WebAdminMethods_Accounts::getAccountExpirationTime(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)
 {
-    (*response.responseJSON()) = Json::Int64(Globals::getIdentityManager()->users->getAccountExpirationTime(JSON_ASSTRING(*request.inputJSON,"accountName","")));
+    (*response.responseJSON()) = Json::Int64(Globals::getIdentityManager()->accounts->getAccountExpirationTime(JSON_ASSTRING(*request.inputJSON,"accountName","")));
 }
 
 void WebAdminMethods_Accounts::getAccountFlags(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)
 {
-    (*response.responseJSON()) = Globals::getIdentityManager()->users->getAccountFlags(JSON_ASSTRING(*request.inputJSON,"accountName","")).toJSON();
+    (*response.responseJSON()) = Globals::getIdentityManager()->accounts->getAccountFlags(JSON_ASSTRING(*request.inputJSON,"accountName","")).toJSON();
 }
 
 void WebAdminMethods_Accounts::getAccountInfo(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)
@@ -178,7 +178,7 @@ void WebAdminMethods_Accounts::getAccountInfo(void *context, APIReturn &response
     getAccountDetails(context, response,  request,authClientDetails);
 
     int i=0;
-    auto getAccountRoles = Globals::getIdentityManager()->users->getAccountRoles(JSON_ASSTRING(*request.inputJSON,"accountName",""));
+    auto getAccountRoles = Globals::getIdentityManager()->accounts->getAccountRoles(JSON_ASSTRING(*request.inputJSON,"accountName",""));
     for (const auto & roleName : getAccountRoles)
     {
         (*response.responseJSON())["roles"][i]["name"] = roleName;
@@ -267,7 +267,7 @@ void WebAdminMethods_Accounts::getAccountLastLogin(void *context, APIReturn &res
 
 void WebAdminMethods_Accounts::getAccountRoles(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)
 {
-    (*response.responseJSON()) = Helpers::setToJSON(Globals::getIdentityManager()->users->getAccountRoles(JSON_ASSTRING(*request.inputJSON,"accountName","")));
+    (*response.responseJSON()) = Helpers::setToJSON(Globals::getIdentityManager()->accounts->getAccountRoles(JSON_ASSTRING(*request.inputJSON,"accountName","")));
 }
 
 void WebAdminMethods_Accounts::getAccountUsableApplicationPermissions(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)
@@ -277,19 +277,19 @@ void WebAdminMethods_Accounts::getAccountUsableApplicationPermissions(void *cont
 
 void WebAdminMethods_Accounts::isAccountExpired(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)
 {
-    (*response.responseJSON()) = Globals::getIdentityManager()->users->isAccountExpired(JSON_ASSTRING(*request.inputJSON,"accountName",""));
+    (*response.responseJSON()) = Globals::getIdentityManager()->accounts->isAccountExpired(JSON_ASSTRING(*request.inputJSON,"accountName",""));
 }
 
 void WebAdminMethods_Accounts::listAccounts(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)
 {
-    (*response.responseJSON()) = Helpers::setToJSON(Globals::getIdentityManager()->users->listAccounts());
+    (*response.responseJSON()) = Helpers::setToJSON(Globals::getIdentityManager()->accounts->listAccounts());
 }
 
 void WebAdminMethods_Accounts::removeAccount(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)
 {
-    if (!Globals::getIdentityManager()->users->removeAccount(JSON_ASSTRING(*request.inputJSON,"accountName","")))
+    if (!Globals::getIdentityManager()->accounts->removeAccount(JSON_ASSTRING(*request.inputJSON,"accountName","")))
     {
-        response.setError(Status::S_500_INTERNAL_SERVER_ERROR,"internal_error", "Internal Error");
+        response.setError(HTTP::Status::S_500_INTERNAL_SERVER_ERROR,"internal_error", "Internal Error");
     }
 }
 
@@ -302,7 +302,7 @@ void WebAdminMethods_Accounts::searchAccounts(void *context, APIReturn &response
 {
     json x;
     int i=0;
-    for (const auto & strVal : Globals::getIdentityManager()->users->searchAccounts(
+    for (const auto & strVal : Globals::getIdentityManager()->accounts->searchAccounts(
              JSON_ASSTRING(*request.inputJSON,"searchWords",""),
              JSON_ASUINT64(*request.inputJSON,"limit",0),
              JSON_ASUINT64(*request.inputJSON,"offset",0)
@@ -320,16 +320,16 @@ void WebAdminMethods_Accounts::updateAccountInfo(void *context, APIReturn &respo
     AccountFlags accountFlags;
     accountFlags.fromJSON(request.inputJSON);
     // TODO: set account details granularly...
-    if (!Globals::getIdentityManager()->users->changeAccountFlags(JSON_ASSTRING(*request.inputJSON,"accountName",""), accountFlags))
+    if (!Globals::getIdentityManager()->accounts->changeAccountFlags(JSON_ASSTRING(*request.inputJSON,"accountName",""), accountFlags))
     {
-        response.setError(Status::S_500_INTERNAL_SERVER_ERROR,"internal_error", "Internal Error");
+        response.setError(HTTP::Status::S_500_INTERNAL_SERVER_ERROR,"internal_error", "Internal Error");
     }
 
-    /*  Globals::getIdentityManager()->users->changeAccountDescription(JSON_ASSTRING(*request.inputJSON,"accountName",""), JSON_ASSTRING(*request.inputJSON,"description","")) &&
-        Globals::getIdentityManager()->users->changeAccoungGivenName(JSON_ASSTRING(*request.inputJSON,"accountName",""), JSON_ASSTRING(*request.inputJSON,"givenName","")) &&
-        Globals::getIdentityManager()->users->changeAccountLastName(JSON_ASSTRING(*request.inputJSON,"accountName",""), JSON_ASSTRING(*request.inputJSON,"lastName","")) &&
-        Globals::getIdentityManager()->users->changeAccountEmail(JSON_ASSTRING(*request.inputJSON,"accountName",""), JSON_ASSTRING(*request.inputJSON,"email","")) &&
-        Globals::getIdentityManager()->users->changeAccountExtraData(JSON_ASSTRING(*request.inputJSON,"accountName",""), JSON_ASSTRING(*request.inputJSON,"extraData","")) &&*/
+    /*  Globals::getIdentityManager()->accounts->changeAccountDescription(JSON_ASSTRING(*request.inputJSON,"accountName",""), JSON_ASSTRING(*request.inputJSON,"description","")) &&
+        Globals::getIdentityManager()->accounts->changeAccoungGivenName(JSON_ASSTRING(*request.inputJSON,"accountName",""), JSON_ASSTRING(*request.inputJSON,"givenName","")) &&
+        Globals::getIdentityManager()->accounts->changeAccountLastName(JSON_ASSTRING(*request.inputJSON,"accountName",""), JSON_ASSTRING(*request.inputJSON,"lastName","")) &&
+        Globals::getIdentityManager()->accounts->changeAccountEmail(JSON_ASSTRING(*request.inputJSON,"accountName",""), JSON_ASSTRING(*request.inputJSON,"email","")) &&
+        Globals::getIdentityManager()->accounts->changeAccountExtraData(JSON_ASSTRING(*request.inputJSON,"accountName",""), JSON_ASSTRING(*request.inputJSON,"extraData","")) &&*/
 
 
 }
@@ -338,31 +338,31 @@ void WebAdminMethods_Accounts::updateAccountInfo(void *context, APIReturn &respo
 void WebAdminMethods_Accounts::changeAccountDescription(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)
 {
 
-    return Globals::getIdentityManager()->users->changeAccountDescription(JSON_ASSTRING(*request.inputJSON,"accountName",""), JSON_ASSTRING(*request.inputJSON,"description",""));
+    return Globals::getIdentityManager()->accounts->changeAccountDescription(JSON_ASSTRING(*request.inputJSON,"accountName",""), JSON_ASSTRING(*request.inputJSON,"description",""));
 }
 
 void WebAdminMethods_Accounts::changeAccoungGivenName(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)
 {
 
-    return Globals::getIdentityManager()->users->changeAccoungGivenName(JSON_ASSTRING(*request.inputJSON,"accountName",""), JSON_ASSTRING(*request.inputJSON,"givenName",""));
+    return Globals::getIdentityManager()->accounts->changeAccoungGivenName(JSON_ASSTRING(*request.inputJSON,"accountName",""), JSON_ASSTRING(*request.inputJSON,"givenName",""));
 }
 
 void WebAdminMethods_Accounts::changeAccountLastName(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)
 {
 
-    return Globals::getIdentityManager()->users->changeAccountLastName(JSON_ASSTRING(*request.inputJSON,"accountName",""), JSON_ASSTRING(*request.inputJSON,"lastName",""));
+    return Globals::getIdentityManager()->accounts->changeAccountLastName(JSON_ASSTRING(*request.inputJSON,"accountName",""), JSON_ASSTRING(*request.inputJSON,"lastName",""));
 }
 
 void WebAdminMethods_Accounts::changeAccountEmail(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)
 {
 
-    return Globals::getIdentityManager()->users->changeAccountEmail(JSON_ASSTRING(*request.inputJSON,"accountName",""), JSON_ASSTRING(*request.inputJSON,"email",""));
+    return Globals::getIdentityManager()->accounts->changeAccountEmail(JSON_ASSTRING(*request.inputJSON,"accountName",""), JSON_ASSTRING(*request.inputJSON,"email",""));
 }
 
 void WebAdminMethods_Accounts::changeAccountExtraData(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)
 {
 
-    return Globals::getIdentityManager()->users->changeAccountExtraData(JSON_ASSTRING(*request.inputJSON,"accountName",""), JSON_ASSTRING(*request.inputJSON,"extraData",""));
+    return Globals::getIdentityManager()->accounts->changeAccountExtraData(JSON_ASSTRING(*request.inputJSON,"accountName",""), JSON_ASSTRING(*request.inputJSON,"extraData",""));
 }*/
 
 void WebAdminMethods_Accounts::updateAccountRoles(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)
@@ -371,7 +371,7 @@ void WebAdminMethods_Accounts::updateAccountRoles(void *context, APIReturn &resp
 
     if (!(*request.inputJSON)["roles"].isArray())
     {
-        response.setError(Status::S_400_BAD_REQUEST,"invalid_request","Invalid Parameters");
+        response.setError(HTTP::Status::S_400_BAD_REQUEST,"invalid_request","Invalid Parameters");
         return;
     }
 
@@ -380,9 +380,9 @@ void WebAdminMethods_Accounts::updateAccountRoles(void *context, APIReturn &resp
         roleSet.insert((*request.inputJSON)["roles"][(int)i].asString());
     }
 
-    if (!Globals::getIdentityManager()->users->updateAccountRoles(JSON_ASSTRING(*request.inputJSON,"accountName",""), roleSet))
+    if (!Globals::getIdentityManager()->accounts->updateAccountRoles(JSON_ASSTRING(*request.inputJSON,"accountName",""), roleSet))
     {
-        response.setError(Status::S_500_INTERNAL_SERVER_ERROR,"internal_error", "Internal Error");
+        response.setError(HTTP::Status::S_500_INTERNAL_SERVER_ERROR,"internal_error", "Internal Error");
         return;
     }
 }
@@ -394,9 +394,9 @@ void WebAdminMethods_Accounts::validateAccountApplicationPermission(void *contex
 
 void WebAdminMethods_Accounts::blockAccountUsingToken(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)
 {
-    if (!Globals::getIdentityManager()->users->blockAccountUsingToken(JSON_ASSTRING(*request.inputJSON,"accountName",""),  JSON_ASSTRING(*request.inputJSON,"blockToken","")))
+    if (!Globals::getIdentityManager()->accounts->blockAccountUsingToken(JSON_ASSTRING(*request.inputJSON,"accountName",""),  JSON_ASSTRING(*request.inputJSON,"blockToken","")))
     {
-        response.setError(Status::S_500_INTERNAL_SERVER_ERROR,"internal_error", "Internal Error");
+        response.setError(HTTP::Status::S_500_INTERNAL_SERVER_ERROR,"internal_error", "Internal Error");
     }
 }
 

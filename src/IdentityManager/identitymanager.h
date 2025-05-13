@@ -15,6 +15,7 @@
 
 #include <Mantids30/Threads/mapitem.h>
 #include <Mantids30/Threads/mutex_shared.h>
+#include <Mantids30/DataFormat_JWT/jwt.h>
 
 
 class IdentityManager : public Mantids30::Threads::Safe::MapItem
@@ -23,13 +24,13 @@ public:
     IdentityManager();
     virtual ~IdentityManager();
 
-    class Users
+    class Accounts
     {
     public:
-        Users(IdentityManager *m_parent);
-        virtual ~Users() {}
+        Accounts(IdentityManager *m_parent);
+        virtual ~Accounts() {}
 
-        bool createAdminAccount(const std::string &adminUserName);
+        bool createAdminAccount(const std::string &accountName);
 
         /////////////////////////////////////////////////////////////////////////////////
         // account:
@@ -46,8 +47,8 @@ public:
         // Account confirmation:
         virtual bool confirmAccount(const std::string &accountName, const std::string &confirmationToken) = 0;
 
-        // Account superuser:
-        virtual bool hasSuperUserAccount();
+        // The IAM has any admin account?
+        virtual bool hasAdminAccount();
 
         // Account Removing/Disabling/...
         virtual bool removeAccount(const std::string &accountName) = 0;
@@ -135,7 +136,7 @@ public:
         uint32_t initializateDefaultPasswordSchemes(bool *defaultPasswordSchemesExist);
 
 
-        bool setAccountPasswordOnScheme(const std::string &userName, std::string *sInitPW, const uint32_t &schemeId);
+        bool setAccountPasswordOnScheme(const std::string &accountName, std::string *sInitPW, const uint32_t &schemeId);
 
         std::string genRandomConfirmationToken();
 
@@ -193,7 +194,7 @@ public:
          * If authentication fails, the function increments the bad attempt counters for the account and authentication slot.
          *
          * @param clientDetails Contains session-related details for the client attempting authentication (e.g., IP address, session ID).
-         * @param accountName The username or account identifier to authenticate.
+         * @param accountName The user or account identifier to authenticate.
          * @param password The incoming password or credential to validate against stored data.
          * @param slotId The identifier for the specific authentication slot being used.
          * @param authMode Specifies the mode of authentication (e.g., plain text, hashed). Default is `MODE_PLAIN`.
@@ -252,7 +253,7 @@ public:
 
         /**
      * @brief getAccountAllCredentialsPublicData Get a map with slotId->public credential data for an account.
-     * @param accountName username string.
+     * @param accountName account ID or user string.
      * @return map with every defined and not defined password.
      */
         std::map<uint32_t, Credential> getAccountAllCredentialsPublicData(const std::string &accountName);
@@ -318,10 +319,10 @@ public:
          *
          * @param app The name of the application.
          * @param activity The name of the activity within the application.
-         * @param username The username of the account to check authentication schemes for.
+         * @param accountName account ID or user string.
          * @return json A JSON object containing the applicable authentication schemes, their details, and the default scheme.
          */
-        json getApplicableAuthenticationSchemesForUser(const std::string &app, const std::string &activity, const std::string &username);
+        json getApplicableAuthenticationSchemesForAccount(const std::string &app, const std::string &activity, const std::string &accountName);
     };
     class Applications
     {
@@ -355,11 +356,6 @@ public:
         virtual bool removeWebLoginRedirectURIToApplication(const std::string &appName, const std::string &loginRedirectURI) = 0;
         virtual std::list<std::string> listWebLoginRedirectURIsFromApplication(const std::string &appName) = 0;
 
-        // Callback URI.
-        virtual bool setAuthCallbackURIToApplication(const std::string &appName, const std::string &authCallbackURI)=0;
-        virtual bool removeAuthCallbackURIToApplication(const std::string &appName, const std::string &authCallbackURI)=0;
-        virtual std::string getAuthCallbackURIFromApplication(const std::string &appName)=0;
-
         // Application admited origin URLS:
         virtual bool addWebLoginOriginURLToApplication(const std::string &appName, const std::string &originUrl) = 0;
         virtual bool removeWebLoginOriginURLToApplication(const std::string &appName, const std::string &originUrl) = 0;
@@ -387,9 +383,11 @@ public:
         virtual bool setWebLoginJWTValidationKeyForApplication(const std::string &appName, const std::string &signingKey) = 0;
         virtual std::string getWebLoginJWTValidationKeyForApplication(const std::string &appName) = 0;
 
+        std::shared_ptr<Mantids30::DataFormat::JWT> getAppJWTValidator(const std::string & appName);
+        std::shared_ptr<Mantids30::DataFormat::JWT> getAppJWTSigner(const std::string & appName);
     };
 
-    Users *users = nullptr;
+    Accounts *accounts = nullptr;
     Roles *roles = nullptr;
     Applications *applications = nullptr;
     AuthController *authController = nullptr;
@@ -401,7 +399,7 @@ public:
     virtual bool checkConnection() { return true; }
     virtual bool initializeDatabase() = 0;
 
-    bool initializeAdminAccountWithPassword(const std::string &adminUserName, std::string *adminPW, const uint32_t &schemeId, bool *alreadyExist);
+    bool initializeAdminAccountWithPassword(const std::string &accountName, std::string *adminPW, const uint32_t &schemeId, bool *alreadyExist);
     bool initializeApplicationWithScheme(const std::string &appName, const std::string &appDescription, const uint32_t &schemeId, const std::string &owner, bool *alreadyExist);
 
 protected:

@@ -30,7 +30,7 @@ Credential IdentityManager_DB::AuthController_DB::retrieveCredential(const std::
     Abstract::DATETIME expiration;
     Abstract::STRING salt,hash;
 
-    *accountFound = _parent->users->doesAccountExist(accountName);
+    *accountFound = _parent->accounts->doesAccountExist(accountName);
 
     if (!*accountFound)
         return ret;
@@ -48,8 +48,8 @@ Credential IdentityManager_DB::AuthController_DB::retrieveCredential(const std::
     }
 
     std::shared_ptr<SQLConnector::QueryInstance> i = _parent->m_sqlConnector->qSelect("SELECT `forcedExpiration`,`expiration`,`badAttempts`,`salt`,`hash` FROM iam_accountCredentials "
-                                                                                      "WHERE `f_userName`=:userName AND `f_AuthSlotId`=:slotId LIMIT 1;",
-                                                                                      { {":userName",MAKE_VAR(STRING,accountName)},
+                                                                                      "WHERE `f_accountName`=:accountName AND `f_AuthSlotId`=:slotId LIMIT 1;",
+                                                                                      { {":accountName",MAKE_VAR(STRING,accountName)},
                                                                                           {":slotId",MAKE_VAR(UINT32,slotId)}
                                                                                       },
                                                                                       {  &forcedExpiration, &expiration, &badAttempts, &salt, &hash });
@@ -125,14 +125,14 @@ bool IdentityManager_DB::AuthController_DB::changeCredential(const std::string &
     // TODO: strength validator.
 
     // Destroy (if exist).
-    _parent->m_sqlConnector->query("DELETE FROM iam_accountCredentials WHERE `f_userName`=:userName and `f_AuthSlotId`=:slotId",
+    _parent->m_sqlConnector->query("DELETE FROM iam_accountCredentials WHERE `f_accountName`=:accountName and `f_AuthSlotId`=:slotId",
                                    {
-                                       {":userName",MAKE_VAR(STRING,accountName)},
+                                       {":accountName",MAKE_VAR(STRING,accountName)},
                                        {":slotId",MAKE_VAR(UINT32,slotId)}
                                    });
 
     return _parent->m_sqlConnector->query("INSERT INTO iam_accountCredentials "
-                                          "(`f_AuthSlotId`,`f_userName`,`hash`,`expiration`,`salt`,`forcedExpiration`,`usedstrengthJSONValidator`) "
+                                          "(`f_AuthSlotId`,`f_accountName`,`hash`,`expiration`,`salt`,`forcedExpiration`,`usedstrengthJSONValidator`) "
                                           "VALUES"
                                           "(:slotId,:account,:hash,:expiration,:salt,:forcedExpiration,:usedValidator);",
                                           {
@@ -156,8 +156,8 @@ std::string IdentityManager_DB::AuthController_DB::getAccountConfirmationToken(c
     Threads::Sync::Lock_RD lock(_parent->m_mutex);
 
     Abstract::STRING token;
-    std::shared_ptr<SQLConnector::QueryInstance> i = _parent->m_sqlConnector->qSelect("SELECT confirmationToken FROM iam_accountsActivationToken WHERE `f_userName`=:userName LIMIT 1;",
-                                                                                      { {":userName",MAKE_VAR(STRING,accountName)} },
+    std::shared_ptr<SQLConnector::QueryInstance> i = _parent->m_sqlConnector->qSelect("SELECT confirmationToken FROM iam_accountsActivationToken WHERE `f_accountName`=:accountName LIMIT 1;",
+                                                                                      { {":accountName",MAKE_VAR(STRING,accountName)} },
                                                                                       { &token });
     if (i->getResultsOK() && i->query->step())
     {
@@ -173,25 +173,25 @@ void IdentityManager_DB::AuthController_DB::updateAccountLastLogin(const std::st
 
     // Intenta actualizar primero
     bool updated = _parent->m_sqlConnector->query(
-        "UPDATE iam_accountsLastLog SET `lastLogin`=CURRENT_TIMESTAMP WHERE `f_username`=:userName;",
-        { {":userName", MAKE_VAR(STRING,accountName)} }
+        "UPDATE iam_accountsLastLog SET `lastLogin`=CURRENT_TIMESTAMP WHERE `f_accountName`=:accountName;",
+        { {":accountName", MAKE_VAR(STRING,accountName)} }
         );
 
     // Si no se actualizó ningún registro, entonces inserta uno nuevo
     if (!updated)
     {
         _parent->m_sqlConnector->query(
-            "INSERT INTO iam_accountsLastLog(`f_username`, `lastLogin`) VALUES (:userName, CURRENT_TIMESTAMP);",
-            { {":userName", MAKE_VAR(STRING,accountName)} }
+            "INSERT INTO iam_accountsLastLog(`f_accountName`, `lastLogin`) VALUES (:accountName, CURRENT_TIMESTAMP);",
+            { {":accountName", MAKE_VAR(STRING,accountName)} }
             );
     }
 
     // Insertar en el registro de inicios de sesión
     _parent->m_sqlConnector->query(
-        "INSERT INTO iam_accountAuthLog(`f_userName`, `f_AuthSlotId`, `loginDateTime`, `loginIP`, `loginTLSCN`, `loginUserAgent`, `loginExtraData`) "
-        "VALUES (:userName, :slotId, :date, :loginIP, :loginTLSCN, :loginUserAgent, :loginExtraData);",
+        "INSERT INTO iam_accountAuthLog(`f_accountName`, `f_AuthSlotId`, `loginDateTime`, `loginIP`, `loginTLSCN`, `loginUserAgent`, `loginExtraData`) "
+        "VALUES (:accountName, :slotId, :date, :loginIP, :loginTLSCN, :loginUserAgent, :loginExtraData);",
         {
-            {":userName", MAKE_VAR(STRING,accountName)},
+            {":accountName", MAKE_VAR(STRING,accountName)},
             {":slotId", MAKE_VAR(UINT32,slotId)},
             {":date", MAKE_VAR(DATETIME,time(nullptr))},
             {":loginIP", MAKE_VAR(STRING,clientDetails.ipAddress)},
@@ -209,8 +209,8 @@ time_t IdentityManager_DB::AuthController_DB::getAccountLastLogin(const std::str
     {
         Abstract::DATETIME lastLogin;
         std::shared_ptr<SQLConnector::QueryInstance> i = _parent->m_sqlConnector->qSelect(
-            "SELECT `lastLogin` FROM iam_accountsLastLog WHERE `f_username`=:userName LIMIT 1;",
-            { {":userName", MAKE_VAR(STRING,accountName)} },
+            "SELECT `lastLogin` FROM iam_accountsLastLog WHERE `f_accountName`=:accountName LIMIT 1;",
+            { {":accountName", MAKE_VAR(STRING,accountName)} },
             { &lastLogin }
             );
 
@@ -230,8 +230,8 @@ std::set<uint32_t> IdentityManager_DB::AuthController_DB::listUsedAuthentication
     Threads::Sync::Lock_RD lock(_parent->m_mutex);
 
     Abstract::UINT32 slotId;
-    std::shared_ptr<SQLConnector::QueryInstance> i = _parent->m_sqlConnector->qSelect("SELECT `f_AuthSlotId` FROM iam_accountCredentials WHERE `f_userName`=:f_userName;",
-                                                                                      {  {":f_userName",             MAKE_VAR(STRING,accountName)} },
+    std::shared_ptr<SQLConnector::QueryInstance> i = _parent->m_sqlConnector->qSelect("SELECT `f_AuthSlotId` FROM iam_accountCredentials WHERE `f_accountName`=:f_accountName;",
+                                                                                      {  {":f_accountName",             MAKE_VAR(STRING,accountName)} },
                                                                                       { &slotId });
 
     while (i->getResultsOK() && i->query->step())
@@ -563,9 +563,9 @@ bool IdentityManager_DB::AuthController_DB::updateAuthenticationSlotUsedByScheme
 void IdentityManager_DB::AuthController_DB::resetBadAttemptsOnCredential(const std::string &accountName, const uint32_t &slotId)
 {
     Threads::Sync::Lock_RW lock(_parent->m_mutex);
-    _parent->m_sqlConnector->query("UPDATE iam_accountCredentials SET `badAttempts`='0' WHERE `f_userName`=:userName and `f_AuthSlotId`=:slotId;",
+    _parent->m_sqlConnector->query("UPDATE iam_accountCredentials SET `badAttempts`='0' WHERE `f_accountName`=:accountName and `f_AuthSlotId`=:slotId;",
                                    {
-                                       {":userName",MAKE_VAR(STRING,accountName)},
+                                       {":accountName",MAKE_VAR(STRING,accountName)},
                                        {":slotId",MAKE_VAR(UINT32,slotId)}
                                    });
 }
@@ -573,9 +573,9 @@ void IdentityManager_DB::AuthController_DB::resetBadAttemptsOnCredential(const s
 void IdentityManager_DB::AuthController_DB::incrementBadAttemptsOnCredential(const std::string &accountName, const uint32_t &slotId)
 {
     Threads::Sync::Lock_RW lock(_parent->m_mutex);
-    _parent->m_sqlConnector->query("UPDATE iam_accountCredentials SET `badAttempts`=`badAttempts`+1  WHERE `f_userName`=:userName and `f_AuthSlotId`=:slotId;",
+    _parent->m_sqlConnector->query("UPDATE iam_accountCredentials SET `badAttempts`=`badAttempts`+1  WHERE `f_accountName`=:accountName and `f_AuthSlotId`=:slotId;",
                                    {
-                                       {":userName",MAKE_VAR(STRING,accountName)},
+                                       {":accountName",MAKE_VAR(STRING,accountName)},
                                        {":slotId",MAKE_VAR(UINT32,slotId)}
                                    });
 }
@@ -586,8 +586,8 @@ std::set<ApplicationPermission> IdentityManager_DB::AuthController_DB::getAccoun
     if (lock) _parent->m_mutex.lockShared();
 
     Abstract::STRING appName,permission;
-    std::shared_ptr<SQLConnector::QueryInstance> i = _parent->m_sqlConnector->qSelect("SELECT `f_appName`,`f_permissionId` FROM iam_applicationPermissionsAtAccount WHERE `f_userName`=:userName;",
-                                                                                      { {":userName",MAKE_VAR(STRING,accountName)} },
+    std::shared_ptr<SQLConnector::QueryInstance> i = _parent->m_sqlConnector->qSelect("SELECT `f_appName`,`f_permissionId` FROM iam_applicationPermissionsAtAccount WHERE `f_accountName`=:accountName;",
+                                                                                      { {":accountName",MAKE_VAR(STRING,accountName)} },
                                                                                       { &appName,&permission });
     while (i->getResultsOK() && i->query->step())
     {

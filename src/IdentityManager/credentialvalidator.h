@@ -84,7 +84,7 @@ public:
      * If authentication fails, the function increments the bad attempt counters for the account and authentication slot.
      *
      * @param clientDetails Contains session-related details for the client attempting authentication (e.g., IP address, session ID).
-     * @param accountName The username or account identifier to authenticate.
+     * @param accountName The account name identifier to authenticate.
      * @param password The incoming password or credential to validate against stored data.
      * @param slotId The identifier for the specific authentication slot being used.
      * @param authMode Specifies the mode of authentication (e.g., plain text, hashed). Default is `MODE_PLAIN`.
@@ -146,7 +146,7 @@ public:
 protected:
     /**
      * @brief Validates a stored credential against an input password and challenge salt.
-     * @param accountName any unique descriptor for the account (eg. UUID, UID, username)
+     * @param accountName any unique descriptor for the account (eg. UUID, UID, user)
      * @param storedCredential The stored credential to validate.
      * @param passwordInput The input password to use for validation.
      * @param challengeSalt The challenge salt to use for validation.

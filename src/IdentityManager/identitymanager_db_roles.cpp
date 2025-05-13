@@ -39,10 +39,10 @@ bool IdentityManager_DB::Roles_DB::doesRoleExist(const std::string &roleName)
 bool IdentityManager_DB::Roles_DB::addAccountToRole(const std::string &roleName, const std::string &accountName)
 {
     Threads::Sync::Lock_RW lock(_parent->m_mutex);
-    return _parent->m_sqlConnector->query("INSERT INTO iam_rolesAccounts (`f_roleName`,`f_userName`) VALUES(:roleName,:userName);",
+    return _parent->m_sqlConnector->query("INSERT INTO iam_rolesAccounts (`f_roleName`,`f_accountName`) VALUES(:roleName,:accountName);",
                                {
                                    {":roleName",MAKE_VAR(STRING,roleName)},
-                                   {":userName",MAKE_VAR(STRING,accountName)}
+                                   {":accountName",MAKE_VAR(STRING,accountName)}
                                });
 }
 
@@ -50,10 +50,10 @@ bool IdentityManager_DB::Roles_DB::removeAccountFromRole(const std::string &role
 {
     bool ret = false;
     if (lock) _parent->m_mutex.lock();
-    ret = _parent->m_sqlConnector->query("DELETE FROM iam_rolesAccounts WHERE `f_roleName`=:roleName AND `f_userName`=:userName;",
+    ret = _parent->m_sqlConnector->query("DELETE FROM iam_rolesAccounts WHERE `f_roleName`=:roleName AND `f_accountName`=:accountName;",
                               {
                                   {":roleName",MAKE_VAR(STRING,roleName)},
-                                  {":userName",MAKE_VAR(STRING,accountName)}
+                                  {":accountName",MAKE_VAR(STRING,accountName)}
                               });
     
     if (lock) _parent->m_mutex.unlock();
@@ -107,7 +107,7 @@ std::set<std::string> IdentityManager_DB::Roles_DB::getRoleAccounts(const std::s
     if (lock) _parent->m_mutex.lockShared();
 
     Abstract::STRING accountName;
-    std::shared_ptr<SQLConnector::QueryInstance> i = _parent->m_sqlConnector->qSelect("SELECT `f_userName` FROM iam_rolesAccounts WHERE `f_roleName`=:roleName;",
+    std::shared_ptr<SQLConnector::QueryInstance> i = _parent->m_sqlConnector->qSelect("SELECT `f_accountName` FROM iam_rolesAccounts WHERE `f_roleName`=:roleName;",
                                           { {":roleName",MAKE_VAR(STRING,roleName)} },
                                           { &accountName });
     while (i->getResultsOK() && i->query->step())

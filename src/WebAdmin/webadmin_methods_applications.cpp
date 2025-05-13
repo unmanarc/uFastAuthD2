@@ -7,7 +7,7 @@
 
 using namespace Mantids30::Program;
 using namespace Mantids30;
-using namespace Mantids30::Network::Protocols::HTTP;
+using namespace Mantids30::Network::Protocols;
 
 
 void WebAdminMethods_Applications::addMethods_Applications(std::shared_ptr<MethodsHandler> methods)
@@ -53,7 +53,7 @@ void WebAdminMethods_Applications::addApplication(void *context, APIReturn &resp
                                                                         request.jwtToken->getSubject()
                                                                      ))
     {
-        response.setError(Status::S_500_INTERNAL_SERVER_ERROR,"internal_error", "Internal Error");
+        response.setError(HTTP::Status::S_500_INTERNAL_SERVER_ERROR,"internal_error", "Internal Error");
         return;
     }
     return ;
@@ -65,13 +65,13 @@ void WebAdminMethods_Applications::removeApplication(void *context, APIReturn &r
 
     if (appName == DB_APPNAME)
     {
-        response.setError(Status::S_400_BAD_REQUEST,"invalid_request","Can't remove the IAM application");
+        response.setError(HTTP::Status::S_400_BAD_REQUEST,"invalid_request","Can't remove the IAM application");
         return;
     }
 
     if (!Globals::getIdentityManager()->applications->removeApplication(appName))
     {
-        response.setError(Status::S_500_INTERNAL_SERVER_ERROR,"internal_error", "Internal Error");
+        response.setError(HTTP::Status::S_500_INTERNAL_SERVER_ERROR,"internal_error", "Internal Error");
         return;
     }
 }
@@ -80,7 +80,7 @@ void WebAdminMethods_Applications::doesApplicationExist(void *context, APIReturn
 {
     if (!Globals::getIdentityManager()->applications->doesApplicationExist( JSON_ASSTRING(*request.inputJSON,"appName","")))
     {
-        response.setError(Status::S_500_INTERNAL_SERVER_ERROR,"internal_error", "Internal Error");
+        response.setError(HTTP::Status::S_500_INTERNAL_SERVER_ERROR,"internal_error", "Internal Error");
         return;
     }
 }
@@ -118,7 +118,7 @@ void WebAdminMethods_Applications::getApplicationInfo(void *context, APIReturn &
     i=0;
     for ( const auto & acct : acctList )
     {
-        auto getAccountDetails = Globals::getIdentityManager()->users->getAccountDetails(acct);
+        auto getAccountDetails = Globals::getIdentityManager()->accounts->getAccountDetails(acct);
         payloadOut["accounts"][i]["name"] = acct;
 /*        payloadOut["accounts"][i]["description"] = getAccountDetails.description;
         payloadOut["accounts"][i]["givenName"] = getAccountDetails.givenName;
@@ -133,7 +133,7 @@ void WebAdminMethods_Applications::updateApplicationDescription(void *context, A
 {
     if (!Globals::getIdentityManager()->applications->updateApplicationDescription( JSON_ASSTRING(*request.inputJSON,"appName",""), JSON_ASSTRING(*request.inputJSON,"description","") ))
     {
-        response.setError(Status::S_500_INTERNAL_SERVER_ERROR,"internal_error", "Internal Error");
+        response.setError(HTTP::Status::S_500_INTERNAL_SERVER_ERROR,"internal_error", "Internal Error");
     }
 }
 
@@ -141,7 +141,7 @@ void WebAdminMethods_Applications::updateApplicationAPIKey(void *context, APIRet
 {
     if (!Globals::getIdentityManager()->applications->updateApplicationAPIKey( JSON_ASSTRING(*request.inputJSON,"appName",""), JSON_ASSTRING(*request.inputJSON,"appKey","") ))
     {
-        response.setError(Status::S_500_INTERNAL_SERVER_ERROR,"internal_error", "Internal Error");
+        response.setError(HTTP::Status::S_500_INTERNAL_SERVER_ERROR,"internal_error", "Internal Error");
     }
 }
 
@@ -154,7 +154,7 @@ void WebAdminMethods_Applications::validateApplicationOwner(void *context, APIRe
 {
     if (!Globals::getIdentityManager()->applications->validateApplicationOwner( JSON_ASSTRING(*request.inputJSON,"appName",""), JSON_ASSTRING(*request.inputJSON,"accountName","") ))
     {
-        response.setError(Status::S_500_INTERNAL_SERVER_ERROR,"internal_error", "Internal Error");
+        response.setError(HTTP::Status::S_500_INTERNAL_SERVER_ERROR,"internal_error", "Internal Error");
     }
 }
 
@@ -162,7 +162,7 @@ void WebAdminMethods_Applications::validateApplicationAccount(void *context, API
 {
     if (!Globals::getIdentityManager()->applications->validateApplicationAccount( JSON_ASSTRING(*request.inputJSON,"appName",""), JSON_ASSTRING(*request.inputJSON,"accountName","") ))
     {
-        response.setError(Status::S_500_INTERNAL_SERVER_ERROR,"internal_error", "Internal Error");
+        response.setError(HTTP::Status::S_500_INTERNAL_SERVER_ERROR,"internal_error", "Internal Error");
     }
 }
 
@@ -185,7 +185,7 @@ void WebAdminMethods_Applications::addAccountToApplication(void *context, APIRet
 {
     if (!Globals::getIdentityManager()->applications->addAccountToApplication( JSON_ASSTRING(*request.inputJSON,"appName",""), JSON_ASSTRING(*request.inputJSON,"accountName","") ))
     {
-        response.setError(Status::S_500_INTERNAL_SERVER_ERROR,"internal_error", "Internal Error");
+        response.setError(HTTP::Status::S_500_INTERNAL_SERVER_ERROR,"internal_error", "Internal Error");
     }
 }
 
@@ -193,7 +193,7 @@ void WebAdminMethods_Applications::removeAccountFromApplication(void *context, A
 {
     if (!Globals::getIdentityManager()->applications->removeAccountFromApplication( JSON_ASSTRING(*request.inputJSON,"appName",""), JSON_ASSTRING(*request.inputJSON,"accountName","") ))
     {
-        response.setError(Status::S_500_INTERNAL_SERVER_ERROR,"internal_error", "Internal Error");
+        response.setError(HTTP::Status::S_500_INTERNAL_SERVER_ERROR,"internal_error", "Internal Error");
     }
 }
 
@@ -201,7 +201,7 @@ void WebAdminMethods_Applications::addApplicationOwner(void *context, APIReturn 
 {
     if (!Globals::getIdentityManager()->applications->addApplicationOwner( JSON_ASSTRING(*request.inputJSON,"appName",""), JSON_ASSTRING(*request.inputJSON,"accountName","") ))
     {
-        response.setError(Status::S_500_INTERNAL_SERVER_ERROR,"internal_error", "Internal Error");
+        response.setError(HTTP::Status::S_500_INTERNAL_SERVER_ERROR,"internal_error", "Internal Error");
     }
 }
 
@@ -209,7 +209,7 @@ void WebAdminMethods_Applications::removeApplicationOwner(void *context, APIRetu
 {
     if (!Globals::getIdentityManager()->applications->removeApplicationOwner( JSON_ASSTRING(*request.inputJSON,"appName",""), JSON_ASSTRING(*request.inputJSON,"accountName","") ))
     {
-        response.setError(Status::S_500_INTERNAL_SERVER_ERROR,"internal_error", "Internal Error");
+        response.setError(HTTP::Status::S_500_INTERNAL_SERVER_ERROR,"internal_error", "Internal Error");
     }
 }
 
@@ -235,7 +235,7 @@ void WebAdminMethods_Applications::addWebLoginRedirectURIToApplication(void *con
 {
     if (!Globals::getIdentityManager()->applications->addWebLoginRedirectURIToApplication(JSON_ASSTRING(*request.inputJSON, "appName", ""), JSON_ASSTRING(*request.inputJSON, "loginRedirectURI", "")))
     {
-        response.setError(Status::S_500_INTERNAL_SERVER_ERROR,"internal_error", "Internal Error");
+        response.setError(HTTP::Status::S_500_INTERNAL_SERVER_ERROR,"internal_error", "Internal Error");
     }
 }
 
@@ -243,7 +243,7 @@ void WebAdminMethods_Applications::removeWebLoginRedirectURIToApplication(void *
 {
     if (!Globals::getIdentityManager()->applications->removeWebLoginRedirectURIToApplication(JSON_ASSTRING(*request.inputJSON, "appName", ""), JSON_ASSTRING(*request.inputJSON, "loginRedirectURI", "")))
     {
-        response.setError(Status::S_500_INTERNAL_SERVER_ERROR,"internal_error", "Internal Error");
+        response.setError(HTTP::Status::S_500_INTERNAL_SERVER_ERROR,"internal_error", "Internal Error");
     }
 }
 
@@ -256,7 +256,7 @@ void WebAdminMethods_Applications::addWebLoginOriginURLToApplication(void *conte
 {
     if (!Globals::getIdentityManager()->applications->addWebLoginOriginURLToApplication(JSON_ASSTRING(*request.inputJSON, "appName", ""), JSON_ASSTRING(*request.inputJSON, "originUrl", "")))
     {
-        response.setError(Status::S_500_INTERNAL_SERVER_ERROR,"internal_error", "Internal Error");
+        response.setError(HTTP::Status::S_500_INTERNAL_SERVER_ERROR,"internal_error", "Internal Error");
     }
 }
 
@@ -264,7 +264,7 @@ void WebAdminMethods_Applications::removeWebLoginOriginURLToApplication(void *co
 {
     if (!Globals::getIdentityManager()->applications->removeWebLoginOriginURLToApplication(JSON_ASSTRING(*request.inputJSON, "appName", ""), JSON_ASSTRING(*request.inputJSON, "originUrl", "")))
     {
-        response.setError(Status::S_500_INTERNAL_SERVER_ERROR,"internal_error", "Internal Error");
+        response.setError(HTTP::Status::S_500_INTERNAL_SERVER_ERROR,"internal_error", "Internal Error");
     }
 }
 
@@ -280,16 +280,18 @@ void WebAdminMethods_Applications::modifyWebLoginJWTConfigForApplication(void *c
 
     tokenInfo.appName = JSON_ASSTRING(*request.inputJSON, "appName", "");
     tokenInfo.accessTokenTimeout = (*request.inputJSON)["accessTokenTimeout"].asUInt();
+    tokenInfo.refreshTokenTimeout = (*request.inputJSON)["refreshTokenTimeout"].asUInt();
     tokenInfo.tempMFATokenTimeout = (*request.inputJSON)["tempMFATokenTimeout"].asUInt();
     tokenInfo.sessionInactivityTimeout = (*request.inputJSON)["sessionInactivityTimeout"].asUInt();
     tokenInfo.tokenType = JSON_ASSTRING(*request.inputJSON, "tokenType", "");
-    tokenInfo.includeApplicationPermissionsInToken = (*request.inputJSON)["includeApplicationPermissionsInToken"].asBool();
-    tokenInfo.includeBasicUserInfoInToken = (*request.inputJSON)["includeBasicUserInfoInToken"].asBool();
+    tokenInfo.includeApplicationPermissions = (*request.inputJSON)["includeApplicationPermissions"].asBool();
+    tokenInfo.includeBasicAccountInfo = (*request.inputJSON)["includeBasicAccountInfo"].asBool();
     tokenInfo.maintainRevocationAndLogoutInfo = (*request.inputJSON)["maintainRevocationAndLogoutInfo"].asBool();
+    tokenInfo.allowRefreshTokenRenovation = (*request.inputJSON)["allowRefreshTokenRenovation"].asBool();
 
     if (!Globals::getIdentityManager()->applications->modifyWebLoginJWTConfigForApplication(tokenInfo))
     {
-        response.setError(Status::S_500_INTERNAL_SERVER_ERROR,"internal_error", "Internal Error");
+        response.setError(HTTP::Status::S_500_INTERNAL_SERVER_ERROR,"internal_error", "Internal Error");
         return;
     }
 }
@@ -301,9 +303,17 @@ void WebAdminMethods_Applications::getWebLoginJWTConfigFromApplication(void *con
     std::string appName = JSON_ASSTRING(*request.inputJSON, "appName", "");
 
     ApplicationTokenProperties tokenInfo = Globals::getIdentityManager()->applications->getWebLoginJWTConfigFromApplication(appName);
+    
     payloadOut["appName"] = tokenInfo.appName;
     payloadOut["accessTokenTimeout"] = tokenInfo.accessTokenTimeout;
-    // ... [Continúa agregando el resto de campos de tokenInfo al payloadOut] ...
+    payloadOut["refreshTokenTimeout"] = tokenInfo.refreshTokenTimeout;
+    payloadOut["tempMFATokenTimeout"] = tokenInfo.tempMFATokenTimeout;
+    payloadOut["sessionInactivityTimeout"] = tokenInfo.sessionInactivityTimeout;
+    payloadOut["tokenType"] = tokenInfo.tokenType;
+    payloadOut["includeApplicationPermissions"] = tokenInfo.includeApplicationPermissions;
+    payloadOut["includeBasicAccountInfo"] = tokenInfo.includeBasicAccountInfo;
+    payloadOut["maintainRevocationAndLogoutInfo"] = tokenInfo.maintainRevocationAndLogoutInfo;
+    payloadOut["allowRefreshTokenRenovation"] = tokenInfo.allowRefreshTokenRenovation;
 
     (*response.responseJSON()) = payloadOut;
 }
@@ -316,7 +326,7 @@ void WebAdminMethods_Applications::setWebLoginJWTSigningKeyForApplication(void *
 
     if (!Globals::getIdentityManager()->applications->setWebLoginJWTSigningKeyForApplication(appName, signingKey))
     {
-        response.setError(Status::S_500_INTERNAL_SERVER_ERROR,"internal_error", "Internal Error");
+        response.setError(HTTP::Status::S_500_INTERNAL_SERVER_ERROR,"internal_error", "Internal Error");
     }
 }
 

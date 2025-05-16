@@ -223,7 +223,7 @@ $(document).ready(function () {
             contentType: "application/json",
             data: JSON.stringify({
                 preAuthUser: username,
-                applicationName: appName,
+                app: appName,
                 schemeId: schemeId,
                 password: password,
                 authMode: "MODE_PLAIN",

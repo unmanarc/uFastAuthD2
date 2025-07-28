@@ -70,3 +70,4 @@ ltmain.sh
 
 # Autosave Files
 *.autosave
+etc/ufastauthd2/jwt_secret.key

@@ -1,85 +1,28 @@
-# uFastAuthD2 
+# uFastAuthD2 (Unmanarc Fast Authentication Daemon 2)  
 
-Unmanarc Fast Authentication Daemon 2 
-  
-Author: Aaron Mizrachi (unmanarc) <aaron@unmanarc.com>   
-Main License: GPLv3   
-
-***
-## Project Description
-
-This server provides a directory/authorization implementation for managing users for your applications.
-
-***
-## Installing packages (HOWTO)
+**Author:** Aaron Mizrachi (unmanarc) <dev@unmanarc.com>   
+**Main License:** GPLv3   
 
 
-- [Manual build guide](BUILD.md)
-- COPR Packages (Fedora/CentOS/RHEL/etc):  
-[![Copr build status](https://copr.fedorainfracloud.org/coprs/amizrachi/unmanarc/package/uFastAuthD2/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/amizrachi/unmanarc/package/uFastAuthD2/)
+A lightweight Identity and Access Management (IAM) system designed for secure, stateless authentication in resource-constrained environments. Built in **C++**, uFastAuthD2 provides fast and reliable authentication services for web applications, microservices, and IoT devices, even on platforms like the **Raspberry Pi**.  
 
+---
 
-### Simple installation guide for Fedora/RHEL:
+## Key Features  
 
-To activate our repo's and download/install the software:
+- **JWT Authentication**: Supports stateless JSON Web Tokens (JWT) for secure, token-based authentication.  
+- **Microservices Architecture**: Modular design allows seamless integration with distributed systems.  
+- **Local Database**: Stores user credentials and session data locally, reducing external dependencies.  
+- **Secure Authentication**: Passwords are hashed and sessions are encrypted.  
+- **Two-Factor Authentication (2FA)**: Optional 2FA via TOTP for heightened security.  
+- **Multi-Application Support**: Manage multiple applications and user roles within a single instance.  
+- **Ultra-Low Footprint**: Optimized for minimal resource usage (RAM, CPU, storage).  
+- **Cross-Platform**: Works on Linux, macOS, and even **Raspberry Pi**.  
 
-In RHEL7:
-```bash
-# Install EPEL Repo + COPR
-yum -y install epel-release
-yum -y install yum-plugin-copr
+---
 
-# Install unmanarc's copr
-yum copr enable amizrachi/unmanarc -y
-yum -y install uFastAuthD
-```
+## Note
 
-In RHEL8:
-```bash
-# Install EPEL Repo
-dnf -y install 'dnf-command(config-manager)'
-dnf config-manager --set-enabled powertools
-dnf -y install epel-release
-
-# Install unmanarc's copr
-dnf copr enable amizrachi/unmanarc -y
-dnf -y install uFastAuthD
-```
-
-
-- Once installed, you can continue by activating/enabling the service:
-```bash
-systemctl enable --now uFastAuthD
-```
-
-- Don't forget to open the firewall:
-
-```bash
-# Add Website port:
-firewall-cmd --zone=public --permanent --add-port 40443/tcp
-# Add Authentication daemon port:
-firewall-cmd --zone=public --permanent --add-port 30301/tcp
-# Reload Firewall rules
-firewall-cmd --reload
-```
-
-- If it's your first time installing this program, you can check for the master password using journalctl:
-```bash
-journalctl -xefu uFastAuthD
-```
-
-- And in that output you should check the path of syspwd-randomvalue file in /tmp. eg.:
-
-```
-File '/tmp/syspwd-98ZAisMO' created with the super-user password. Login and change it immediatly
-```
-
-- Now you can proceed to discover and change the temporary password (change **98ZAisMO** by the random value that your system has printed):
-
-```bash
-cat /tmp/syspwd-98ZAisMO
-```
-
-- Then, take the string inside that file and use it as password, and login as `admin` into the website (change the ip address or domain corresponding to your installation...): https://YOURHOSTIP:40443/login
-
-- Now you are ready to operate the authentication daemon.
+### **This project is currently under construction.**
+### **The documentation and features are being actively developed and may not be fully functional yet.**
+### **Check back soon for updates!**

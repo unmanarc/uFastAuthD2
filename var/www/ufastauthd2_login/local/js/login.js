@@ -4,17 +4,18 @@ function updateMessage(text) {
     $("#message").text(text);
 }
 
-function showError(error){
+function showError(error) {
     updateMessage(`${error}`);
 }
 
-function showErrorWithDetails(error, message){
+function showErrorWithDetails(error, message) {
     showError(`${error}: ${message}`);
 }
 
 function showErrorWithXHR(xhr, status, error) {
     showErrorWithDetails(error, xhr.responseJSON["message"]);
 }
+
 
 // Helper to create and submit form
 function createAndSubmitRedirectForm(actionUrl, data, method = 'POST') {
@@ -59,7 +60,7 @@ function logout() {
         error: showErrorWithXHR
     });
 }
-
+/*
 function retokenizeApplication() 
 {
     // Perform the AJAX request
@@ -80,8 +81,8 @@ function retokenizeApplication()
         },
         error: showErrorWithXHR
     });
-}
-
+}*/
+/*
 function redirectToAuthenticatedSite() {
 
     if (loggedInGETParsedParam === false)
@@ -109,6 +110,37 @@ function redirectToAuthenticatedSite() {
         },
         error: showErrorWithXHR
     });
+}*/
+
+
+function loadTokenAndRedirect() {
+    // Perform the AJAX request
+    $.ajax({
+        url: "/api/v1/token",
+        type: "POST",
+        contentType: "application/json",
+        data: JSON.stringify(
+            {
+                redirectURI: decodedRedirectURI,
+                schemeId: 1,
+                activity: "LOGIN",
+                app: appName
+
+            }
+        ),
+        success: function (response) {
+            // submit the token to the app.
+            const callbackURI = response.callbackURI;
+            createAndSubmitRedirectForm(callbackURI, response, mode === 'app' ? 'GET' : 'POST');
+
+            /*                createAndSubmitRedirectForm(response.callbackURI, {
+                                accessToken: response.accessToken,
+                                expiresIn: response.expiresIn,
+                                redirectURI: decodedRedirectURI
+                            }, mode === 'app' ? 'GET' : 'POST');*/
+        },
+        error: showErrorWithXHR
+    });
 }
 
 $(document).ready(function () {
@@ -124,17 +156,15 @@ $(document).ready(function () {
 
     const loggedInGETParam = urlParams.get('loggedIn');
 
-    if (loggedInGETParam === "false")
-    {
+    if (loggedInGETParam === "false") {
         // Remove the 'loggedIn' parameter from the URL
         const newUrlSearchParams = new URLSearchParams(window.location.search);
         newUrlSearchParams.delete('loggedIn');
         window.history.replaceState(null, '', `${window.location.pathname}?${newUrlSearchParams.toString()}${window.location.hash}`);
         loggedInGETParsedParam = false;
     }
-    
-    if (!appName)
-    {
+
+    if (!appName) {
         updateMessage('ERROR: Invalid Application Name.');
         $("#usernameForm").addClass("d-none");
         return;
@@ -143,9 +173,8 @@ $(document).ready(function () {
     // Validate if 'redirectURI' exists and is a valid base64 string
     try {
         decodedRedirectURI = atob(encodedRedirectURI);
-    } 
-    catch (error) 
-    {
+    }
+    catch (error) {
         updateMessage('ERROR: Invalid redirect URI.');
         $("#usernameForm").addClass("d-none");
         return;
@@ -156,8 +185,7 @@ $(document).ready(function () {
     const cookies = document.cookie.split(';');
     cookies.forEach(cookie => {
         const [name, value] = cookie.trim().split('=');
-        if (name === 'loggedIn')
-        {
+        if (name === 'loggedIn') {
             loggedIn = true;
 
             $("#usernameForm").addClass("d-none");
@@ -196,25 +224,6 @@ $(document).ready(function () {
         });
     }
 
-    function loadTokenAndRedirect() {
-        // Perform the AJAX request
-        $.ajax({
-            url: "/api/v1/token",
-            type: "POST",
-            contentType: "application/json",
-            data: JSON.stringify({ redirectURI: decodedRedirectURI }),
-            success: function (response) {
-                // submit the token to the app.
-                createAndSubmitRedirectForm(response.callbackURI, {
-                    accessToken: response.accessToken,
-                    expiresIn: response.expiresIn,
-                    redirectURI: decodedRedirectURI
-                }, mode === 'app' ? 'GET' : 'POST');
-            },
-            error: showErrorWithXHR
-        });
-    }
-
     // Function to send authorization request for each slot
     function authorizeUser(username, schemeId, password) {
         $.ajax({
@@ -242,7 +251,7 @@ $(document).ready(function () {
                 }
             },
             error: function (xhr, status, error) {
-                showErrorWithXHR(xhr,status,error);
+                showErrorWithXHR(xhr, status, error);
                 loggedIn = false;
             }
         });

@@ -1,7 +1,7 @@
-#include "json/value.h"
-#include <Mantids30/Helpers/json.h>
 #include "Mantids30/Program_Logs/loglevels.h"
 #include "weblogin_authmethods.h"
+#include "json/value.h"
+#include <Mantids30/Helpers/json.h>
 
 #include <algorithm> // std::find
 #include <boost/algorithm/string/join.hpp>
@@ -16,8 +16,7 @@ using namespace Program;
 using namespace API::RESTful;
 using namespace Network::Protocols;
 
-std::optional<JWT::Token> WebLogin_AuthMethods::loadJWTAccessTokenFromPOST(
-    APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)
+std::optional<JWT::Token> WebLogin_AuthMethods::loadJWTAccessTokenFromPOST(APIReturn &response, const RequestParameters &request, ClientDetails &authClientDetails)
 {
     IdentityManager *identityManager = Globals::getIdentityManager();
     auto jsonstrptr = request.clientRequest->getJSONStreamerContent();
@@ -69,16 +68,16 @@ std::optional<JWT::Token> WebLogin_AuthMethods::loadJWTAccessTokenFromPOST(
     {
         // Already logged in.
         // This token is not available for retrieving app tokens...
-        LOG_APP->log2(__func__, accessTokenVerified.getSubject(), authClientDetails.ipAddress, Logs::LEVEL_SECURITY_ALERT, "Application token retrieval attempt denied: Token already issued for this user/application.");
-        response.setError(HTTP::Status::S_400_BAD_REQUEST,"AUTH_ERR_" + std::to_string(REASON_BAD_PARAMETERS), getReasonText(REASON_BAD_PARAMETERS));
+        LOG_APP->log2(__func__, accessTokenVerified.getSubject(), authClientDetails.ipAddress, Logs::LEVEL_SECURITY_ALERT,
+                      "Application token retrieval attempt denied: Token already issued for this user/application.");
+        response.setError(HTTP::Status::S_400_BAD_REQUEST, "AUTH_ERR_" + std::to_string(REASON_BAD_PARAMETERS), getReasonText(REASON_BAD_PARAMETERS));
         return std::nullopt;
     }
 
     return accessTokenVerified;
 }
 
-void WebLogin_AuthMethods::setupAccessTokenCookies(
-    APIReturn &response, JWT::Token accessToken, const ApplicationTokenProperties &tokenProps)
+void WebLogin_AuthMethods::setupAccessTokenCookies(APIReturn &response, JWT::Token accessToken, const ApplicationTokenProperties &tokenProps)
 {
     // This cookie is generic for all the application.
     response.cookiesMap["AccessToken"] = HTTP::Headers::Cookie();
@@ -97,49 +96,153 @@ void WebLogin_AuthMethods::setupAccessTokenCookies(
     response.cookiesMap["AccessTokenMaxAge"].value = std::to_string(accessToken.getExpirationTime() - time(nullptr));
 }
 
-void WebLogin_AuthMethods::setupRefreshTokenCookies(
-    APIReturn &response, JWT::Token refreshToken, const ApplicationTokenProperties &tokenProps)
+void WebLogin_AuthMethods::setupRefreshTokenCookies(APIReturn &response, JWT::Token refreshToken, const ApplicationTokenProperties &tokenProps)
 {
     // This cookie is specific to the path of the AUTH API and allows to refresh the access token.
     response.cookiesMap["RefreshToken"] = HTTP::Headers::Cookie();
-    response.cookiesMap["RefreshToken"].setExpiration( tokenProps.refreshTokenTimeout );
+    response.cookiesMap["RefreshToken"].setExpiration(tokenProps.refreshTokenTimeout);
     response.cookiesMap["RefreshToken"].secure = true;
     response.cookiesMap["RefreshToken"].httpOnly = true;
     response.cookiesMap["RefreshToken"].value = signApplicationToken(refreshToken, tokenProps);
 }
 
-/** \brief Validates an access token provided via POST request from an IAM proxy for web applications.
- *
- * This function is specifically designed to handle authentication requests forwarded by an Identity and Access Management (IAM) proxy used in web applications.
- * The primary role of this function is to validate the provided API key and JWT access token, ensuring they adhere to security standards and are appropriately authorized for use.
- *
- * Upon successful validation, the function generates two distinct tokens: a short-lived AccessToken and a long-lived RefresherToken.
- *
- * These serve different purposes within the application's authentication framework:
- *
- * 1. **AccessToken**:       Created with broad scope across the entire site,
- *                           this token enables seamless user authentication across all pages and services of the web application.
- *                           It is designed to be short-lived to minimize exposure in case of leakage.
- *
- * 2. **RefresherToken**:    Limited in scope to the specific proxy endpoint responsible for authentication,
- *                           this token allows users to obtain new AccessTokens without re-authenticating each time,
- *                           enhancing user experience while maintaining security through restricted access.
- *
- * 3. **AccessTokenMaxAge**: This provides a mechanism for client-side JavaScript to determine when the current AccessToken is nearing expiration,
- *                           enabling proactive renewal of the token via the RefresherToken before it becomes invalid.
- *
- * All cookies associated with these tokens are configured with `SameSite=Strict` by default. This configuration ensures that cookies are only sent in first-party contexts,
- * effectively mitigating risks related to Cross-Site Request Forgery (CSRF) attacks. Such measures align with best practices for securing web applications and maintaining user trust.
- *
- * @param context Not used.
- * @param response Reference to the APIReturn object where errors/statuses are set.
- * @param request Contains incoming HTTP request parameters including JSON payload.
- * @param authClientDetails Holds client details (e.g., IP address) for logging/security purposes.
- */
-void WebLogin_AuthMethods::token(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)
+/*
+    This will tranform the current authentication into an APP access...
+*/
+void WebLogin_AuthMethods::token(void *context, APIReturn &response, const RequestParameters &request, ClientDetails &authClientDetails)
 {
-    // Configuration parameters:
     IdentityManager *identityManager = Globals::getIdentityManager();
+
+    std::string authenticatedUser = request.jwtToken->getSubject();
+    std::string app = JSON_ASSTRING(*request.inputJSON, "app", "");                 // APPNAME
+    std::string activity = JSON_ASSTRING(*request.inputJSON, "activity", "");       // APP ACTIVITY NAME.
+    uint32_t schemeId = JSON_ASUINT(*request.inputJSON, "schemeId", 1);             // APP SCHEME ID.
+    std::string redirectURI = JSON_ASSTRING(*request.inputJSON, "redirectURI", ""); // APP REDIRECT URI.
+
+    // TODO: implement optional auth...
+    // If an user does not have configured that optional value (eg. 2fa value), we should just omit that.
+
+    //////////////////////////////////////////////////////////////////////////////////////////
+    //// -------------------------     TOKEN VALIDATION       --------------------------- ////
+    //////////////////////////////////////////////////////////////////////////////////////////
+
+    if (request.jwtToken->getClaim("app") != "IAM" || request.jwtToken->getClaim("type") != "IAM")
+    {
+        // This Token is not for this cookie...
+        LOG_APP->log2(__func__, authenticatedUser, authClientDetails.ipAddress, Logs::LEVEL_SECURITY_ALERT,
+                      "Token request denied: User attempted to inject an invalid token or a token with another purpose.");
+        response.setError(HTTP::Status::S_403_FORBIDDEN, "AUTH_ERR_" + std::to_string(REASON_UNAUTHENTICATED), getReasonText(REASON_UNAUTHENTICATED));
+        return;
+    }
+
+    //////////////////////////////////////////////////////////////////////////////////////////
+    //// -------------------------        AUTHENTICATION      --------------------------- ////
+    //////////////////////////////////////////////////////////////////////////////////////////
+    std::set<uint32_t> authenticatedSlotIdsSet = Mantids30::Helpers::jsonToUInt32Set(request.jwtToken->getClaim("slotIds"));
+    std::set<std::string> authenticatedAppsSet = Mantids30::Helpers::jsonToStringSet(request.jwtToken->getClaim("apps"));
+
+    std::set<uint32_t> schemesInActivity = identityManager->authController->listAuthenticationSchemesForApplicationActivity(app, activity);
+
+    if (schemesInActivity.find(schemeId) == schemesInActivity.end())
+    {
+        LOG_APP->log2(__func__, authenticatedUser, authClientDetails.ipAddress, Logs::LEVEL_SECURITY_ALERT,
+                      "Token request denied: The provided authentication scheme ID does not match any required schemes for the specified application activity.");
+        response.setError(HTTP::Status::S_401_UNAUTHORIZED, "AUTH_ERR_" + std::to_string(REASON_UNAUTHENTICATED), getReasonText(REASON_UNAUTHENTICATED));
+        return;
+    }
+
+    std::vector<AuthenticationSchemeUsedSlot> slotsUsedByScheme = identityManager->authController->listAuthenticationSlotsUsedByScheme(schemeId);
+
+    for (const auto &slot : slotsUsedByScheme)
+    {
+        uint32_t slotId = slot.slotId;
+
+        if (authenticatedSlotIdsSet.find(slotId) == authenticatedSlotIdsSet.end())
+        {
+            // This token is not available for retrieving app tokens...
+            LOG_APP->log2(__func__, authenticatedUser, authClientDetails.ipAddress, Logs::LEVEL_SECURITY_ALERT,
+                          "Token request denied: User attempted to obtain a token without presenting all required credentials.");
+            response.setError(HTTP::Status::S_401_UNAUTHORIZED, "AUTH_ERR_" + std::to_string(REASON_UNAUTHENTICATED), getReasonText(REASON_UNAUTHENTICATED));
+            return;
+        }
+    }
+
+    if (authenticatedAppsSet.find(app) == authenticatedAppsSet.end())
+    {
+        // This token is not available for retrieving app tokens because the app is not in the list of authenticated apps.
+        LOG_APP->log2(__func__, authenticatedUser, authClientDetails.ipAddress, Logs::LEVEL_SECURITY_ALERT, "Token request denied: User attempted to obtain a token for an unauthorized application.");
+        // Prevent app enumeration by saying that the account is not on the app (log will help you troubleshoot this).
+        response.setError(HTTP::Status::S_401_UNAUTHORIZED, "AUTH_ERR_" + std::to_string(REASON_ACCOUNT_NOT_IN_APP), getReasonText(REASON_ACCOUNT_NOT_IN_APP));
+        return;
+    }
+
+    if (!identityManager->applications->validateApplicationAccount(app, authenticatedUser))
+    {
+        // This token is not available for retrieving app tokens because the user does not have a valid account with the specified application.
+        LOG_APP->log2(__func__, authenticatedUser, authClientDetails.ipAddress, Logs::LEVEL_SECURITY_ALERT, "Token request denied: User does not have a valid account with the specified application.");
+        response.setError(HTTP::Status::S_401_UNAUTHORIZED, "AUTH_ERR_" + std::to_string(REASON_ACCOUNT_NOT_IN_APP), getReasonText(REASON_ACCOUNT_NOT_IN_APP));
+        return;
+    }
+
+    //////////////////////////////////////////////////////////////////////////////////////////
+    //// ---------------------------   REDIRECT VALIDATIONS   --------------------------- ////
+    //////////////////////////////////////////////////////////////////////////////////////////
+
+    std::list<std::string> redirectURIs = identityManager->applications->listWebLoginRedirectURIsFromApplication(app);
+    std::string callbackURI = identityManager->applications->getApplicationCallbackURI(app);
+
+    // Validate if the redirect URI is acceptable by the application.
+    if (!redirectURI.empty() && std::find(redirectURIs.begin(), redirectURIs.end(), redirectURI) == redirectURIs.end())
+    {
+        // This token is not available for retrieving app tokens...
+        LOG_APP->log2(__func__, authenticatedUser, authClientDetails.ipAddress, Logs::LEVEL_SECURITY_ALERT,
+                      "Invalid return URL '%s': The provided URI does not match any recognized redirect URIs for application '%s'.", redirectURI.c_str(), app.c_str());
+        response.setError(HTTP::Status::S_406_NOT_ACCEPTABLE, "AUTH_ERR_" + std::to_string(REASON_BAD_PARAMETERS), getReasonText(REASON_BAD_PARAMETERS));
+        return;
+    }
+
+    if (callbackURI.empty())
+    {
+        LOG_APP->log2(__func__, authenticatedUser, authClientDetails.ipAddress, Logs::LEVEL_CRITICAL, "Configuration error: The application '%s' has not configured a callback URI yet.", app.c_str());
+        response.setError(HTTP::Status::S_500_INTERNAL_SERVER_ERROR, "AUTH_ERR_" + std::to_string(REASON_INTERNAL_ERROR), getReasonText(REASON_INTERNAL_ERROR));
+        return;
+    }
+
+    //////////////////////////////////////////////////////////////////////////////////////////
+    //// -------------------------       TOKEN CREATION       --------------------------- ////
+    //////////////////////////////////////////////////////////////////////////////////////////
+    JWT::Token accessToken, refreshToken;
+
+    auto refreshTokenId = Mantids30::Helpers::Random::createRandomString(16);
+
+    // DB Info:
+    ApplicationTokenProperties tokenProperties = identityManager->applications->getWebLoginJWTConfigFromApplication(app);
+    if (tokenProperties.appName != app)
+    {
+        // This token is not available for retrieving app tokens...
+        LOG_APP->log2(__func__, authenticatedUser, authClientDetails.ipAddress, Logs::LEVEL_CRITICAL,
+                      "Configuration error: The application '%s' is configured with an unsupported or invalid signing algorithm.", app.c_str());
+        response.setError(HTTP::Status::S_500_INTERNAL_SERVER_ERROR, "AUTH_ERR_" + std::to_string(REASON_INTERNAL_ERROR), getReasonText(REASON_INTERNAL_ERROR));
+        return;
+    }
+
+    configureAccessToken(accessToken, identityManager, refreshTokenId, authenticatedUser, app, tokenProperties, authenticatedSlotIdsSet);
+    configureRefreshToken(refreshToken, identityManager, refreshTokenId, authenticatedUser, app, tokenProperties, authenticatedSlotIdsSet);
+
+    // This information the JS will resend as POST to the callback.
+
+    (*response.responseJSON())["accessToken"] = signApplicationToken(accessToken, tokenProperties);
+    (*response.responseJSON())["refreshToken"] = signApplicationToken(refreshToken, tokenProperties);
+    (*response.responseJSON())["redirectURI"] = redirectURI;
+
+    // you should give all the previous information to the callbackURI, so the callbackURI will "absorb the cookie"
+    (*response.responseJSON())["callbackURI"] = callbackURI;
+
+    //  (*response.responseJSON())["expiresIn"] = (Json::UInt64) (accessToken.getExpirationTime() - time(nullptr));
+
+    /*// Configuration parameters:
+    IdentityManager *identityManager = Globals::getIdentityManager();
+
     JWT::Token accessToken, refreshToken;
 
     std::optional<JWT::Token> currentJWTToken = loadJWTAccessTokenFromPOST(response,request,authClientDetails);
@@ -193,7 +296,6 @@ void WebLogin_AuthMethods::token(void *context, APIReturn &response, const Manti
     configureAccessToken(accessToken, identityManager, refreshTokenId, jwtPreAuthUser, jwtPreAuthApp, tokenProperties, currentAuthenticatedSlotIds);
     configureRefreshToken(refreshToken, identityManager, refreshTokenId, jwtPreAuthUser, jwtPreAuthApp, tokenProperties, currentAuthenticatedSlotIds);
 
-
     setupAccessTokenCookies(response,accessToken,tokenProperties);
     setupRefreshTokenCookies(response,refreshToken,tokenProperties);
 
@@ -219,256 +321,19 @@ void WebLogin_AuthMethods::token(void *context, APIReturn &response, const Manti
     
     // TODO: how to setup the local access token... maybe I should create a new api for it.
     //configureIAMAccessToken(response, request, identityManager, refreshTokenId, jwtPreAuthUser, currentAuthenticatedSlotIds);
-/*
+
     // TODO: guardar los tokens en una db interna para el logout (no hacer ahorita)
-    (*response.responseJSON())["accessToken"] = signAccessToken(accessToken, tokenProperties, jwtPreAuthApp);
-    (*response.responseJSON())["expiresIn"] = (Json::UInt64) (accessToken.getExpirationTime() - time(nullptr));
+  //  (*response.responseJSON())["accessToken"] = signAccessToken(accessToken, tokenProperties, jwtPreAuthApp);
+  //..  (*response.responseJSON())["expiresIn"] = (Json::UInt64) (accessToken.getExpirationTime() - time(nullptr));
+
+    // TODO: la información que requiere la APP para operar, es la configuración de los privilegios, los requisitos de 2nd factor para ciertos privilegios\
 */
-    // TODO: la información que requiere la APP para operar, es la configuración de los privilegios, los requisitos de 2nd factor para ciertos privilegios
 }
 
-void WebLogin_AuthMethods::refreshAccessToken(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)
-{
-    IdentityManager *identityManager = Globals::getIdentityManager();
-
-    std::string refreshTokenStr = request.clientRequest->getCookies()->getSubVar("RefreshToken");
-
-    // ----------    decode no verify the Refresh Token and take the app name    -----------
-
-    if (refreshTokenStr.empty())
-    {
-        LOG_APP->log2(__func__, "", authClientDetails.ipAddress, Logs::LEVEL_SECURITY_ALERT, "Refresh token cookie is missing or empty.");
-        response.setError(HTTP::Status::S_401_UNAUTHORIZED, "invalid_refresher", "Invalid Refresh Token");
-        return;
-    }
-
-    // Validate the refresh token
-    JWT::Token refreshTokenNoVerified;
-
-    if (!JWT::decodeNoVerify(refreshTokenStr, &refreshTokenNoVerified))
-    {
-        LOG_APP->log2(__func__, "", authClientDetails.ipAddress, Logs::LEVEL_SECURITY_ALERT, "Invalid JWT format detected in the provided access token.");
-        response.setError(HTTP::Status::S_400_BAD_REQUEST, "invalid_jwt", "The 'accessToken' must be a valid JWT string.");
-        return;
-    }
-
-    // Extract application from the refresh token
-    const auto& refreshTokenApp = JSON_ASSTRING_D(refreshTokenNoVerified.getClaim("app"), "");
-    ApplicationTokenProperties tokenProps = identityManager->applications->getWebLoginJWTConfigFromApplication(refreshTokenApp);
-
-    if (refreshTokenApp.empty())
-    {
-        LOG_APP->log2(__func__, "", authClientDetails.ipAddress, Logs::LEVEL_SECURITY_ALERT, "Refresh token contains invalid or missing claims.");
-        response.setError(HTTP::Status::S_401_UNAUTHORIZED,"invalid_token", "Invalid Refresher Token");
-        return;
-    }
-
-    if (tokenProps.appName != refreshTokenApp)
-    {
-        // This token is not available for retrieving app tokens...
-        LOG_APP->log2(__func__, "", authClientDetails.ipAddress, Logs::LEVEL_CRITICAL, "Configuration error: The application '%s' is configured with an unsupported or invalid signing algorithm.", refreshTokenApp.c_str());
-        response.setError(HTTP::Status::S_500_INTERNAL_SERVER_ERROR,"AUTH_ERR_" + std::to_string(REASON_INTERNAL_ERROR), getReasonText(REASON_INTERNAL_ERROR));
-        return;
-    }
-
-    // ----------   validate the header API Key    -----------
-    if (!validateAPIKey(refreshTokenApp, response,request,authClientDetails))
-    {
-        return;
-    }
-
-    // --------- validate the refresh token itself (that is signed with the application keys) --------
-    JWT::Token refreshTokenVerified;
-
-    auto validator = identityManager->applications->getAppJWTValidator(refreshTokenApp);
-
-    if (!validator)
-    {
-        LOG_APP->log2(__func__, "", authClientDetails.ipAddress, Logs::LEVEL_SECURITY_ALERT, "No JWT validator found for application '%s'.", refreshTokenApp.c_str());
-        response.setError(HTTP::Status::S_401_UNAUTHORIZED, "invalid_app", "Application not configured");
-        return;
-    }
-
-    if (!validator->verify( refreshTokenStr, &refreshTokenVerified ))
-    {
-        LOG_APP->log2(__func__, "", authClientDetails.ipAddress, Logs::LEVEL_SECURITY_ALERT, "Failed to verify refresh token for application '%s'.", refreshTokenApp.c_str());
-        response.setError(HTTP::Status::S_401_UNAUTHORIZED,"invalid_token", "Invalid Refresh Token");
-        return;
-    }
-
-    const auto& refreshTokenUser = refreshTokenVerified.getSubject();
-
-
-    // --------- create a new access token (like in the token function) -----------
-    std::set<uint32_t> currentAuthenticatedSlotIds;
-    Json::Value jSlotIds = refreshTokenVerified.getClaim("slotIds");
-    if (!jSlotIds.isNull() && jSlotIds.isArray())
-    {
-        for (const auto& slotIdNode : jSlotIds)
-        {
-            const uint32_t slotId = JSON_ASUINT_D(slotIdNode,0xFFFFFFFF);
-            currentAuthenticatedSlotIds.insert(slotId);
-        }
-    }
-
-    JWT::Token newAccessToken;
-    configureAccessToken(newAccessToken, identityManager, refreshTokenVerified.getJwtId(), refreshTokenUser, refreshTokenApp, tokenProps, currentAuthenticatedSlotIds); // Assuming these variables are accessible here
-
-    // --------- return as cookie, and create the max age cookie too, don't do anything else. ------------
-    // Update cookies with new tokens
-    setupAccessTokenCookies(response,newAccessToken,tokenProps);
-
-}
-
-void WebLogin_AuthMethods::appLogout(
-    void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)
-{
-    std::string refreshTokenStr = request.clientRequest->getCookies()->getSubVar("RefreshToken");
-    // ----------   prevent CSRF here. because this cookie is strict, won't exist on CSRF calls...   -----------
-    if (refreshTokenStr.empty())
-    {
-        LOG_APP->log2(__func__, "", authClientDetails.ipAddress, Logs::LEVEL_WARN, "Refresh token cookie is missing or empty during logout. Maybe not logged in?");
-        response.setError(HTTP::Status::S_401_UNAUTHORIZED, "invalid_refresher", "Invalid Refresh Token");
-        return;
-    }
-
-    // if ok, clear everything!:
-    response.cookiesMap["AccessToken"] = HTTP::Headers::Cookie();
-    response.cookiesMap["AccessToken"].setAsTransientCookie();
-    response.cookiesMap["AccessToken"].value = "";
-    response.cookiesMap["AccessToken"].path = "/";
-
-    response.cookiesMap["AccessTokenMaxAge"] = HTTP::Headers::Cookie();
-    response.cookiesMap["AccessTokenMaxAge"].setAsTransientCookie();
-    response.cookiesMap["AccessTokenMaxAge"].path = "/";
-    response.cookiesMap["AccessTokenMaxAge"].value = "";
-
-    response.cookiesMap["RefreshToken"] = HTTP::Headers::Cookie();
-    response.cookiesMap["RefreshToken"].setAsTransientCookie();
-    response.cookiesMap["RefreshToken"].value = "";
-}
-
-void WebLogin_AuthMethods::refreshRefresherToken(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)
-{
-    IdentityManager *identityManager = Globals::getIdentityManager();
-
-    std::string refreshTokenStr = request.clientRequest->getCookies()->getSubVar("RefreshToken");
-
-    // ----------    decode no verify the Refresh Token and take the app name    -----------
-
-    if (refreshTokenStr.empty())
-    {
-        LOG_APP->log2(__func__, "", authClientDetails.ipAddress, Logs::LEVEL_SECURITY_ALERT, "Refresh token cookie is missing or empty.");
-        response.setError(HTTP::Status::S_401_UNAUTHORIZED, "invalid_refresher", "Invalid Refresh Token");
-        return;
-    }
-
-    // Validate the refresh token
-    JWT::Token refreshTokenNoVerified;
-
-    if (!JWT::decodeNoVerify(refreshTokenStr, &refreshTokenNoVerified))
-    {
-        LOG_APP->log2(__func__, "", authClientDetails.ipAddress, Logs::LEVEL_SECURITY_ALERT, "Invalid JWT format detected in the provided access token.");
-        response.setError(HTTP::Status::S_400_BAD_REQUEST, "invalid_jwt", "The 'accessToken' must be a valid JWT string.");
-        return;
-    }
-
-    // Extract application from the refresh token
-    const auto& refreshTokenApp = JSON_ASSTRING_D(refreshTokenNoVerified.getClaim("app"), "");
-    ApplicationTokenProperties tokenProps = identityManager->applications->getWebLoginJWTConfigFromApplication(refreshTokenApp);
-
-    if (refreshTokenApp.empty())
-    {
-        LOG_APP->log2(__func__, "", authClientDetails.ipAddress, Logs::LEVEL_SECURITY_ALERT, "Refresh token contains invalid or missing claims.");
-        response.setError(HTTP::Status::S_401_UNAUTHORIZED,"invalid_token", "Invalid Refresher Token");
-        return;
-    }
-
-    if (tokenProps.appName != refreshTokenApp)
-    {
-        // This token is not available for retrieving app tokens...
-        LOG_APP->log2(__func__, "", authClientDetails.ipAddress, Logs::LEVEL_CRITICAL, "Configuration error: The application '%s' is configured with an unsupported or invalid signing algorithm.", refreshTokenApp.c_str());
-        response.setError(HTTP::Status::S_500_INTERNAL_SERVER_ERROR,"AUTH_ERR_" + std::to_string(REASON_INTERNAL_ERROR), getReasonText(REASON_INTERNAL_ERROR));
-        return;
-    }
-
-    if (!tokenProps.allowRefreshTokenRenovation)
-    {
-        LOG_APP->log2(__func__, "", authClientDetails.ipAddress, Logs::LEVEL_SECURITY_ALERT, "Refresh token renovation not allowed for application '%s'.", refreshTokenApp.c_str());
-        response.setError(HTTP::Status::S_403_FORBIDDEN, "refresh_denied", "Renovation of refresh tokens is disabled");
-        return;
-    }
-
-    // ----------   validate the header API Key    -----------
-    if (!validateAPIKey(refreshTokenApp, response,request,authClientDetails))
-    {
-        return;
-    }
-
-    // --------- validate the refresh token itself (that is signed with the application keys) --------
-    JWT::Token refreshTokenVerified;
-
-    auto validator = identityManager->applications->getAppJWTValidator(refreshTokenApp);
-
-    if (!validator)
-    {
-        LOG_APP->log2(__func__, "", authClientDetails.ipAddress, Logs::LEVEL_SECURITY_ALERT, "No JWT validator found for application '%s'.", refreshTokenApp.c_str());
-        response.setError(HTTP::Status::S_401_UNAUTHORIZED, "invalid_app", "Application not configured");
-        return;
-    }
-
-    if (!validator->verify( refreshTokenStr, &refreshTokenVerified ))
-    {
-        LOG_APP->log2(__func__, "", authClientDetails.ipAddress, Logs::LEVEL_SECURITY_ALERT, "Failed to verify refresh token for application '%s'.", refreshTokenApp.c_str());
-        response.setError(HTTP::Status::S_401_UNAUTHORIZED,"invalid_token", "Invalid Refresh Token");
-        return;
-    }
-
-    // TODO: check if the refresh the refresh token is available by the app configuration
-
-    // The token is valid here...
-    // TODO: invalidar todos los tokens viejos que su parent sea este refresher...
-    // TODO: guardar los tokens en una db interna para el logout (no hacer ahorita)
-
-    auto refreshTokenId = Mantids30::Helpers::Random::createRandomString(16);
-
-    auto tokenHalfLifeSeconds = (refreshTokenVerified.getExpirationTime() - refreshTokenVerified.getIssuedAt()) / 2;
-    auto tokenHalfLifePoint = refreshTokenVerified.getIssuedAt() + tokenHalfLifeSeconds;
-
-    if (time(nullptr) <= tokenHalfLifePoint)
-    {
-        LOG_APP->log2(__func__, "", authClientDetails.ipAddress, Logs::LEVEL_WARN, "Refresh token hast not past its half-life and cannot be refreshed.");
-        response.setError(HTTP::Status::S_406_NOT_ACCEPTABLE, "unrefresheable_token", "The refresh token is not refresheable yet.");
-        return;
-    }
-
-
-    const auto& refreshTokenUser = refreshTokenVerified.getSubject();
-
-    // --------- create a new access token (like in the token function) -----------
-    std::set<uint32_t> currentAuthenticatedSlotIds;
-    Json::Value jSlotIds = refreshTokenVerified.getClaim("slotIds");
-    if (!jSlotIds.isNull() && jSlotIds.isArray())
-    {
-        for (const auto& slotIdNode : jSlotIds)
-        {
-            const uint32_t slotId = JSON_ASUINT_D(slotIdNode,0xFFFFFFFF);
-            currentAuthenticatedSlotIds.insert(slotId);
-        }
-    }
-
-    JWT::Token newRefreshToken;
-    configureRefreshToken(newRefreshToken, identityManager, refreshTokenId, refreshTokenUser, refreshTokenApp, tokenProps, currentAuthenticatedSlotIds);
-    setupRefreshTokenCookies(response,newRefreshToken,tokenProps);
-}
-
-
-
-
-void WebLogin_AuthMethods::tempMFAToken(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)
+void WebLogin_AuthMethods::tempMFAToken(void *context, APIReturn &response, const RequestParameters &request, ClientDetails &authClientDetails)
 {
     // INPUTS...
-   /* std::string password = JSON_ASSTRING(*request.inputJSON, "password", "");
+    /* std::string password = JSON_ASSTRING(*request.inputJSON, "password", "");
     std::string authMode = JSON_ASSTRING(*request.inputJSON, "authMode", "");
     std::string challengeSalt = JSON_ASSTRING(*request.inputJSON, "challengeSalt", "");
     uint32_t slotId = JSON_ASUINT(*request.inputJSON, "slotId", 0);
@@ -527,4 +392,3 @@ void WebLogin_AuthMethods::tempMFAToken(void *context, APIReturn &response, cons
         (*response.responseJSON())["tempMFAToken"] = signApplicationToken(tempMFAToken, tokenProperties);
     }*/
 }
-

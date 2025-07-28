@@ -1,13 +1,13 @@
 #include "globals.h"
 
-LoginDirectoryManager * Globals::loginDirManager = nullptr;
-IdentityManager * Globals::identityManager = nullptr;
-Mantids30::Program::Logs::AppLog * Globals::applog = nullptr;
+LoginDirectoryManager *Globals::loginDirManager = nullptr;
+IdentityManager *Globals::identityManager = nullptr;
+Mantids30::Program::Logs::AppLog *Globals::applog = nullptr;
 boost::property_tree::ptree Globals::pConfig;
-Mantids30::Program::Logs::RPCLog * Globals::rpclog = nullptr;
+Mantids30::Program::Logs::RPCLog *Globals::rpclog = nullptr;
 bool Globals::resetAdminPasswd = false;
-Mantids30::Network::Servers::Web::APIEngineCore * Globals::webLoginServer = nullptr;
-Mantids30::Network::Protocols::FastRPC::FastRPC1 * Globals::fastRPC = nullptr;
+Mantids30::Network::Servers::Web::APIEngineCore *Globals::webLoginServer = nullptr;
+Mantids30::Network::Protocols::FastRPC::FastRPC1 *Globals::fastRPC = nullptr;
 
 Mantids30::Program::Logs::AppLog *Globals::getAppLog()
 {
@@ -23,7 +23,6 @@ boost::property_tree::ptree *Globals::getConfig()
 {
     return &pConfig;
 }
-
 
 IdentityManager *Globals::getIdentityManager()
 {
@@ -60,8 +59,7 @@ Mantids30::Network::Servers::Web::APIEngineCore *Globals::getWebLoginServer()
     return webLoginServer;
 }
 
-void Globals::setWebLoginServer(
-    Mantids30::Network::Servers::Web::APIEngineCore *newWebLoginServer)
+void Globals::setWebLoginServer(Mantids30::Network::Servers::Web::APIEngineCore *newWebLoginServer)
 {
     webLoginServer = newWebLoginServer;
 }
@@ -71,8 +69,7 @@ Mantids30::Network::Protocols::FastRPC::FastRPC1 *Globals::getFastRPC()
     return fastRPC;
 }
 
-void Globals::setFastRPC(
-    Mantids30::Network::Protocols::FastRPC::FastRPC1 *newFastRPC)
+void Globals::setFastRPC(Mantids30::Network::Protocols::FastRPC::FastRPC1 *newFastRPC)
 {
     fastRPC = newFastRPC;
 }

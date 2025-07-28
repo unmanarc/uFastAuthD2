@@ -1,8 +1,8 @@
 #pragma once
 
+#include "credentialdata.h"
 #include <Mantids30/Helpers/json.h>
 #include <set>
-#include "credentialdata.h"
 
 class MultiCredentialData
 {
@@ -14,13 +14,13 @@ public:
      * @param sAuthentications string in JSON Format.
      * @return if the string have been correctly parsed, returns true, else false.
      */
-    bool parseJSON(const std::string & sAuthentications);
+    bool parseJSON(const std::string &sAuthentications);
     /**
      * @brief Deserializes multiple authentications from a JSON object.
      * @param jsonObject The JSON object containing the multi authentications.
      * @return true if the deserialization was successful, false otherwise.
      */
-    bool setJSON(const json & auths);
+    bool setJSON(const json &auths);
     /**
      * @brief clear Clear authentications
      */
@@ -29,7 +29,7 @@ public:
      * @brief addCredentialData Manually add an authentication
      * @param auth Authentication object.
      */
-    void addCredentialData(const CredentialData & auth);
+    void addCredentialData(const CredentialData &auth);
     /**
      * @brief addAuthentication Add an authentication as slotId+Secret
      * @param slotId Authentication Secret SlotId
@@ -46,9 +46,8 @@ public:
      * @param slotId Authentication Secret SlotId.
      * @return Authentication Object.
      */
-    CredentialData getAuthentication( const uint32_t & slotId );
-
+    CredentialData getAuthentication(const uint32_t &slotId);
 
 private:
-    std::map<uint32_t,CredentialData> m_authenticationsSlots;
+    std::map<uint32_t, CredentialData> m_authenticationsSlots;
 };

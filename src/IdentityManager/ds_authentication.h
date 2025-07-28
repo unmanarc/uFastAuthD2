@@ -1,12 +1,12 @@
 #pragma once
 
-#include <string>
 #include <stdint.h>
+#include <string>
 
-#include <Mantids30/Helpers/encoders.h>
 #include <Mantids30/Helpers/crypto.h>
-#include <Mantids30/Helpers/random.h>
+#include <Mantids30/Helpers/encoders.h>
 #include <Mantids30/Helpers/json.h>
+#include <Mantids30/Helpers/random.h>
 
 /**
  * @brief The Function enum defines the supported password hashing and authentication functions.
@@ -24,22 +24,22 @@
  */
 enum HashFunction
 {
-    FN_NOTFOUND=500,
-    FN_PLAIN=0,
-    FN_SHA256=1,
-    FN_SHA512=2,
-    FN_SSHA256=3,
-    FN_SSHA512=4,
-    FN_GAUTHTIME=5
+    FN_NOTFOUND = 500,
+    FN_PLAIN = 0,
+    FN_SHA256 = 1,
+    FN_SHA512 = 2,
+    FN_SSHA256 = 3,
+    FN_SSHA512 = 4,
+    FN_GAUTHTIME = 5
 };
 
 enum Mode
 {
-    MODE_PLAIN,   // NOT RECOMMENDED.
+    MODE_PLAIN, // NOT RECOMMENDED.
     MODE_CHALLENGE
 };
 
-static Mode getAuthModeFromString( const std::string & mode )
+static Mode getAuthModeFromString(const std::string &mode)
 {
     if (mode == "CHALLENGE")
         return MODE_CHALLENGE;
@@ -47,7 +47,7 @@ static Mode getAuthModeFromString( const std::string & mode )
         return MODE_PLAIN;
 }
 
-static std::string getStringFromAuthMode( const Mode & mode )
+static std::string getStringFromAuthMode(const Mode &mode)
 {
     switch (mode)
     {
@@ -65,19 +65,18 @@ struct AuthenticationPolicy
     uint32_t abandonedAccountExpirationSeconds = 180 * 24 * 3600; // 6 Months..
 
     // TODO: separar esto...
-    uint32_t blockTokenTimeout = 7 * 24 * 3600;                   // 7 days..
+    uint32_t blockTokenTimeout = 7 * 24 * 3600; // 7 days..
 };
-
 
 struct AuthenticationSlotDetails
 {
-    void fromJSON(const json & j)
+    void fromJSON(const json &j)
     {
-        passwordFunction = (HashFunction)JSON_ASINT(j,"passwordFunction",(int)FN_NOTFOUND);
-        description = JSON_ASSTRING(j,"description","");
-        defaultExpirationSeconds = JSON_ASUINT(j,"defaultExpirationSeconds",0);
-        strengthJSONValidator = JSON_ASSTRING(j,"strengthJSONValidator","");
-        totp2FAStepsToleranceWindow = JSON_ASUINT(j,"totp2FAStepsToleranceWindow",0);
+        passwordFunction = (HashFunction) JSON_ASINT(j, "passwordFunction", (int) FN_NOTFOUND);
+        description = JSON_ASSTRING(j, "description", "");
+        defaultExpirationSeconds = JSON_ASUINT(j, "defaultExpirationSeconds", 0);
+        strengthJSONValidator = JSON_ASSTRING(j, "strengthJSONValidator", "");
+        totp2FAStepsToleranceWindow = JSON_ASUINT(j, "totp2FAStepsToleranceWindow", 0);
     }
 
     json toJSON() const
@@ -86,7 +85,7 @@ struct AuthenticationSlotDetails
         jRet["description"] = description;
         jRet["defaultExpirationSeconds"] = defaultExpirationSeconds;
         jRet["strengthJSONValidator"] = strengthJSONValidator;
-        jRet["passwordFunction"] = (int)passwordFunction;
+        jRet["passwordFunction"] = (int) passwordFunction;
         jRet["totp2FAStepsToleranceWindow"] = totp2FAStepsToleranceWindow;
         return jRet;
     }
@@ -109,25 +108,19 @@ struct AuthenticationSlotDetails
     }
     */
 
-    bool isCompatible(const AuthenticationSlotDetails & x)
-    {
-        return x.passwordFunction==passwordFunction;
-    }
+    bool isCompatible(const AuthenticationSlotDetails &x) { return x.passwordFunction == passwordFunction; }
 
-    bool isTextPasswordFunction()
-    {
-        return passwordFunction!=FN_NOTFOUND && passwordFunction!=FN_GAUTHTIME;
-    }
+    bool isTextPasswordFunction() { return passwordFunction != FN_NOTFOUND && passwordFunction != FN_GAUTHTIME; }
 
+    AuthenticationSlotDetails(const std::string &desc, HashFunction pwdFunction, const std::string &strengthValidator, uint32_t defaultExpSecs, uint32_t totpToleranceWindow)
+        : description(desc)
+        , passwordFunction(pwdFunction)
+        , strengthJSONValidator(strengthValidator)
+        , defaultExpirationSeconds(defaultExpSecs)
+        , totp2FAStepsToleranceWindow(totpToleranceWindow)
+    {}
 
-    AuthenticationSlotDetails(const std::string& desc, HashFunction pwdFunction, const std::string& strengthValidator,
-                              uint32_t defaultExpSecs, uint32_t totpToleranceWindow)
-        : description(desc), passwordFunction(pwdFunction), strengthJSONValidator(strengthValidator),
-        defaultExpirationSeconds(defaultExpSecs), totp2FAStepsToleranceWindow(totpToleranceWindow) {}
-
-    AuthenticationSlotDetails()
-    {
-    }
+    AuthenticationSlotDetails() {}
 
     std::string description;
 
@@ -138,27 +131,26 @@ struct AuthenticationSlotDetails
     uint32_t totp2FAStepsToleranceWindow = 0;
 };
 
-
 struct Credential
 {
-    static Credential createFromJSON(const json & j)
+    static Credential createFromJSON(const json &j)
     {
         Credential c;
         c.fromJSON(j);
         return c;
     }
 
-    void fromJSON(const json & j)
+    void fromJSON(const json &j)
     {
         slotDetails.fromJSON(j["slotDetails"]);
-        forceExpiration = JSON_ASBOOL(j,"forceExpiration",true);
-        badAttempts = JSON_ASUINT(j,"badAttempts",0);
-        expirationTimestamp = (time_t)JSON_ASUINT64(j,"expirationTimestamp",0);
-        hash = JSON_ASSTRING(j,"hash","");
-        Mantids30::Helpers::Encoders::fromHex(JSON_ASSTRING(j,"hash","FFFFFFFF"), ssalt,4);
+        forceExpiration = JSON_ASBOOL(j, "forceExpiration", true);
+        badAttempts = JSON_ASUINT(j, "badAttempts", 0);
+        expirationTimestamp = (time_t) JSON_ASUINT64(j, "expirationTimestamp", 0);
+        hash = JSON_ASSTRING(j, "hash", "");
+        Mantids30::Helpers::Encoders::fromHex(JSON_ASSTRING(j, "hash", "FFFFFFFF"), ssalt, 4);
     }
 
-    json toJSON(const AuthenticationPolicy & authPolicy) const
+    json toJSON(const AuthenticationPolicy &authPolicy) const
     {
         json jRet;
         jRet["slotDetails"] = slotDetails.toJSON();
@@ -166,7 +158,7 @@ struct Credential
         jRet["badAttempts"] = badAttempts;
         jRet["expirationTimestamp"] = expirationTimestamp;
         jRet["hash"] = hash;
-        jRet["ssalt"] = Mantids30::Helpers::Encoders::toHex(ssalt,4);
+        jRet["ssalt"] = Mantids30::Helpers::Encoders::toHex(ssalt, 4);
 
         jRet["isExpired"] = isAccountExpired();
         jRet["isLocked"] = isLocked(authPolicy);
@@ -181,108 +173,123 @@ struct Credential
         return credPubData;
     }
 
-    bool isLocked(const AuthenticationPolicy & authPolicy) const
-    {
-        return (badAttempts+1) >= authPolicy.maxTries;
-    }
+    bool isLocked(const AuthenticationPolicy &authPolicy) const { return (badAttempts + 1) >= authPolicy.maxTries; }
 
-    bool isAccountExpired() const
-    {
-        return (time(nullptr)>expirationTimestamp && expirationTimestamp!=0) || forceExpiration;
-    }
+    bool isAccountExpired() const { return (time(nullptr) > expirationTimestamp && expirationTimestamp != 0) || forceExpiration; }
 
     bool forceExpiration = true;
     uint32_t badAttempts = 0;
     // 0 means that the password does not expire... 1 means that it's expired unless and when you change the password, the expiration will be set to current time + slot default time...
     time_t expirationTimestamp = 1;
     std::string hash;
-    unsigned char ssalt[4] = {0xFF,0xFF,0xFF,0xFF};
+    unsigned char ssalt[4] = {0xFF, 0xFF, 0xFF, 0xFF};
     AuthenticationSlotDetails slotDetails;
-
 };
 
 enum Reason
 {
-    REASON_AUTHENTICATED=0,             // AUTHENTICATED!
-    REASON_INTERNAL_ERROR=500,          // INTERNAL ERROR (OTHER)
-    REASON_NOT_IMPLEMENTED=501,         // AUTHENTICATION NOT IMPLEMENTED YET :(
-    REASON_DUPLICATED_SESSION=502,      // DUPLICATED SESSION ID
-    REASON_EXPIRED_PASSWORD=100,        // VALIDATE, HOWEVER MUST CHANGE PASSWORD NOW!
-    REASON_EXPIRED_ACCOUNT=102,         // ACCOUNT EXPIRED. NOT USABLE
-    REASON_INACTIVE_ACCOUNT=111,        // ACCOUNT INACTIVE. NOT USABLE
-    REASON_DISABLED_ACCOUNT=103,        // ACCOUNT DISABLED BY ADMIN.
-    REASON_UNCONFIRMED_ACCOUNT=104,     // ACCOUNT NOT CONFIRMED YET.
-    REASON_BAD_ACCOUNT=105,             // INVALID OR NON-EXISTENT ACCOUNT
-    REASON_BAD_PASSWORD=106,            // AUTHENTICATION FAILED.
-    REASON_PASSWORD_INDEX_NOTFOUND=107, // Authentication Slot SlotId not found.
-    REASON_AUTH_SCHEME_CHANGED=108,     // Authentication scheme changed.
-    REASON_ACCOUNT_NOT_IN_APP=109,      // Account is not registered on the application
-    REASON_AUTH_SCHEME_EMPTY=110,       // Authentication scheme is empty.
-    REASON_BAD_PARAMETERS=993,          // BAD PARAMETERS.
-    REASON_INVALID_DOMAIN=994,          // AUTHENTICATION FAILED.
-    REASON_INVALID_AUTHENTICATOR=995,
-    REASON_SESSIONLIMITS_EXCEEDED=996,
-    REASON_ANSWER_TIMEDOUT=997,
-    REASON_EXPIRED=998,
-    REASON_UNAUTHENTICATED=999
+    REASON_AUTHENTICATED = 0,             // AUTHENTICATED!
+    REASON_INTERNAL_ERROR = 500,          // INTERNAL ERROR (OTHER)
+    REASON_NOT_IMPLEMENTED = 501,         // AUTHENTICATION NOT IMPLEMENTED YET :(
+    REASON_DUPLICATED_SESSION = 502,      // DUPLICATED SESSION ID
+    REASON_EXPIRED_PASSWORD = 100,        // VALIDATE, HOWEVER MUST CHANGE PASSWORD NOW!
+    REASON_EXPIRED_ACCOUNT = 102,         // ACCOUNT EXPIRED. NOT USABLE
+    REASON_INACTIVE_ACCOUNT = 111,        // ACCOUNT INACTIVE. NOT USABLE
+    REASON_DISABLED_ACCOUNT = 103,        // ACCOUNT DISABLED BY ADMIN.
+    REASON_UNCONFIRMED_ACCOUNT = 104,     // ACCOUNT NOT CONFIRMED YET.
+    REASON_BAD_ACCOUNT = 105,             // INVALID OR NON-EXISTENT ACCOUNT
+    REASON_BAD_PASSWORD = 106,            // AUTHENTICATION FAILED.
+    REASON_PASSWORD_INDEX_NOTFOUND = 107, // Authentication Slot SlotId not found.
+    REASON_AUTH_SCHEME_CHANGED = 108,     // Authentication scheme changed.
+    REASON_ACCOUNT_NOT_IN_APP = 109,      // Account is not registered on the application
+    REASON_AUTH_SCHEME_EMPTY = 110,       // Authentication scheme is empty.
+    REASON_BAD_PARAMETERS = 993,          // BAD PARAMETERS.
+    REASON_INVALID_DOMAIN = 994,          // AUTHENTICATION FAILED.
+    REASON_INVALID_AUTHENTICATOR = 995,
+    REASON_SESSIONLIMITS_EXCEEDED = 996,
+    REASON_ANSWER_TIMEDOUT = 997,
+    REASON_EXPIRED = 998,
+    REASON_UNAUTHENTICATED = 999
 };
 
-static bool IS_PASSWORD_AUTHENTICATED(const Reason & reason)
+static bool IS_PASSWORD_AUTHENTICATED(const Reason &reason)
 {
     return reason == REASON_AUTHENTICATED || reason == REASON_EXPIRED_PASSWORD;
 }
 
-static const char * cREASON_AUTHENTICATED="Authenticated";
-static const char * cREASON_INTERNAL_ERROR="Authentication Internal Error";
-static const char * cREASON_NOT_IMPLEMENTED="Authentication not implemented yet";
-static const char * cREASON_EXPIRED_PASSWORD="Password expired";
-static const char * cREASON_EXPIRED_ACCOUNT = "Account expired";
-static const char * cREASON_INACTIVE_ACCOUNT = "Account is inactive";
-static const char * cREASON_DISABLED_ACCOUNT = "Account disabled";
-static const char * cREASON_UNCONFIRMED_ACCOUNT = "Account unconfirmed";
-static const char * cREASON_BAD_ACCOUNT = "Invalid Account";
-static const char * cREASON_BAD_PASSWORD = "Invalid password";
-static const char * cREASON_PASSWORD_INDEX_NOTFOUND = "Authentication Slot ID Not Found";
-static const char * cREASON_EXPIRED = "Expired authentication";
-static const char * cREASON_UNAUTHENTICATED = "Not authenticated yet";
-static const char * cREASON_ANSWER_TIMEDOUT = "Answer timed out";
-static const char * cREASON_DUPLICATED_SESSION = "Session ID Duplicated Error";
-static const char * cREASON_INVALID_AUTHENTICATOR = "Invalid or undefined authenticator";
-static const char * cREASON_INVALID_DOMAIN = "Invalid domain name";
-static const char * cREASON_SESSIONLIMITS_EXCEEDED = "Sessions limits exceeded";
-static const char * cREASON_BAD_PARAMETERS = "Bad Parameters";
-static const char * cREASON_AUTH_CHANGED = "Authentication Scheme Changed";
-static const char * cREASON_ACCOUNT_NOT_IN_APP = "Account not registered in the application";
-static const char * cREASON_AUTH_SCHEME_EMPTY = "Authentication Scheme is Empty";
+static const char *cREASON_AUTHENTICATED = "Authenticated";
+static const char *cREASON_INTERNAL_ERROR = "Authentication Internal Error";
+static const char *cREASON_NOT_IMPLEMENTED = "Authentication not implemented yet";
+static const char *cREASON_EXPIRED_PASSWORD = "Password expired";
+static const char *cREASON_EXPIRED_ACCOUNT = "Account expired";
+static const char *cREASON_INACTIVE_ACCOUNT = "Account is inactive";
+static const char *cREASON_DISABLED_ACCOUNT = "Account disabled";
+static const char *cREASON_UNCONFIRMED_ACCOUNT = "Account unconfirmed";
+static const char *cREASON_BAD_ACCOUNT = "Invalid Account";
+static const char *cREASON_BAD_PASSWORD = "Invalid password";
+static const char *cREASON_PASSWORD_INDEX_NOTFOUND = "Authentication Slot ID Not Found";
+static const char *cREASON_EXPIRED = "Expired authentication";
+static const char *cREASON_UNAUTHENTICATED = "Not authenticated yet";
+static const char *cREASON_ANSWER_TIMEDOUT = "Answer timed out";
+static const char *cREASON_DUPLICATED_SESSION = "Session ID Duplicated Error";
+static const char *cREASON_INVALID_AUTHENTICATOR = "Invalid or undefined authenticator";
+static const char *cREASON_INVALID_DOMAIN = "Invalid domain name";
+static const char *cREASON_SESSIONLIMITS_EXCEEDED = "Sessions limits exceeded";
+static const char *cREASON_BAD_PARAMETERS = "Bad Parameters";
+static const char *cREASON_AUTH_CHANGED = "Authentication Scheme Changed";
+static const char *cREASON_ACCOUNT_NOT_IN_APP = "Account not registered in the application";
+static const char *cREASON_AUTH_SCHEME_EMPTY = "Authentication Scheme is Empty";
 
-static const char * cNULL = "";
+static const char *cNULL = "";
 
-static const char * getReasonText(const Reason & reason)
+static const char *getReasonText(const Reason &reason)
 {
-    switch(reason)
+    switch (reason)
     {
-    case REASON_SESSIONLIMITS_EXCEEDED: return cREASON_SESSIONLIMITS_EXCEEDED;
-    case REASON_INVALID_AUTHENTICATOR: return cREASON_INVALID_AUTHENTICATOR;
-    case REASON_DUPLICATED_SESSION: return cREASON_DUPLICATED_SESSION;
-    case REASON_AUTHENTICATED: return cREASON_AUTHENTICATED;
-    case REASON_INTERNAL_ERROR: return cREASON_INTERNAL_ERROR;
-    case REASON_NOT_IMPLEMENTED: return cREASON_NOT_IMPLEMENTED;
-    case REASON_EXPIRED_PASSWORD: return cREASON_EXPIRED_PASSWORD;
-    case REASON_EXPIRED_ACCOUNT: return cREASON_EXPIRED_ACCOUNT;
-    case REASON_DISABLED_ACCOUNT: return cREASON_DISABLED_ACCOUNT;
-    case REASON_UNCONFIRMED_ACCOUNT: return cREASON_UNCONFIRMED_ACCOUNT;
-    case REASON_BAD_ACCOUNT: return cREASON_BAD_ACCOUNT;
-    case REASON_BAD_PASSWORD: return cREASON_BAD_PASSWORD;
-    case REASON_PASSWORD_INDEX_NOTFOUND: return cREASON_PASSWORD_INDEX_NOTFOUND;
-    case REASON_ANSWER_TIMEDOUT: return cREASON_ANSWER_TIMEDOUT;
-    case REASON_EXPIRED: return cREASON_EXPIRED;
-    case REASON_UNAUTHENTICATED: return cREASON_UNAUTHENTICATED;
-    case REASON_INVALID_DOMAIN: return cREASON_INVALID_DOMAIN;
-    case REASON_BAD_PARAMETERS: return cREASON_BAD_PARAMETERS;
-    case REASON_AUTH_SCHEME_CHANGED: return cREASON_AUTH_CHANGED;
-    case REASON_ACCOUNT_NOT_IN_APP: return cREASON_ACCOUNT_NOT_IN_APP;
-    case REASON_AUTH_SCHEME_EMPTY: return cREASON_AUTH_SCHEME_EMPTY;
-    case REASON_INACTIVE_ACCOUNT: return cREASON_INACTIVE_ACCOUNT;
+    case REASON_SESSIONLIMITS_EXCEEDED:
+        return cREASON_SESSIONLIMITS_EXCEEDED;
+    case REASON_INVALID_AUTHENTICATOR:
+        return cREASON_INVALID_AUTHENTICATOR;
+    case REASON_DUPLICATED_SESSION:
+        return cREASON_DUPLICATED_SESSION;
+    case REASON_AUTHENTICATED:
+        return cREASON_AUTHENTICATED;
+    case REASON_INTERNAL_ERROR:
+        return cREASON_INTERNAL_ERROR;
+    case REASON_NOT_IMPLEMENTED:
+        return cREASON_NOT_IMPLEMENTED;
+    case REASON_EXPIRED_PASSWORD:
+        return cREASON_EXPIRED_PASSWORD;
+    case REASON_EXPIRED_ACCOUNT:
+        return cREASON_EXPIRED_ACCOUNT;
+    case REASON_DISABLED_ACCOUNT:
+        return cREASON_DISABLED_ACCOUNT;
+    case REASON_UNCONFIRMED_ACCOUNT:
+        return cREASON_UNCONFIRMED_ACCOUNT;
+    case REASON_BAD_ACCOUNT:
+        return cREASON_BAD_ACCOUNT;
+    case REASON_BAD_PASSWORD:
+        return cREASON_BAD_PASSWORD;
+    case REASON_PASSWORD_INDEX_NOTFOUND:
+        return cREASON_PASSWORD_INDEX_NOTFOUND;
+    case REASON_ANSWER_TIMEDOUT:
+        return cREASON_ANSWER_TIMEDOUT;
+    case REASON_EXPIRED:
+        return cREASON_EXPIRED;
+    case REASON_UNAUTHENTICATED:
+        return cREASON_UNAUTHENTICATED;
+    case REASON_INVALID_DOMAIN:
+        return cREASON_INVALID_DOMAIN;
+    case REASON_BAD_PARAMETERS:
+        return cREASON_BAD_PARAMETERS;
+    case REASON_AUTH_SCHEME_CHANGED:
+        return cREASON_AUTH_CHANGED;
+    case REASON_ACCOUNT_NOT_IN_APP:
+        return cREASON_ACCOUNT_NOT_IN_APP;
+    case REASON_AUTH_SCHEME_EMPTY:
+        return cREASON_AUTH_SCHEME_EMPTY;
+    case REASON_INACTIVE_ACCOUNT:
+        return cREASON_INACTIVE_ACCOUNT;
         break;
     }
     return cNULL;
@@ -290,13 +297,18 @@ static const char * getReasonText(const Reason & reason)
 
 struct AuthenticationSchemeUsedSlot
 {
-    AuthenticationSchemeUsedSlot(uint32_t id, uint32_t priority, bool isOptional) : slotId(id), orderPriority(priority), optional(isOptional)
-    {
-    }
+    AuthenticationSchemeUsedSlot(uint32_t id, uint32_t priority, bool isOptional)
+        : slotId(id)
+        , orderPriority(priority)
+        , optional(isOptional)
+    {}
 
-    AuthenticationSchemeUsedSlot(uint32_t id, uint32_t priority, bool isOptional,AuthenticationSlotDetails _details) : slotId(id), orderPriority(priority), optional(isOptional), details(_details)
-    {
-    }
+    AuthenticationSchemeUsedSlot(uint32_t id, uint32_t priority, bool isOptional, AuthenticationSlotDetails _details)
+        : slotId(id)
+        , orderPriority(priority)
+        , optional(isOptional)
+        , details(_details)
+    {}
 
     /**
      * @brief Converts the object to a JSON representation.
@@ -319,10 +331,7 @@ struct AuthenticationSchemeUsedSlot
      */
     void fromJSON(const json &j)
     {
-        slotId = JSON_ASUINT(j, "slotId", 0),
-        orderPriority = JSON_ASUINT(j, "orderPriority", 0),
-        optional = JSON_ASBOOL(j, "optional", false),
-        details.fromJSON(j["details"]);
+        slotId = JSON_ASUINT(j, "slotId", 0), orderPriority = JSON_ASUINT(j, "orderPriority", 0), optional = JSON_ASBOOL(j, "optional", false), details.fromJSON(j["details"]);
     }
 
     uint32_t slotId;
@@ -332,12 +341,9 @@ struct AuthenticationSchemeUsedSlot
     AuthenticationSlotDetails details;
 };
 
-
-
 struct RoleDetails
 {
     RoleDetails() {}
     std::string roleName;
     std::string description;
 };
-

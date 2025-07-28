@@ -5,10 +5,10 @@
 #include <Mantids30/Sessions/session.h>
 #include <json/json.h>
 
-class WebLogin_ServerImpl
+class WebSessionAuthHandler_ServerImpl
 {
 public:
-    WebLogin_ServerImpl() = default;
+    WebSessionAuthHandler_ServerImpl() = default;
 
     static bool createService();
 };

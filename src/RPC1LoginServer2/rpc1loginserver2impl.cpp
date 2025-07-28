@@ -13,8 +13,7 @@
 using namespace Mantids30::Program;
 using namespace Mantids30;
 
-bool callbackOnRPCConnect(
-    void *context, std::shared_ptr<Mantids30::Network::Sockets::Socket_Stream> socket)
+bool callbackOnRPCConnect(void *context, std::shared_ptr<Mantids30::Network::Sockets::Socket_Stream> socket)
 {
     Network::Sockets::NetStreams::CryptoChallenge cstream(socket);
 
@@ -42,21 +41,18 @@ bool callbackOnRPCConnect(
     LOG_APP->log0(__func__, Logs::LEVEL_INFO, "Connection %sRPC from %s (ID: %s) has been closed.", socket->isSecure() ? "secure " : "", socket->getRemotePairStr().c_str(), rpcClientKey.c_str());
     return true;
 }
-bool callbackOnProtocolInitFailure(
-    void *context, std::shared_ptr<Mantids30::Network::Sockets::Socket_Stream> socket)
+bool callbackOnProtocolInitFailure(void *context, std::shared_ptr<Mantids30::Network::Sockets::Socket_Stream> socket)
 {
     LOG_APP->log0(__func__, Logs::LEVEL_ERR, "Protocol initialization failed for connection from %s", socket->getRemotePairStr().c_str());
     return false;
 }
 
-void callbackOnClientAcceptTimeout(
-    void *context, std::shared_ptr<Mantids30::Network::Sockets::Socket_Stream> socket)
+void callbackOnClientAcceptTimeout(void *context, std::shared_ptr<Mantids30::Network::Sockets::Socket_Stream> socket)
 {
     LOG_APP->log0(__func__, Logs::LEVEL_ERR, "Client accept timeout for connection from %s", socket->getRemotePairStr().c_str());
 }
 
-void callbackOnClientConnectionLimitPerIP(
-    void *context, std::shared_ptr<Mantids30::Network::Sockets::Socket_Stream> socket)
+void callbackOnClientConnectionLimitPerIP(void *context, std::shared_ptr<Mantids30::Network::Sockets::Socket_Stream> socket)
 {
     LOG_APP->log0(__func__, Logs::LEVEL_ERR, "Connection limit per IP reached for connection from %s", socket->getRemotePairStr().c_str());
 }
@@ -85,7 +81,7 @@ bool RPC1LoginServer2Impl::createRPCListenerCAB()
         }
 
         // Set RPC Methods.
-        LoginAuthProxyMethods::AddLoginAuthProxyMethods( Globals::getFastRPC());
+        LoginAuthProxyMethods::AddLoginAuthProxyMethods(Globals::getFastRPC());
 
         // Init the server:
         Network::Sockets::Acceptors::MultiThreaded *multiThreadedAcceptor = new Network::Sockets::Acceptors::MultiThreaded;
@@ -119,8 +115,7 @@ bool RPC1LoginServer2Impl::createRPCListenerCAB()
     return true;
 }
 
-bool cbPSK(
-    void *data, const std::string &id, std::string *psk)
+bool cbPSK(void *data, const std::string &id, std::string *psk)
 {
     *psk = Globals::getIdentityManager()->applications->getApplicationAPIKey(id);
     return !psk->empty();
@@ -140,7 +135,7 @@ bool RPC1LoginServer2Impl::createRPCListenerPAB()
         std::string listenAddr = Globals::getConfig()->get<std::string>("LoginRPCServerPAB.ListenAddr", "0.0.0.0");
 
         // Set RPC Methods.
-        LoginAuthProxyMethods::AddLoginAuthProxyMethods( Globals::getFastRPC());
+        LoginAuthProxyMethods::AddLoginAuthProxyMethods(Globals::getFastRPC());
 
         // Init the server:
         Network::Sockets::Acceptors::MultiThreaded *multiThreadedAcceptor = new Network::Sockets::Acceptors::MultiThreaded;

@@ -1,12 +1,11 @@
 #include "identitymanager.h"
+#include "IdentityManager/ds_application.h"
 #include <memory>
 
 using namespace Mantids30;
 using namespace Mantids30::DataFormat;
 
-IdentityManager::IdentityManager()
-{
-}
+IdentityManager::IdentityManager() {}
 
 IdentityManager::~IdentityManager()
 {
@@ -20,15 +19,14 @@ IdentityManager::~IdentityManager()
         delete authController;
 }
 
-bool IdentityManager::initializeAdminAccountWithPassword(
-    const std::string &accountName, std::string *adminPW, const uint32_t &schemeId, bool *alreadyExist)
+bool IdentityManager::initializeAdminAccountWithPassword(const std::string &accountName, std::string *adminPW, const uint32_t &schemeId, bool *alreadyExist)
 {
     bool r = true;
     if (!accounts->doesAccountExist(accountName))
     {
         r = r && accounts->createAdminAccount(accountName);
         r = r && authController->setAccountPasswordOnScheme(accountName, adminPW, schemeId);
-        *alreadyExist  = false;
+        *alreadyExist = false;
     }
     else
     {
@@ -37,22 +35,19 @@ bool IdentityManager::initializeAdminAccountWithPassword(
     return r;
 }
 
-bool IdentityManager::initializeApplicationWithScheme(const std::string &appName,
-                                                      const std::string &appDescription,
-                                                      const uint32_t &schemeId,
-                                                      const std::string & owner,
-                                                      bool *alreadyExist)
+bool IdentityManager::initializeApplicationWithScheme(const std::string &appName, const std::string &appDescription, const uint32_t &schemeId, const std::string &owner, bool *alreadyExist)
 {
     bool r = true;
 
     if (!applications->doesApplicationExist(appName))
     {
-        r = r && applications->addApplication( appName, appDescription,  Mantids30::Helpers::Random::createRandomString(32), owner );
-        r = r && applications->addWebLoginRedirectURIToApplication(appName,"https://iamadmin.localhost:9443/"); // Allowed redirects.
-        r = r && applications->addWebLoginOriginURLToApplication(appName,"https://iamadmin.localhost:9443"); // Origin (eg. retokenization)
-        r = r && applications->setApplicationActivities( appName, {{"LOGIN",{.description="Main Login", .parentActivity=""}}}  );
-        r = r && authController->addAuthenticationSchemesToApplicationActivity( appName, "LOGIN" , schemeId );
-        r = r && authController->setApplicationActivityDefaultScheme(appName,"LOGIN", schemeId);
+        r = r && applications->addApplication(appName, appDescription, Mantids30::Helpers::Random::createRandomString(32), owner);
+        r = r && applications->setApplicationWebLoginCallbackURI(appName, "https://iamadmin.localhost:9443/auth/api/v1/callback"); // Redirection callback URI
+        r = r && applications->addWebLoginRedirectURIToApplication(appName, "https://iamadmin.localhost:9443/");                   // Allowed redirects.
+        r = r && applications->addWebLoginOriginURLToApplication(appName, "https://iamadmin.localhost:9443");                      // Origin (eg. retokenization)
+        r = r && applications->setApplicationActivities(appName, {{"LOGIN", {.description = "Main Login", .parentActivity = ""}}});
+        r = r && authController->addAuthenticationSchemesToApplicationActivity(appName, "LOGIN", schemeId);
+        r = r && authController->setApplicationActivityDefaultScheme(appName, "LOGIN", schemeId);
         *alreadyExist = false;
     }
     else
@@ -63,8 +58,7 @@ bool IdentityManager::initializeApplicationWithScheme(const std::string &appName
     return r;
 }
 
-bool IdentityManager::Accounts::createAdminAccount(
-    const std::string &accountName)
+bool IdentityManager::Accounts::createAdminAccount(const std::string &accountName)
 {
     AccountFlags accountFlags;
     accountFlags.confirmed = true;
@@ -98,7 +92,7 @@ std::shared_ptr<JWT> IdentityManager::Applications::getAppJWTValidator(const std
     }
 
     // Validate the JWT Algorithm....
-    if ( !JWT::isAlgorithmSupported(tokenProperties.tokenType) )
+    if (!JWT::isAlgorithmSupported(tokenProperties.tokenType))
     {
         // Failed to validate the algorithm type.
         return nullptr;
@@ -120,19 +114,18 @@ std::shared_ptr<JWT> IdentityManager::Applications::getAppJWTValidator(const std
     return jwtValidator;
 }
 
-std::shared_ptr<JWT> IdentityManager::Applications::getAppJWTSigner(
-    const std::string &appName)
+std::shared_ptr<JWT> IdentityManager::Applications::getAppJWTSigner(const std::string &appName)
 {
     // Obtain data from the DB:
-    auto tokenProperties = getWebLoginJWTConfigFromApplication(appName);
+    ApplicationTokenProperties tokenProperties = getWebLoginJWTConfigFromApplication(appName);
     std::string validationKey = getWebLoginJWTValidationKeyForApplication(appName);
     std::string signingKey = getWebLoginJWTSigningKeyForApplication(appName);
 
     if (tokenProperties.appName == appName && !validationKey.empty() && !signingKey.empty())
     {
         // Validate the JWT....
-        auto algorithmDetails = JWT::AlgorithmDetails(tokenProperties.tokenType.c_str());
-        std::shared_ptr<JWT> jwtSigner= std::make_shared<JWT>(algorithmDetails.algorithm);
+        JWT::AlgorithmDetails algorithmDetails = JWT::AlgorithmDetails(tokenProperties.tokenType.c_str());
+        std::shared_ptr<JWT> jwtSigner = std::make_shared<JWT>(algorithmDetails.algorithm);
 
         if (algorithmDetails.isUsingHMAC)
         {

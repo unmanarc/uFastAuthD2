@@ -7,7 +7,6 @@ using namespace Program;
 using namespace API::RESTful;
 using namespace Network::Protocols;
 
-
 /*
  * TODO:
  *
@@ -19,7 +18,7 @@ using namespace Network::Protocols;
 
 */
 
-void WebLogin_AuthMethods::registerAccount(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &clientDetails)
+void WebLogin_AuthMethods::registerAccount(void *context, APIReturn &response, const RequestParameters &request, ClientDetails &clientDetails)
 {
     IdentityManager *identityManager = Globals::getIdentityManager();
 
@@ -39,7 +38,7 @@ void WebLogin_AuthMethods::registerAccount(void *context, APIReturn &response, c
     bool success = false;
     bool create = false;
 
-    if ( bAllowSelfRegistration )
+    if (bAllowSelfRegistration)
     {
         create = true;
     }
@@ -53,7 +52,7 @@ void WebLogin_AuthMethods::registerAccount(void *context, APIReturn &response, c
         }
         else
         {
-            response.setError(HTTP::Status::S_401_UNAUTHORIZED,"unauthorized", "Insufficient permissions");
+            response.setError(HTTP::Status::S_401_UNAUTHORIZED, "unauthorized", "Insufficient permissions");
             return;
         }
     }
@@ -62,10 +61,7 @@ void WebLogin_AuthMethods::registerAccount(void *context, APIReturn &response, c
 
     if (create)
     {
-        success = identityManager->accounts->addAccount(  accountToCreate,
-                                                            JSON_ASUINT64(*request.inputJSON, "expiration", 0),
-                                                            accountFlags,
-                                                            request.jwtToken->getSubject());
+        success = identityManager->accounts->addAccount(accountToCreate, JSON_ASUINT64(*request.inputJSON, "expiration", 0), accountFlags, request.jwtToken->getSubject());
     }
 
     if (!success)
@@ -73,26 +69,21 @@ void WebLogin_AuthMethods::registerAccount(void *context, APIReturn &response, c
         response.setError(HTTP::Status::S_500_INTERNAL_SERVER_ERROR, "internal_error", "Failed to create the account");
     }
 
-    LOG_APP->log2(__func__,
-                  request.jwtToken->getSubject(),
-                  clientDetails.ipAddress,
-                  success ? Logs::LEVEL_SECURITY_ALERT : Logs::LEVEL_INFO,
-                  !success ? "Failed to create account '%s'" : "Account '%s' created.",
-                  accountToCreate.c_str()
-                  );
+    LOG_APP->log2(__func__, request.jwtToken->getSubject(), clientDetails.ipAddress, success ? Logs::LEVEL_SECURITY_ALERT : Logs::LEVEL_INFO,
+                  !success ? "Failed to create account '%s'" : "Account '%s' created.", accountToCreate.c_str());
 
     // Set the credential:
-    std::string newPass = JSON_ASSTRING(*request.inputJSON,"newPass","");
+    std::string newPass = JSON_ASSTRING(*request.inputJSON, "newPass", "");
 
     // TODO: mejorar el nivel de log...
 
     if (!newPass.empty() && success)
     {
         bool r = false;
-        uint32_t applicationRoleDefaultSSOLogin = identityManager->authController->getApplicationActivityDefaultScheme("IAM","LOGIN");
+        uint32_t applicationRoleDefaultSSOLogin = identityManager->authController->getApplicationActivityDefaultScheme("IAM", "LOGIN");
 
         // Not any scheme to the default
-        if (applicationRoleDefaultSSOLogin!=UINT32_MAX)
+        if (applicationRoleDefaultSSOLogin != UINT32_MAX)
         {
             auto authSlots = identityManager->authController->listAuthenticationSlotsUsedByScheme(applicationRoleDefaultSSOLogin);
             if (!authSlots.empty())
@@ -100,22 +91,16 @@ void WebLogin_AuthMethods::registerAccount(void *context, APIReturn &response, c
                 // not a password...
                 if (authSlots.begin()->details.isTextPasswordFunction())
                 {
-                    auto credentialData = identityManager->authController->createNewCredential(authSlots.begin()->slotId,newPass,true);
-                    r = identityManager->authController->changeCredential(accountToCreate,credentialData,authSlots.begin()->slotId);
+                    auto credentialData = identityManager->authController->createNewCredential(authSlots.begin()->slotId, newPass, true);
+                    r = identityManager->authController->changeCredential(accountToCreate, credentialData, authSlots.begin()->slotId);
                 }
             }
         }
 
-        LOG_APP->log2(__func__,
-                      request.jwtToken->getSubject(),
-                      clientDetails.ipAddress,
-                      r ? Logs::LEVEL_SECURITY_ALERT : Logs::LEVEL_INFO,
-                      !r ? "Failed to change initial password on account '%s'" : "Initial password for account '%s' changed.",
-                      accountToCreate.c_str()
-                      );
+        LOG_APP->log2(__func__, request.jwtToken->getSubject(), clientDetails.ipAddress, r ? Logs::LEVEL_SECURITY_ALERT : Logs::LEVEL_INFO,
+                      !r ? "Failed to change initial password on account '%s'" : "Initial password for account '%s' changed.", accountToCreate.c_str());
     }
 }
-
 
 // TODO: llenar los details del user.
 

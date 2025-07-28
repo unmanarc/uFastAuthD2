@@ -1,6 +1,5 @@
 #pragma once
 
-
 #include "IdentityManager/credentialvalidator.h"
 
 #include "WebAdmin/webadmin_methods_accounts.h"
@@ -13,8 +12,7 @@
 #include <Mantids30/Helpers/json.h>
 #include <Mantids30/Protocol_HTTP/httpv1_base.h>
 
-class WebAdmin_Methods : private WebAdminMethods_Accounts, private WebAdminMethods_Applications,
- private WebAdminMethods_ApplicationsPermissions, private WebAdminMethods_Roles
+class WebAdmin_Methods : private WebAdminMethods_Accounts, private WebAdminMethods_Applications, private WebAdminMethods_ApplicationsPermissions, private WebAdminMethods_Roles
 {
 public:
     using MethodsHandler = Mantids30::API::RESTful::MethodsHandler;
@@ -30,9 +28,4 @@ public:
     // Helpers:
     static json permissionListToJSON(const std::set<ApplicationPermission> &permissions);
     static std::set<ApplicationPermission> iPermissionsLeftListForRole(const std::string &appName, const std::string &roleName);
-
-
-
-
 };
-

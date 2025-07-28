@@ -13,14 +13,15 @@
 #include <string>
 #include <time.h>
 
+#include <Mantids30/DataFormat_JWT/jwt.h>
 #include <Mantids30/Threads/mapitem.h>
 #include <Mantids30/Threads/mutex_shared.h>
-#include <Mantids30/DataFormat_JWT/jwt.h>
-
 
 class IdentityManager : public Mantids30::Threads::Safe::MapItem
 {
 public:
+    using ClientDetails = Mantids30::Sessions::ClientDetails;
+
     IdentityManager();
     virtual ~IdentityManager();
 
@@ -36,8 +37,7 @@ public:
         // account:
         virtual bool addAccount(const std::string &accountName,
                                 time_t expirationDate = 0, // Note: use 1 to create an expired account.
-                                const AccountFlags &accountFlags = {true, true, false, false},
-                                const std::string &sCreatorAccountName = "")
+                                const AccountFlags &accountFlags = {true, true, false, false}, const std::string &sCreatorAccountName = "")
             = 0;
 
         // Listing:
@@ -56,12 +56,12 @@ public:
 
         // Account Details:
         virtual AccountDetails getAccountDetails(const std::string &accountName) = 0;
-        virtual std::list<AccountDetails> searchAccounts(std::string sSearchWords, uint64_t limit = 0, uint64_t offset = 0) = 0;
+        virtual std::list<AccountDetails> searchAccounts(std::string sSearchWords, size_t limit = 0, size_t offset = 0) = 0;
 
         // Account Expiration:
         virtual bool changeAccountExpiration(const std::string &accountName, time_t expiration = 0) = 0;
         virtual time_t getAccountExpirationTime(const std::string &accountName) = 0;
-        virtual time_t getAccountCreationTime(const std::string & accountName) = 0;
+        virtual time_t getAccountCreationTime(const std::string &accountName) = 0;
         bool isAccountExpired(const std::string &accountName);
 
         // Account Flag Permissions:
@@ -77,26 +77,26 @@ public:
         virtual bool blockAccountUsingToken(const std::string &accountName, const std::string &blockToken) = 0;
 
         // Account Details Fields
-        virtual bool addAccountDetailField(const std::string &fieldName, const AccountDetailField & details) = 0;
+        virtual bool addAccountDetailField(const std::string &fieldName, const AccountDetailField &details) = 0;
         virtual bool removeAccountDetailField(const std::string &fieldName) = 0;
         virtual std::map<std::string, AccountDetailField> listAccountDetailFields() = 0;
 
         // Account Details
-        virtual bool changeAccountDetails( const std::string &accountName, const std::map<std::string,std::string> & fieldsValues, bool resetAllValues = false ) = 0;
+        virtual bool changeAccountDetails(const std::string &accountName, const std::map<std::string, std::string> &fieldsValues, bool resetAllValues = false) = 0;
         virtual bool removeAccountDetail(const std::string &accountName, const std::string &fieldName) = 0;
 
-        enum AccountDetailsToShow{
+        enum AccountDetailsToShow
+        {
             ACCOUNT_DETAILS_ALL,
             ACCOUNT_DETAILS_SEARCH,
             ACCOUNT_DETAILS_COLUMNVIEW,
             ACCOUNT_DETAILS_TOKEN
         };
 
-        virtual std::map<std::string, std::string> getAccountDetailValues(const std::string &accountName, const AccountDetailsToShow & detailsToShow = ACCOUNT_DETAILS_ALL) = 0;
-
+        virtual std::map<std::string, std::string> getAccountDetailValues(const std::string &accountName, const AccountDetailsToShow &detailsToShow = ACCOUNT_DETAILS_ALL) = 0;
 
     private:
-              IdentityManager *m_parent;
+        IdentityManager *m_parent;
     };
     class Roles
     {
@@ -114,27 +114,24 @@ public:
         virtual std::string getRoleDescription(const std::string &roleName) = 0;
         virtual std::set<std::string> getRolesList() = 0;
         virtual std::set<std::string> getRoleAccounts(const std::string &roleName, bool lock = true) = 0;
-        virtual std::list<RoleDetails> searchRoles(std::string sSearchWords, uint64_t limit = 0, uint64_t offset = 0) = 0;
+        virtual std::list<RoleDetails> searchRoles(std::string sSearchWords, size_t limit = 0, size_t offset = 0) = 0;
     };
     class AuthController : public CredentialValidator
     {
     private:
         IdentityManager *m_parent;
         static json authSlotsToJSON(const std::vector<AuthenticationSchemeUsedSlot> &authSlots);
-        void incrementCredentialBadCounts(Reason ret, const std::string &accountName, const Credential & pStoredCredentialData, const uint32_t & slotId, const Mantids30::Sessions::ClientDetails &clientDetails );
+        void incrementCredentialBadCounts(Reason ret, const std::string &accountName, const Credential &pStoredCredentialData, const uint32_t &slotId, const ClientDetails &clientDetails);
 
     protected:
         AuthenticationPolicy m_authenticationPolicy;
-        virtual Credential retrieveCredential(const std::string &accountName,const uint32_t & slotId, bool *accountFound, bool *authSlotFound) = 0;
+        virtual Credential retrieveCredential(const std::string &accountName, const uint32_t &slotId, bool *accountFound, bool *authSlotFound) = 0;
 
     public:
         AuthController(IdentityManager *parent) { m_parent = parent; }
         virtual ~AuthController() {}
 
-
-
         uint32_t initializateDefaultPasswordSchemes(bool *defaultPasswordSchemesExist);
-
 
         bool setAccountPasswordOnScheme(const std::string &accountName, std::string *sInitPW, const uint32_t &schemeId);
 
@@ -166,9 +163,8 @@ public:
         virtual std::set<ApplicationPermission> listApplicationPermissions(const std::string &applicationName = "") = 0;
         virtual std::set<std::string> getApplicationPermissionsForRole(const ApplicationPermission &applicationPermission, bool lock = true) = 0;
         virtual std::set<std::string> listAccountsOnApplicationPermission(const ApplicationPermission &applicationPermission, bool lock = true) = 0;
-        virtual std::list<ApplicationPermissionDetails> searchApplicationPermissions(const std::string &appName, std::string sSearchWords, uint64_t limit = 0, uint64_t offset = 0) = 0;
+        virtual std::list<ApplicationPermissionDetails> searchApplicationPermissions(const std::string &appName, std::string sSearchWords, size_t limit = 0, size_t offset = 0) = 0;
         virtual bool validateAccountDirectApplicationPermission(const std::string &accountName, const ApplicationPermission &applicationPermission) = 0;
-
 
         // Account bad attempts for pass slot id...
         virtual void resetBadAttemptsOnCredential(const std::string &accountName, const uint32_t &slotId) = 0;
@@ -178,13 +174,11 @@ public:
         virtual bool changeCredential(const std::string &accountName, Credential passwordData, uint32_t slotId) = 0;
 
         // Account last login:
-        virtual void updateAccountLastLogin(const std::string &accountName, const uint32_t &slotId, const Mantids30::Sessions::ClientDetails &clientDetails) = 0;
+        virtual void updateAccountLastLogin(const std::string &accountName, const uint32_t &slotId, const ClientDetails &clientDetails) = 0;
         virtual time_t getAccountLastLogin(const std::string &accountName) = 0;
 
         /////////////////////////////////////////////////////////////////////////////////
         // authentication:
-
-
 
         /**
          * @brief Authenticates a user's credential based on provided details and optional authentication context.
@@ -222,14 +216,8 @@ public:
          *
          * @note On failure, the function ensures to increment bad attempt counters for the account and the password slot.
          */
-        virtual Reason authenticateCredential(   const Mantids30::Sessions::ClientDetails &clientDetails,
-                                                 const std::string &accountName,
-                                                 const std::string &sPassword,
-                                                 const uint32_t & slotId = 0,
-                                                 const Mode & authMode = MODE_PLAIN,
-                                                 const std::string &challengeSalt = "",
-                                                 std::shared_ptr<AppAuthExtras> authContext = nullptr
-                                                ) override;
+        virtual Reason authenticateCredential(const ClientDetails &clientDetails, const std::string &accountName, const std::string &sPassword, const uint32_t &slotId = 0,
+                                              const Mode &authMode = MODE_PLAIN, const std::string &challengeSalt = "", std::shared_ptr<AppAuthExtras> authContext = nullptr) override;
 
         /**
      * @brief changeAccountAuthenticatedCredential Change the password doing current password authentication
@@ -241,7 +229,8 @@ public:
      * @param slotId AuthController Slot SlotId.
      * @return true if changed, false if not (bad password, etc)
      */
-        virtual bool changeAccountAuthenticatedCredential(const std::string &accountName, uint32_t slotId, const std::string &sCurrentPassword, const Credential &newPasswordData, const Mantids30::Sessions::ClientDetails &clientDetails, Mode authMode = MODE_PLAIN, const std::string &challengeSalt = "");
+        virtual bool changeAccountAuthenticatedCredential(const std::string &accountName, uint32_t slotId, const std::string &sCurrentPassword, const Credential &newPasswordData,
+                                                          const ClientDetails &clientDetails, Mode authMode = MODE_PLAIN, const std::string &challengeSalt = "");
         /**
      * @brief getAccountCredentialPublicData Get information for Salted Password Calculation and expiration info (Not Authenticated)
      * @param accountName Account Name
@@ -260,16 +249,15 @@ public:
 
         /////////////////////////////////////////////////////////////////////////////////
         // AuthController Slot SlotIds:
-        virtual uint32_t addNewAuthenticationSlot(const AuthenticationSlotDetails & details)=0;
-        virtual bool removeAuthenticationSlot(const uint32_t &slotId)=0;
-        virtual bool updateAuthenticationSlotDetails(const uint32_t &slotId, const AuthenticationSlotDetails & details)=0;
-        virtual std::map<uint32_t,AuthenticationSlotDetails> listAuthenticationSlots()=0;
+        virtual uint32_t addNewAuthenticationSlot(const AuthenticationSlotDetails &details) = 0;
+        virtual bool removeAuthenticationSlot(const uint32_t &slotId) = 0;
+        virtual bool updateAuthenticationSlotDetails(const uint32_t &slotId, const AuthenticationSlotDetails &details) = 0;
+        virtual std::map<uint32_t, AuthenticationSlotDetails> listAuthenticationSlots() = 0;
 
-        virtual uint32_t addAuthenticationScheme(const std::string &description)=0;
-        virtual bool updateAuthenticationScheme(const uint32_t &schemeId,const std::string &description)=0;
-        virtual bool removeAuthenticationScheme(const uint32_t &schemeId)=0;
-        virtual std::map<uint32_t, std::string> listAuthenticationSchemes()=0;
-
+        virtual uint32_t addAuthenticationScheme(const std::string &description) = 0;
+        virtual bool updateAuthenticationScheme(const uint32_t &schemeId, const std::string &description) = 0;
+        virtual bool removeAuthenticationScheme(const uint32_t &schemeId) = 0;
+        virtual std::map<uint32_t, std::string> listAuthenticationSchemes() = 0;
 
         /**
          * @brief Retrieves the default authentication scheme ID for a specific application and activity.
@@ -298,18 +286,18 @@ public:
          *
          * @note This function acquires a write lock (`Lock_RW`) to ensure thread safety while modifying the database.
          */
-        virtual bool setApplicationActivityDefaultScheme(const std::string &appName, const std::string &activityName, const uint32_t & schemeId) = 0;
+        virtual bool setApplicationActivityDefaultScheme(const std::string &appName, const std::string &activityName, const uint32_t &schemeId) = 0;
 
-        virtual std::set<uint32_t> listAuthenticationSchemesForApplicationActivity(const std::string &appName, const std::string & activityName )=0;
-        virtual bool addAuthenticationSchemesToApplicationActivity(const std::string &appName, const std::string &activityName, const uint32_t & schemeId )=0;
-        virtual bool removeAuthenticationSchemeFromApplicationActivity( const std::string &appName, const std::string &activityName, const uint32_t & schemeId )=0;
+        virtual std::set<uint32_t> listAuthenticationSchemesForApplicationActivity(const std::string &appName, const std::string &activityName) = 0;
+        virtual bool addAuthenticationSchemesToApplicationActivity(const std::string &appName, const std::string &activityName, const uint32_t &schemeId) = 0;
+        virtual bool removeAuthenticationSchemeFromApplicationActivity(const std::string &appName, const std::string &activityName, const uint32_t &schemeId) = 0;
 
-        virtual std::vector<AuthenticationSchemeUsedSlot> listAuthenticationSlotsUsedByScheme(const uint32_t & schemeId)=0;
-        virtual bool updateAuthenticationSlotUsedByScheme(const uint32_t & schemeId, const std::list<AuthenticationSchemeUsedSlot> & slotsUsedByScheme)=0;
+        virtual std::vector<AuthenticationSchemeUsedSlot> listAuthenticationSlotsUsedByScheme(const uint32_t &schemeId) = 0;
+        virtual bool updateAuthenticationSlotUsedByScheme(const uint32_t &schemeId, const std::list<AuthenticationSchemeUsedSlot> &slotsUsedByScheme) = 0;
 
-        virtual std::set<uint32_t> listUsedAuthenticationSlotsOnAccount(const std::string &accountName)=0;
+        virtual std::set<uint32_t> listUsedAuthenticationSlotsOnAccount(const std::string &accountName) = 0;
 
-        Credential createNewCredential(const uint32_t & slotId, const std::string & passwordInput, bool forceExpiration = false);
+        Credential createNewCredential(const uint32_t &slotId, const std::string &passwordInput, bool forceExpiration = false);
 
         /**
          * @brief Retrieves the applicable authentication schemes for a user for a specific application activity.
@@ -349,12 +337,15 @@ public:
         virtual bool removeAccountFromApplication(const std::string &appName, const std::string &accountName) = 0;
         virtual bool addApplicationOwner(const std::string &appName, const std::string &accountName) = 0;
         virtual bool removeApplicationOwner(const std::string &appName, const std::string &accountName) = 0;
-        virtual std::list<ApplicationDetails> searchApplications(std::string sSearchWords, uint64_t limit = 0, uint64_t offset = 0) = 0;
+        virtual std::list<ApplicationDetails> searchApplications(std::string sSearchWords, size_t limit = 0, size_t offset = 0) = 0;
 
         // Weblogin return urls:
         virtual bool addWebLoginRedirectURIToApplication(const std::string &appName, const std::string &loginRedirectURI) = 0;
         virtual bool removeWebLoginRedirectURIToApplication(const std::string &appName, const std::string &loginRedirectURI) = 0;
         virtual std::list<std::string> listWebLoginRedirectURIsFromApplication(const std::string &appName) = 0;
+
+        virtual bool setApplicationWebLoginCallbackURI(const std::string &appName, const std::string &callbackURI) = 0;
+        virtual std::string getApplicationCallbackURI(const std::string &appName) = 0;
 
         // Application admited origin URLS:
         virtual bool addWebLoginOriginURLToApplication(const std::string &appName, const std::string &originUrl) = 0;
@@ -373,7 +364,7 @@ public:
 
         virtual bool setApplicationActivities(const std::string &appName, const std::map<std::string, ActivityData> &activities) = 0;
         virtual bool removeApplicationActivities(const std::string &appName) = 0;
-        virtual std::map<std::string,ActivityData> listApplicationActivities(const std::string &appName) = 0;
+        virtual std::map<std::string, ActivityData> listApplicationActivities(const std::string &appName) = 0;
 
         // Tokens:
         virtual bool modifyWebLoginJWTConfigForApplication(const ApplicationTokenProperties &tokenInfo) = 0;
@@ -383,8 +374,8 @@ public:
         virtual bool setWebLoginJWTValidationKeyForApplication(const std::string &appName, const std::string &signingKey) = 0;
         virtual std::string getWebLoginJWTValidationKeyForApplication(const std::string &appName) = 0;
 
-        std::shared_ptr<Mantids30::DataFormat::JWT> getAppJWTValidator(const std::string & appName);
-        std::shared_ptr<Mantids30::DataFormat::JWT> getAppJWTSigner(const std::string & appName);
+        std::shared_ptr<Mantids30::DataFormat::JWT> getAppJWTValidator(const std::string &appName);
+        std::shared_ptr<Mantids30::DataFormat::JWT> getAppJWTSigner(const std::string &appName);
     };
 
     Accounts *accounts = nullptr;
@@ -404,7 +395,4 @@ public:
 
 protected:
     Mantids30::Threads::Sync::Mutex_Shared m_mutex;
-
-
-
 };

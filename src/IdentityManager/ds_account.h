@@ -129,4 +129,3 @@ struct AccountDetails
         expired = std::time(nullptr) > expirationDate;
     }
 };
-

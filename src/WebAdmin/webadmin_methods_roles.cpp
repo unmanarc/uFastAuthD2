@@ -1,7 +1,7 @@
 #include "webadmin_methods_roles.h"
 
-#include <Mantids30/Program_Logs/applog.h>
 #include "../globals.h"
+#include <Mantids30/Program_Logs/applog.h>
 
 #include "webadmin_methods.h"
 
@@ -10,8 +10,7 @@ using namespace Mantids30;
 
 using namespace Mantids30::Network::Protocols;
 
-void WebAdminMethods_Roles::addMethods_Roles(
-    std::shared_ptr<MethodsHandler> methods)
+void WebAdminMethods_Roles::addMethods_Roles(std::shared_ptr<MethodsHandler> methods)
 {
     using SecurityOptions = Mantids30::API::RESTful::MethodsHandler::SecurityOptions;
 
@@ -31,85 +30,84 @@ void WebAdminMethods_Roles::addMethods_Roles(
     methods->addResource(MethodsHandler::GET, "getRoleInfo", &getRoleInfo, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"ROLE_READ"});
 }
 
-void WebAdminMethods_Roles::addRole(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)
+void WebAdminMethods_Roles::addRole(void *context, APIReturn &response, const RequestParameters &request, ClientDetails &authClientDetails)
 {
-    if (!Globals::getIdentityManager()->roles->addRole(JSON_ASSTRING(*request.inputJSON,"roleName",""), JSON_ASSTRING(*request.inputJSON,"getRoleDescription","")))
+    if (!Globals::getIdentityManager()->roles->addRole(JSON_ASSTRING(*request.inputJSON, "roleName", ""), JSON_ASSTRING(*request.inputJSON, "getRoleDescription", "")))
     {
-        response.setError(HTTP::Status::S_500_INTERNAL_SERVER_ERROR,"internal_error", "Internal Error");
+        response.setError(HTTP::Status::S_500_INTERNAL_SERVER_ERROR, "internal_error", "Internal Error");
     }
 }
 
-void WebAdminMethods_Roles::removeRole(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)
+void WebAdminMethods_Roles::removeRole(void *context, APIReturn &response, const RequestParameters &request, ClientDetails &authClientDetails)
 {
-    if (!Globals::getIdentityManager()->roles->removeRole(JSON_ASSTRING(*request.inputJSON,"roleName","")))
+    if (!Globals::getIdentityManager()->roles->removeRole(JSON_ASSTRING(*request.inputJSON, "roleName", "")))
     {
-        response.setError(HTTP::Status::S_500_INTERNAL_SERVER_ERROR,"internal_error", "Internal Error");
+        response.setError(HTTP::Status::S_500_INTERNAL_SERVER_ERROR, "internal_error", "Internal Error");
     }
 }
 
-void WebAdminMethods_Roles::doesRoleExist(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)
+void WebAdminMethods_Roles::doesRoleExist(void *context, APIReturn &response, const RequestParameters &request, ClientDetails &authClientDetails)
 {
-    (*response.responseJSON()) = Globals::getIdentityManager()->roles->doesRoleExist(JSON_ASSTRING(*request.inputJSON,"roleName",""));
+    (*response.responseJSON()) = Globals::getIdentityManager()->roles->doesRoleExist(JSON_ASSTRING(*request.inputJSON, "roleName", ""));
 }
 
-void WebAdminMethods_Roles::addAccountToRole(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)
+void WebAdminMethods_Roles::addAccountToRole(void *context, APIReturn &response, const RequestParameters &request, ClientDetails &authClientDetails)
 {
-    if (!Globals::getIdentityManager()->roles->addAccountToRole(JSON_ASSTRING(*request.inputJSON,"roleName",""),JSON_ASSTRING(*request.inputJSON,"accountName","")))
+    if (!Globals::getIdentityManager()->roles->addAccountToRole(JSON_ASSTRING(*request.inputJSON, "roleName", ""), JSON_ASSTRING(*request.inputJSON, "accountName", "")))
     {
-        response.setError(HTTP::Status::S_500_INTERNAL_SERVER_ERROR,"internal_error", "Internal Error");
+        response.setError(HTTP::Status::S_500_INTERNAL_SERVER_ERROR, "internal_error", "Internal Error");
     }
 }
 
-void WebAdminMethods_Roles::removeAccountFromRole(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)
+void WebAdminMethods_Roles::removeAccountFromRole(void *context, APIReturn &response, const RequestParameters &request, ClientDetails &authClientDetails)
 {
-    if (!Globals::getIdentityManager()->roles->removeAccountFromRole(JSON_ASSTRING(*request.inputJSON,"roleName",""),JSON_ASSTRING(*request.inputJSON,"accountName","")))
+    if (!Globals::getIdentityManager()->roles->removeAccountFromRole(JSON_ASSTRING(*request.inputJSON, "roleName", ""), JSON_ASSTRING(*request.inputJSON, "accountName", "")))
     {
-        response.setError(HTTP::Status::S_500_INTERNAL_SERVER_ERROR,"internal_error", "Internal Error");
+        response.setError(HTTP::Status::S_500_INTERNAL_SERVER_ERROR, "internal_error", "Internal Error");
     }
 }
 
-void WebAdminMethods_Roles::updateRoleDescription(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)
+void WebAdminMethods_Roles::updateRoleDescription(void *context, APIReturn &response, const RequestParameters &request, ClientDetails &authClientDetails)
 {
-    if (!Globals::getIdentityManager()->roles->updateRoleDescription(JSON_ASSTRING(*request.inputJSON,"roleName",""),JSON_ASSTRING(*request.inputJSON,"getRoleDescription","")))
+    if (!Globals::getIdentityManager()->roles->updateRoleDescription(JSON_ASSTRING(*request.inputJSON, "roleName", ""), JSON_ASSTRING(*request.inputJSON, "getRoleDescription", "")))
     {
-        response.setError(HTTP::Status::S_500_INTERNAL_SERVER_ERROR,"internal_error", "Internal Error");
+        response.setError(HTTP::Status::S_500_INTERNAL_SERVER_ERROR, "internal_error", "Internal Error");
     }
 }
 
-void WebAdminMethods_Roles::validateApplicationPermissionOnRole(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)
+void WebAdminMethods_Roles::validateApplicationPermissionOnRole(void *context, APIReturn &response, const RequestParameters &request, ClientDetails &authClientDetails)
 {
-    (*response.responseJSON()) = Globals::getIdentityManager()->authController->validateApplicationPermissionOnRole(JSON_ASSTRING(*request.inputJSON,"roleName",""), {JSON_ASSTRING(*request.inputJSON,"appName",""),JSON_ASSTRING(*request.inputJSON,"id","")});
+    (*response.responseJSON()) = Globals::getIdentityManager()->authController->validateApplicationPermissionOnRole(JSON_ASSTRING(*request.inputJSON, "roleName", ""),
+                                                                                                                    {JSON_ASSTRING(*request.inputJSON, "appName", ""),
+                                                                                                                     JSON_ASSTRING(*request.inputJSON, "id", "")});
 }
 
-void WebAdminMethods_Roles::getRoleDescription(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)
+void WebAdminMethods_Roles::getRoleDescription(void *context, APIReturn &response, const RequestParameters &request, ClientDetails &authClientDetails)
 {
-    (*response.responseJSON()) = Globals::getIdentityManager()->roles->getRoleDescription(JSON_ASSTRING(*request.inputJSON,"roleName",""));
+    (*response.responseJSON()) = Globals::getIdentityManager()->roles->getRoleDescription(JSON_ASSTRING(*request.inputJSON, "roleName", ""));
 }
 
-void WebAdminMethods_Roles::getRolesList(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)
+void WebAdminMethods_Roles::getRolesList(void *context, APIReturn &response, const RequestParameters &request, ClientDetails &authClientDetails)
 {
     (*response.responseJSON()) = Helpers::setToJSON(Globals::getIdentityManager()->roles->getRolesList());
 }
 
-void WebAdminMethods_Roles::getRoleApplicationPermissions(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)
+void WebAdminMethods_Roles::getRoleApplicationPermissions(void *context, APIReturn &response, const RequestParameters &request, ClientDetails &authClientDetails)
 {
-    (*response.responseJSON()) = WebAdmin_Methods::permissionListToJSON(Globals::getIdentityManager()->authController->getRoleApplicationPermissions(JSON_ASSTRING(*request.inputJSON,"roleName","")));
+    (*response.responseJSON()) = WebAdmin_Methods::permissionListToJSON(Globals::getIdentityManager()->authController->getRoleApplicationPermissions(JSON_ASSTRING(*request.inputJSON, "roleName", "")));
 }
 
-void WebAdminMethods_Roles::getRoleAccounts(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)
+void WebAdminMethods_Roles::getRoleAccounts(void *context, APIReturn &response, const RequestParameters &request, ClientDetails &authClientDetails)
 {
-    (*response.responseJSON()) = Helpers::setToJSON(Globals::getIdentityManager()->roles->getRoleAccounts(JSON_ASSTRING(*request.inputJSON,"roleName","")));
+    (*response.responseJSON()) = Helpers::setToJSON(Globals::getIdentityManager()->roles->getRoleAccounts(JSON_ASSTRING(*request.inputJSON, "roleName", "")));
 }
 
-void WebAdminMethods_Roles::searchRoles(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)
+void WebAdminMethods_Roles::searchRoles(void *context, APIReturn &response, const RequestParameters &request, ClientDetails &authClientDetails)
 {
     json x;
-    int i=0;
-    for (const auto & strVal : Globals::getIdentityManager()->roles->searchRoles(
-             JSON_ASSTRING(*request.inputJSON,"searchWords",""),
-             JSON_ASUINT64(*request.inputJSON,"limit",0),
-             JSON_ASUINT64(*request.inputJSON,"offset",0)
-             ))
+    int i = 0;
+    for (const auto &strVal : Globals::getIdentityManager()->roles->searchRoles(JSON_ASSTRING(*request.inputJSON, "searchWords", ""), JSON_ASUINT64(*request.inputJSON, "limit", 0),
+                                                                                JSON_ASUINT64(*request.inputJSON, "offset", 0)))
     {
         x[i]["description"] = strVal.description;
         x[i]["roleName"] = strVal.roleName;
@@ -118,23 +116,23 @@ void WebAdminMethods_Roles::searchRoles(void *context, APIReturn &response, cons
     (*response.responseJSON()) = x;
 }
 
-void WebAdminMethods_Roles::getRoleInfo(void *context, APIReturn &response, const Mantids30::API::RESTful::RequestParameters &request, Mantids30::Sessions::ClientDetails &authClientDetails)
+void WebAdminMethods_Roles::getRoleInfo(void *context, APIReturn &response, const RequestParameters &request, ClientDetails &authClientDetails)
 {
     // TODO: optimize:
 
     json payloadOut;
-    std::string roleName = JSON_ASSTRING(*request.inputJSON,"roleName","");
+    std::string roleName = JSON_ASSTRING(*request.inputJSON, "roleName", "");
 
     payloadOut["description"] = Globals::getIdentityManager()->roles->getRoleDescription(roleName);
 
-    int i=0;
+    int i = 0;
     auto roleAccounts = Globals::getIdentityManager()->roles->getRoleAccounts(roleName);
 
-    for (const auto & accountName : roleAccounts)
+    for (const auto &accountName : roleAccounts)
     {
         auto getAccountDetails = Globals::getIdentityManager()->accounts->getAccountDetails(accountName);
         payloadOut["accounts"][i]["name"] = accountName;
-/*        payloadOut["accounts"][i]["description"] = getAccountDetails.description;
+        /*        payloadOut["accounts"][i]["description"] = getAccountDetails.description;
         payloadOut["accounts"][i]["lastName"] = getAccountDetails.lastName;
         payloadOut["accounts"][i]["givenName"] = getAccountDetails.givenName;*/
 
@@ -143,9 +141,9 @@ void WebAdminMethods_Roles::getRoleInfo(void *context, APIReturn &response, cons
 
     auto directPermissions = Globals::getIdentityManager()->authController->getRoleApplicationPermissions(roleName);
 
-    i=0;
+    i = 0;
     std::set<std::string> applications;
-    for (const auto & permission : directPermissions)
+    for (const auto &permission : directPermissions)
     {
         if (applications.find(permission.appName) != applications.end())
             continue; // This application has been already mapped.
@@ -155,8 +153,8 @@ void WebAdminMethods_Roles::getRoleInfo(void *context, APIReturn &response, cons
         payloadOut["applications"][i]["description"] = Globals::getIdentityManager()->applications->getApplicationDescription(permission.appName);
 
         // Take the active application permissions for this role:
-        int x=0;
-        for (const auto & permission2 : directPermissions)
+        int x = 0;
+        for (const auto &permission2 : directPermissions)
         {
             if (permission.appName == permission2.appName)
             {
@@ -167,10 +165,10 @@ void WebAdminMethods_Roles::getRoleInfo(void *context, APIReturn &response, cons
         }
         // Take the unused application permissions for this role:
 
-        x=0;
-        for (const ApplicationPermission & permission3 : Globals::getIdentityManager()->authController->listApplicationPermissions(permission.appName))
+        x = 0;
+        for (const ApplicationPermission &permission3 : Globals::getIdentityManager()->authController->listApplicationPermissions(permission.appName))
         {
-            if (directPermissions.find(permission3)==directPermissions.end())
+            if (directPermissions.find(permission3) == directPermissions.end())
             {
                 payloadOut["applications"][i]["permissionsLeft"][x]["id"] = permission3.permissionId;
                 payloadOut["applications"][i]["permissionsLeft"][x]["description"] = Globals::getIdentityManager()->authController->getApplicationPermissionDescription(permission3);
@@ -181,14 +179,14 @@ void WebAdminMethods_Roles::getRoleInfo(void *context, APIReturn &response, cons
         i++;
     }
 
-    i=0;
+    i = 0;
     // put full application list:
 
     auto leftApplicationList = Globals::getIdentityManager()->applications->listApplications();
 
-    for (const auto & appName : Globals::getIdentityManager()->applications->listApplications())
+    for (const auto &appName : Globals::getIdentityManager()->applications->listApplications())
     {
-        if ( !WebAdmin_Methods::iPermissionsLeftListForRole( appName,roleName ).empty() )
+        if (!WebAdmin_Methods::iPermissionsLeftListForRole(appName, roleName).empty())
         {
             payloadOut["leftApplicationsList"][i]["name"] = appName;
             payloadOut["leftApplicationsList"][i]["description"] = Globals::getIdentityManager()->applications->getApplicationDescription(appName);

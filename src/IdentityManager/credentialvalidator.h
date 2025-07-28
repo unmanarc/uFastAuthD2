@@ -1,7 +1,7 @@
 #pragma once
 
-#include <Mantids30/Threads/garbagecollector.h>
 #include <Mantids30/Sessions/session.h>
+#include <Mantids30/Threads/garbagecollector.h>
 
 #include <mutex>
 #include <string>
@@ -9,16 +9,10 @@
 
 #include "ds_authentication.h"
 
-
 struct TokenCacheKey
 {
-    bool operator==(const TokenCacheKey & x) const
-    {
-        return (x.accountName == accountName && x.token == token);
-    }
-    size_t hash() const {
-        return std::hash<std::string>{}(accountName) ^ std::hash<std::string>{}(token);
-    }
+    bool operator==(const TokenCacheKey &x) const { return (x.accountName == accountName && x.token == token); }
+    size_t hash() const { return std::hash<std::string>{}(accountName) ^ std::hash<std::string>{}(token); }
 
     std::string accountName;
     std::string token;
@@ -26,25 +20,26 @@ struct TokenCacheKey
 
 // Define the specialization of std::hash for TokenCacheKey inside the Mantids30::Auth namespace
 namespace std {
-template <>
-struct hash<TokenCacheKey> {
-    size_t operator()(const TokenCacheKey& key) const {
-        return key.hash();
-    }
+template<>
+struct hash<TokenCacheKey>
+{
+    size_t operator()(const TokenCacheKey &key) const { return key.hash(); }
 };
-}
+} // namespace std
 
-struct ApplicationPermission {
-    bool operator<(const ApplicationPermission & x) const
+struct ApplicationPermission
+{
+    bool operator<(const ApplicationPermission &x) const
     {
-        if (x.appName < appName) return true;
-        else if (x.appName == appName && x.permissionId < permissionId) return true;
-        else return false;
+        if (x.appName < appName)
+            return true;
+        else if (x.appName == appName && x.permissionId < permissionId)
+            return true;
+        else
+            return false;
     }
-    std::string appName,permissionId;
+    std::string appName, permissionId;
 };
-
-
 
 struct AppAuthExtras
 {
@@ -66,7 +61,7 @@ public:
      * @param accountName The name of the account to get the confirmation token for.
      * @return The confirmation token for the account.
      */
-    virtual std::string getAccountConfirmationToken(const std::string& accountName) = 0;
+    virtual std::string getAccountConfirmationToken(const std::string &accountName) = 0;
 
     /**
      * @brief Returns the public data associated with an account's credential for a given account name and auth slot id.
@@ -74,7 +69,7 @@ public:
      * @param slotId The password index to use for retrieving the account credential.
      * @return The public data associated with the account's credential.
      */
-    virtual Credential getAccountCredentialPublicData(const std::string& accountName, uint32_t slotId) = 0;
+    virtual Credential getAccountCredentialPublicData(const std::string &accountName, uint32_t slotId) = 0;
 
     /**
      * @brief Authenticates a user's credential based on provided details and optional authentication context.
@@ -116,14 +111,9 @@ public:
      * @note On failure, the function ensures to increment bad attempt counters for the account and slot ID to
      *       enforce policies such as account locking or throttling after repeated failed attempts.
      */
-    virtual Reason authenticateCredential(const Mantids30::Sessions::ClientDetails& clientDetails,
-                                          const std::string& accountName,
-                                          const std::string& password,
-                                          const uint32_t & slotId,
-                                          const Mode & authMode = MODE_PLAIN,
-                                          const std::string& challengeSalt = "",
-                                          std::shared_ptr<AppAuthExtras> authContext = nullptr
-                                          ) = 0;
+    virtual Reason authenticateCredential(const Mantids30::Sessions::ClientDetails &clientDetails, const std::string &accountName, const std::string &password, const uint32_t &slotId,
+                                          const Mode &authMode = MODE_PLAIN, const std::string &challengeSalt = "", std::shared_ptr<AppAuthExtras> authContext = nullptr)
+        = 0;
 
     /**
      * @brief Validates an account permissions for a given account name and application permission.
@@ -131,14 +121,12 @@ public:
      * @param applicationPermission The application permission to validate.
      * @return true if the account permission is valid, false otherwise.
      */
-    virtual bool validateAccountApplicationPermission(const std::string& accountName, const ApplicationPermission& applicationPermission) = 0;
+    virtual bool validateAccountApplicationPermission(const std::string &accountName, const ApplicationPermission &applicationPermission) = 0;
 
     // Cleanup function to remove expired google authenticator tokens
     void cleanupExpiredTokens();
     // Static function to be called from the garbage collector.
-    static void cleanupExpiredTokens(void * asv);
-
-
+    static void cleanupExpiredTokens(void *asv);
 
     bool getUseTokenCache();
     void setUseTokenCache(bool newUseTokenCache);
@@ -153,7 +141,7 @@ protected:
      * @param authMode The mode to use for authentication.
      * @return A reason indicating whether the stored credential was valid or not.
      */
-    Reason validateStoredCredential(const std::string &accountName, const Credential& storedCredential, const std::string& passwordInput, const std::string& challengeSalt, Mode authMode);
+    Reason validateStoredCredential(const std::string &accountName, const Credential &storedCredential, const std::string &passwordInput, const std::string &challengeSalt, Mode authMode);
 
 private:
     /**
@@ -163,7 +151,7 @@ private:
      * @param challengeSalt Challenge Salt (Random Value generated by your app, take the security considerations)
      * @return Authentication Response Reason (authenticated or bad password)
      */
-    Reason validateChallenge(const std::string & passwordFromDB, const std::string & challengeInput, const std::string &challengeSalt);
+    Reason validateChallenge(const std::string &passwordFromDB, const std::string &challengeInput, const std::string &challengeSalt);
 
     /**
     * @brief Validates a Google Authenticator token for a given account and seed.
@@ -177,7 +165,7 @@ private:
     *
     * @return True if the token is valid, false otherwise.
     */
-    Reason validateGAuth(const std::string &accountName,const std::string & seed, const std::string & tokenInput);
+    Reason validateGAuth(const std::string &accountName, const std::string &seed, const std::string &tokenInput);
 
     // Add a cache to store used tokens with timestamps
     std::unordered_map<TokenCacheKey, time_t> usedTokensCache;
@@ -193,5 +181,3 @@ private:
 
     bool useTokenCache = true;
 };
-
-

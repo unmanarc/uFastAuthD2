@@ -1,11 +1,11 @@
 #include "weblogin_serverimpl.h"
 #include "config.h"
-#include "globals.h"
 #include "defs.h"
+#include "globals.h"
 #include "weblogin_authmethods.h"
 
-#include <Mantids30/Server_RESTfulWebAPI/engine.h>
 #include <Mantids30/Config_Builder/restful_engine.h>
+#include <Mantids30/Server_RESTfulWebAPI/engine.h>
 
 #include <boost/algorithm/string/predicate.hpp>
 #include <memory>
@@ -19,19 +19,19 @@ using namespace Program;
 
 bool WebLogin_ServerImpl::createService()
 {
-    boost::property_tree::ptree * config = Globals::getConfig();
+    boost::property_tree::ptree *config = Globals::getConfig();
 
     try
     {
         config = &config->get_child("WebLoginService");
     }
-    catch (boost::property_tree::ptree_error& e)
+    catch (boost::property_tree::ptree_error &e)
     {
         LOG_APP->log0(__func__, Logs::LEVEL_INFO, "Configuration error: WebLoginService not found: %s", e.what());
         return false;
     }
 
-    RESTful::Engine * loginWebServer = Program::Config::RESTful_Engine::createRESTfulEngine(config, LOG_APP,LOG_RPC, "Web Login", AUTHSERVER_WEBDIR, Program::Config::REST_ENGINE_MANDATORY_SSL);
+    RESTful::Engine *loginWebServer = Program::Config::RESTful_Engine::createRESTfulEngine(config, LOG_APP, LOG_RPC, "Web Login", AUTHSERVER_WEBDIR, Program::Config::REST_ENGINE_MANDATORY_SSL);
 
     if (!loginWebServer)
         return false;
@@ -42,6 +42,9 @@ bool WebLogin_ServerImpl::createService()
 
     // Set the software version:
     loginWebServer->config.setSoftwareVersion(atoi(PROJECT_VER_MAJOR), atoi(PROJECT_VER_MINOR), atoi(PROJECT_VER_PATCH), "a");
+
+    // This will validate the JWT, the app should match with this:
+    loginWebServer->config.appName = "IAM";
 
     // Setup the methods handler for version 1:
     loginWebServer->methodsHandler[1] = std::make_shared<API::RESTful::MethodsHandler>();

@@ -1,20 +1,18 @@
 #include "identitymanager_db.h"
 #include "IdentityManager/ds_authentication.h"
 
-#include <Mantids30/Memory/a_uint32.h>
-#include <Mantids30/Memory/a_string.h>
 #include <Mantids30/Memory/a_bool.h>
+#include <Mantids30/Memory/a_string.h>
+#include <Mantids30/Memory/a_uint32.h>
 
-#include <unistd.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <unistd.h>
 #ifndef _WIN32
 #include <pwd.h>
 #endif
 
-
 using namespace Mantids30;
-
 
 /*
  *
@@ -67,8 +65,7 @@ bool IdentityManager_DB::initializeDatabase()
 {
     if (!m_sqlConnector->dbTableExist("iam_applicationPermissionsAtAccount"))
     {
-        bool r =
-            m_sqlConnector->query(R"(CREATE TABLE `iam_accounts` (
+        bool r = m_sqlConnector->query(R"(CREATE TABLE `iam_accounts` (
                                              `accountName`              VARCHAR(256)    NOT NULL,
                                              `creation`              DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
                                              `creator`               VARCHAR(256)    DEFAULT NULL,
@@ -79,14 +76,15 @@ bool IdentityManager_DB::initializeDatabase()
                                              `isAccountConfirmed`    BOOLEAN         NOT NULL,
                                              PRIMARY KEY(`accountName`)
                                                                         );
-                                    )") &&
-                 m_sqlConnector->query(R"(CREATE TABLE `iam_accountsLastLog` (
+                                    )")
+                 && m_sqlConnector->query(R"(CREATE TABLE `iam_accountsLastLog` (
                                               `f_accountName`            VARCHAR(256)  NOT NULL,
                                               `lastLogin`             DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
                                               FOREIGN KEY(`f_accountName`)   REFERENCES iam_accounts(`accountName`) ON DELETE CASCADE
                                               PRIMARY KEY(`f_accountName`)
                                                                         );
-                                       )") &&
+                                       )")
+                 &&
 
                  m_sqlConnector->query(R"(CREATE TABLE `iam_accountDetailFields` (
                                              `fieldName`             VARCHAR(256)   NOT NULL,
@@ -99,7 +97,8 @@ bool IdentityManager_DB::initializeDatabase()
                                              `includeInToken`        BOOLEAN        NOT NULL DEFAULT FALSE,
                                               PRIMARY KEY(`fieldName`)
                                                                         );
-                                       )") &&
+                                       )")
+                 &&
 
                  m_sqlConnector->query(R"(CREATE TABLE `iam_accountDetailValues` (
                                               `f_accountName`           VARCHAR(256)  NOT NULL,
@@ -109,7 +108,8 @@ bool IdentityManager_DB::initializeDatabase()
                                               FOREIGN KEY(`f_accountName`)   REFERENCES iam_accounts(`accountName`) ON DELETE CASCADE
                                               PRIMARY KEY(`f_accountName`,`f_fieldName`)
                                                                         );
-                                       )") &&
+                                       )")
+                 &&
 
                  m_sqlConnector->query(R"(CREATE TABLE `iam_applications` (
                                              `appName`               VARCHAR(256)  NOT NULL,
@@ -119,31 +119,40 @@ bool IdentityManager_DB::initializeDatabase()
                                               FOREIGN KEY(`f_appCreator`)   REFERENCES iam_accounts(`accountName`) ON DELETE CASCADE
                                                   PRIMARY KEY(`appName`)
                      );
-                                    )") &&
-                 m_sqlConnector->query(R"(CREATE TABLE `iam_applicationsWebloginRedirectURIs` (
+                                    )")
+                 && m_sqlConnector->query(R"(CREATE TABLE `iam_applicationsWebloginRedirectURIs` (
                                              `f_appName`             VARCHAR(256)  NOT NULL,
                                              `loginRedirectURI`        VARCHAR(4096) NOT NULL,
                                               FOREIGN KEY(`f_appName`)   REFERENCES iam_applications(`appName`) ON DELETE CASCADE
-                                                  PRIMARY KEY(`f_appName`,`loginRedirectURI`)
+                                              PRIMARY KEY(`f_appName`,`loginRedirectURI`)
                      );
-                                    )") &&
-                 m_sqlConnector->query(R"(CREATE TABLE `iam_applicationActivities` (
+                                    )")
+                 && m_sqlConnector->query(R"(CREATE TABLE `iam_applicationsLoginCallbackURI` (
+                                             `f_appName`             VARCHAR(256)  NOT NULL,
+                                             `callbackURI`           VARCHAR(4096) NOT NULL,
+                                              FOREIGN KEY(`f_appName`)   REFERENCES iam_applications(`appName`) ON DELETE CASCADE
+                                              PRIMARY KEY(`f_appName`,`callbackURI`)
+                                              UNIQUE(`f_appName`)
+                     );
+                                    )")
+                 && m_sqlConnector->query(R"(CREATE TABLE `iam_applicationActivities` (
                                              `f_appName`             VARCHAR(256)  NOT NULL,
                                              `activityName`          VARCHAR(256)  NOT NULL,
                                              `parentActivity`        VARCHAR(256)  NOT NULL,
                                              `description`           VARCHAR(4096) NOT NULL,
                                              `defaultSchemeId` INTEGER DEFAULT NULL,
                                               FOREIGN KEY(`f_appName`)   REFERENCES iam_applications(`appName`) ON DELETE CASCADE
-                                                  PRIMARY KEY(`f_appName`,`activityName`)
+                                              PRIMARY KEY(`f_appName`,`activityName`)
                      );
-                                    )") &&
-                 m_sqlConnector->query(R"(CREATE TABLE `iam_applicationsWebloginOrigins` (
+                                    )")
+                 && m_sqlConnector->query(R"(CREATE TABLE `iam_applicationsWebloginOrigins` (
                                              `f_appName`             VARCHAR(256)  NOT NULL,
                                              `originUrl`              VARCHAR(2048) NOT NULL,
                                              FOREIGN KEY(`f_appName`)   REFERENCES iam_applications(`appName`) ON DELETE CASCADE
                                              PRIMARY KEY(`f_appName`,`originUrl`)
                                                                         );
-                                        )") &&
+                                        )")
+                 &&
                  // Refresh token by about 3 months...
                  m_sqlConnector->query(R"(
                                         CREATE TABLE `iam_applicationsJWTTokenConfig` (
@@ -162,7 +171,8 @@ bool IdentityManager_DB::initializeDatabase()
                                             FOREIGN KEY (`f_appName`) REFERENCES iam_applications(`appName`) ON DELETE CASCADE,
                                             PRIMARY KEY (`f_appName`)
                                                                         );
-                                    )") &&
+                                    )")
+                 &&
 
                  m_sqlConnector->query(R"(CREATE TABLE `iam_applicationPermissions` (
                                              `f_appName`               VARCHAR(256) NOT NULL,
@@ -171,7 +181,8 @@ bool IdentityManager_DB::initializeDatabase()
                                              PRIMARY KEY(`f_appName`,`permissionId`),
                                              FOREIGN KEY(`f_appName`)   REFERENCES iam_applications(`appName`) ON DELETE CASCADE
                                                                         );
-                                    )") &&
+                                    )")
+                 &&
 
                  m_sqlConnector->query(R"(CREATE TABLE `iam_applicationManagers` (
                                              `f_accountNameManager`       VARCHAR(256)    NOT NULL,
@@ -180,7 +191,8 @@ bool IdentityManager_DB::initializeDatabase()
                                              FOREIGN KEY(`f_accountNameManager`)       REFERENCES iam_accounts(`accountName`) ON DELETE CASCADE,
                                              FOREIGN KEY(`f_applicationManaged`)    REFERENCES iam_applications(`appName`) ON DELETE CASCADE
                                                                         );
-                                    )") &&
+                                    )")
+                 &&
 
                  m_sqlConnector->query(R"(CREATE TABLE `iam_applicationAccounts` (
                                              `f_accountName`       VARCHAR(256)    NOT NULL,
@@ -189,21 +201,22 @@ bool IdentityManager_DB::initializeDatabase()
                                              FOREIGN KEY(`f_accountName`) REFERENCES iam_accounts(`accountName`) ON DELETE CASCADE,
                                              FOREIGN KEY(`f_appName`)  REFERENCES iam_applications(`appName`) ON DELETE CASCADE
                                                                         );
-                                    )") &&
+                                    )")
+                 &&
 
-                  m_sqlConnector->query(R"(CREATE TABLE `iam_authenticationSchemes` (
+                 m_sqlConnector->query(R"(CREATE TABLE `iam_authenticationSchemes` (
                                             `schemeId`          INTEGER PRIMARY KEY AUTOINCREMENT,
                                             `description`       VARCHAR(4096) NOT NULL
-                     );     )") &&
-                 m_sqlConnector->query(R"(CREATE TABLE `iam_applicationActivitiesAuthSchemes` (
+                     );     )")
+                 && m_sqlConnector->query(R"(CREATE TABLE `iam_applicationActivitiesAuthSchemes` (
                                              `f_appName`             VARCHAR(256)  NOT NULL,
                                              `f_activityName`        VARCHAR(256)  NOT NULL,
                                              `f_schemeId`            INTEGER       NOT NULL,
                                               FOREIGN KEY(`f_appName`,`f_activityName`)   REFERENCES iam_applicationActivities(`f_appName`,`activityName`) ON DELETE CASCADE
                                               FOREIGN KEY(`f_schemeId`) REFERENCES iam_authenticationSchemes(`schemeId`) ON DELETE CASCADE,
                                               PRIMARY KEY(`f_appName`,`f_activityName`,`f_schemeId`)
-                     );    )") &&
-                 m_sqlConnector->query(R"(CREATE TABLE `iam_authenticationSlots` (
+                     );    )")
+                 && m_sqlConnector->query(R"(CREATE TABLE `iam_authenticationSlots` (
                                              `slotId`                        INTEGER PRIMARY KEY AUTOINCREMENT,
                                              `description`                   VARCHAR(4096) NOT NULL,
                                              `function`                      INTEGER       DEFAULT 0,
@@ -211,8 +224,8 @@ bool IdentityManager_DB::initializeDatabase()
                                              `strengthJSONValidator`         TEXT          NOT NULL,
                                              `totp2FAStepsToleranceWindow`  INTEGER         DEFAULT 0
                                                                         );
-                                    )") &&
-                 m_sqlConnector->query(R"(CREATE TABLE `iam_authenticationSchemeUsedSlots` (
+                                    )")
+                 && m_sqlConnector->query(R"(CREATE TABLE `iam_authenticationSchemeUsedSlots` (
                                             `f_schemeId`             INTEGER        NOT NULL,
                                             `f_slotId`               INTEGER        NOT NULL,
                                             `orderPriority`          INTEGER        NOT NULL,
@@ -221,8 +234,8 @@ bool IdentityManager_DB::initializeDatabase()
                                              FOREIGN KEY(`f_slotId`) REFERENCES iam_authenticationSlots(`slotId`) ON DELETE CASCADE,
                                              PRIMARY KEY(`f_schemeId`,`f_slotId`)
                      );
-                                    )") &&
-                 m_sqlConnector->query(R"(CREATE TABLE `iam_accountAuthLog` (
+                                    )")
+                 && m_sqlConnector->query(R"(CREATE TABLE `iam_accountAuthLog` (
                                              `f_accountName`        VARCHAR(256)    NOT NULL,
                                              `f_AuthSlotId`      INTEGER         NOT NULL,
                                              `loginDateTime`     DATETIME        NOT NULL,
@@ -233,31 +246,31 @@ bool IdentityManager_DB::initializeDatabase()
                                              FOREIGN KEY(`f_AuthSlotId`)    REFERENCES iam_authenticationSlots(`slotId`) ON DELETE CASCADE
                                              FOREIGN KEY(`f_accountName`)       REFERENCES iam_accounts(`accountName`) ON DELETE CASCADE
                                                                         );
-                                    )") &&
-                 m_sqlConnector->query(R"(CREATE TABLE `iam_accountManagers` (
+                                    )")
+                 && m_sqlConnector->query(R"(CREATE TABLE `iam_accountManagers` (
                                              `f_accountNameManager`     VARCHAR(256)    NOT NULL,
                                              `f_accountName_managed`    VARCHAR(256)    NOT NULL,
                                              PRIMARY KEY(`f_accountNameManager`,`f_accountName_managed`),
                                              FOREIGN KEY(`f_accountNameManager`)   REFERENCES iam_accounts(`accountName`) ON DELETE CASCADE,
                                              FOREIGN KEY(`f_accountName_managed`)  REFERENCES iam_accounts(`accountName`) ON DELETE CASCADE
                                                                         );
-                                    )") &&
-                 m_sqlConnector->query(R"(CREATE TABLE `iam_accountsActivationToken` (
+                                    )")
+                 && m_sqlConnector->query(R"(CREATE TABLE `iam_accountsActivationToken` (
                                              `f_accountName`            VARCHAR(256) NOT NULL,
                                              `confirmationToken`     VARCHAR(256) NOT NULL,
                                              PRIMARY KEY(`f_accountName`),
                                              FOREIGN KEY(`f_accountName`) REFERENCES iam_accounts(`accountName`) ON DELETE CASCADE
                                                                         );
-                                    )") &&
-                 m_sqlConnector->query(R"(CREATE TABLE `iam_accountsBlockToken` (
+                                    )")
+                 && m_sqlConnector->query(R"(CREATE TABLE `iam_accountsBlockToken` (
                                              `f_accountName`            VARCHAR(256) NOT NULL,
                                              `blockToken`            VARCHAR(256) NOT NULL,
                                              `lastAccess`            DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
                                              PRIMARY KEY(`f_accountName`),
                                              FOREIGN KEY(`f_accountName`) REFERENCES iam_accounts(`accountName`) ON DELETE CASCADE
                                                                         );
-                                    )") &&
-                 m_sqlConnector->query(R"(CREATE TABLE `iam_accountCredentials` (
+                                    )")
+                 && m_sqlConnector->query(R"(CREATE TABLE `iam_accountCredentials` (
                                              `f_AuthSlotId`                 INTEGER         NOT NULL,
                                              `f_accountName`                   VARCHAR(256)    NOT NULL,
                                              `hash`                         VARCHAR(256)    NOT NULL,
@@ -270,43 +283,41 @@ bool IdentityManager_DB::initializeDatabase()
                                              FOREIGN KEY(`f_AuthSlotId`)      REFERENCES iam_authenticationSlots(`slotId`) ON DELETE CASCADE,
                                              FOREIGN KEY(`f_accountName`)        REFERENCES iam_accounts(`accountName`) ON DELETE CASCADE
                                                                         );
-                                    )") &&
-                 m_sqlConnector->query(R"(CREATE TABLE `iam_roles` (
+                                    )")
+                 && m_sqlConnector->query(R"(CREATE TABLE `iam_roles` (
                                              `roleName`             VARCHAR(256) NOT NULL,
                                              `roleDescription`           VARCHAR(4096),
                                              PRIMARY KEY(`roleName`)
                                                                         );
-                                    )") &&
-                 m_sqlConnector->query(R"(CREATE TABLE `iam_rolesAccounts` (
+                                    )")
+                 && m_sqlConnector->query(R"(CREATE TABLE `iam_rolesAccounts` (
                                              `f_roleName`               VARCHAR(256) NOT NULL,
                                              `f_accountName`            VARCHAR(256) NOT NULL,
                                              FOREIGN KEY(`f_roleName`)        REFERENCES iam_roles(`roleName`) ON DELETE CASCADE,
                                              FOREIGN KEY(`f_accountName`)     REFERENCES iam_accounts(`accountName`) ON DELETE CASCADE
                                                                         );
-                                    )") &&
-                 m_sqlConnector->query(R"(CREATE TABLE `iam_applicationPermissionsAtRole` (
+                                    )")
+                 && m_sqlConnector->query(R"(CREATE TABLE `iam_applicationPermissionsAtRole` (
                                              `f_appName`            VARCHAR(256) NOT NULL,
                                              `f_permissionId`       VARCHAR(256) NOT NULL,
                                              `f_roleName`           VARCHAR(256) NOT NULL,
                                              FOREIGN KEY(`f_appName`,`f_permissionId`) REFERENCES iam_applicationPermissions(`f_appName`,`permissionId`) ON DELETE CASCADE,
                                              FOREIGN KEY(`f_roleName`)              REFERENCES iam_roles(`roleName`) ON DELETE CASCADE
                                                                         );
-                                    )") &&
-                 m_sqlConnector->query(R"(CREATE TABLE `iam_applicationPermissionsAtAccount` (
+                                    )")
+                 && m_sqlConnector->query(R"(CREATE TABLE `iam_applicationPermissionsAtAccount` (
                                               `f_appName`                VARCHAR(256) NOT NULL,
                                               `f_permissionId`           VARCHAR(256) NOT NULL,
                                               `f_accountName`            VARCHAR(256) NOT NULL,
                                               FOREIGN KEY(`f_appName`,`f_permissionId`) REFERENCES iam_applicationPermissions(`f_appName`,`permissionId`) ON DELETE CASCADE,
                                               FOREIGN KEY(`f_accountName`, `f_appName`) REFERENCES iam_applicationAccounts(`f_accountName`, `f_appName`) ON DELETE CASCADE
                                                                         );
-                                    )") &&
-                // TODO: check if this needs different implementation across different databases, by now this works on SQLite3
-                 m_sqlConnector->query(R"(CREATE UNIQUE INDEX `idx_roles_accounts` ON `iam_rolesAccounts` (`f_roleName` ,`f_accountName`);)"
-                                       ) &&
-                 m_sqlConnector->query(R"(CREATE UNIQUE INDEX `idx_permissions_roles` ON `iam_applicationPermissionsAtRole` (`f_appName`,`f_permissionId`,`f_roleName` );)"
-                                       ) &&
-                 m_sqlConnector->query(R"(CREATE UNIQUE INDEX `idx_permissions_accounts` ON `iam_applicationPermissionsAtAccount` (`f_appName`,`f_permissionId`,`f_accountName`);)"
-                                       );
+                                    )")
+                 &&
+                 // TODO: check if this needs different implementation across different databases, by now this works on SQLite3
+                 m_sqlConnector->query(R"(CREATE UNIQUE INDEX `idx_roles_accounts` ON `iam_rolesAccounts` (`f_roleName` ,`f_accountName`);)")
+                 && m_sqlConnector->query(R"(CREATE UNIQUE INDEX `idx_permissions_roles` ON `iam_applicationPermissionsAtRole` (`f_appName`,`f_permissionId`,`f_roleName` );)")
+                 && m_sqlConnector->query(R"(CREATE UNIQUE INDEX `idx_permissions_accounts` ON `iam_applicationPermissionsAtAccount` (`f_appName`,`f_permissionId`,`f_accountName`);)");
 
         return r;
     }

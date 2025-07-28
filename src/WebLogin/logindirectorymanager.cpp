@@ -1,11 +1,12 @@
 #include "logindirectorymanager.h"
 
-#include <iostream>
-#include <fstream>
 #include <cstdlib>
+#include <fstream>
+#include <iostream>
 #include <limits.h>
 
-LoginDirectoryManager::LoginDirectoryManager(const std::string& directoryPath) : path(directoryPath)
+LoginDirectoryManager::LoginDirectoryManager(const std::string &directoryPath)
+    : path(directoryPath)
 {
     if (path.back() != '/')
     {
@@ -13,7 +14,7 @@ LoginDirectoryManager::LoginDirectoryManager(const std::string& directoryPath) :
     }
 }
 
-LoginDirectoryManager::ErrorCode LoginDirectoryManager::writeFile(const std::string& appName, const std::string& htmlContent)
+LoginDirectoryManager::ErrorCode LoginDirectoryManager::writeFile(const std::string &appName, const std::string &htmlContent)
 {
     std::string filePath;
     ErrorCode errorCode = validatePath(appName, filePath);
@@ -35,7 +36,7 @@ LoginDirectoryManager::ErrorCode LoginDirectoryManager::writeFile(const std::str
     return ErrorCode::SUCCESS;
 }
 
-LoginDirectoryManager::ErrorCode LoginDirectoryManager::retrieveFile(const std::string& appName, std::string& htmlContent)
+LoginDirectoryManager::ErrorCode LoginDirectoryManager::retrieveFile(const std::string &appName, std::string &htmlContent)
 {
     std::string filePath;
     ErrorCode errorCode = validatePath(appName, filePath);
@@ -52,8 +53,7 @@ LoginDirectoryManager::ErrorCode LoginDirectoryManager::retrieveFile(const std::
         return ErrorCode::FILE_OPEN_ERROR;
     }
 
-    htmlContent.assign((std::istreambuf_iterator<char>(inFile)),
-                       std::istreambuf_iterator<char>());
+    htmlContent.assign((std::istreambuf_iterator<char>(inFile)), std::istreambuf_iterator<char>());
 
     inFile.close();
     return ErrorCode::SUCCESS;
@@ -61,7 +61,8 @@ LoginDirectoryManager::ErrorCode LoginDirectoryManager::retrieveFile(const std::
 
 std::string LoginDirectoryManager::getErrorMessage(ErrorCode errorCode)
 {
-    switch (errorCode) {
+    switch (errorCode)
+    {
     case LoginDirectoryManager::ErrorCode::SUCCESS:
         return "Success";
     case LoginDirectoryManager::ErrorCode::PATH_RESOLUTION_ERROR:
@@ -75,7 +76,7 @@ std::string LoginDirectoryManager::getErrorMessage(ErrorCode errorCode)
     }
 }
 
-LoginDirectoryManager::ErrorCode LoginDirectoryManager::validatePath(const std::string& appName, std::string& filePath)
+LoginDirectoryManager::ErrorCode LoginDirectoryManager::validatePath(const std::string &appName, std::string &filePath)
 {
     std::string tentativePath = path + appName + ".html";
     char realPathBuffer[PATH_MAX];

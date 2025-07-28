@@ -1,8 +1,8 @@
 #include "loginauthproxymethods.h"
 #include "Mantids30/Helpers/json.h"
+#include "globals.h"
 #include <Mantids30/Server_RESTfulWebAPI/engine.h>
 #include <memory>
-#include "globals.h"
 
 using namespace Mantids30::Network;
 using namespace Mantids30::Network::Servers;
@@ -14,8 +14,7 @@ using namespace Mantids30::Network::Protocols;
 using namespace Mantids30::Network::Protocols::FastRPC;
 using namespace Mantids30::Memory::Streams;
 
-void LoginAuthProxyMethods::AddLoginAuthProxyMethods(
-    FastRPC1 *fastRPC)
+void LoginAuthProxyMethods::AddLoginAuthProxyMethods(FastRPC1 *fastRPC)
 {
     fastRPC->addMethod("proxy", {&proxy, nullptr});
 }
@@ -33,8 +32,7 @@ void LoginAuthProxyMethods::AddLoginAuthProxyMethods(
  * @param cntData Unused string data
  * @return A JSON object containing the response from the web login server.
  */
-json LoginAuthProxyMethods::proxy(
-    std::shared_ptr<void> context, const std::string &key, const json &parameters, std::shared_ptr<void> cntObj, const std::string &cntData)
+json LoginAuthProxyMethods::proxy(std::shared_ptr<void> context, const std::string &key, const json &parameters, std::shared_ptr<void> cntObj, const std::string &cntData)
 {
     json response;
 
@@ -58,6 +56,6 @@ json LoginAuthProxyMethods::proxy(
     webLoginServer->handleVirtualConnection(virtualSocket);
 
     // Retrieve and store the response from the receiver stream of the virtual socket
-    response["data"] = virtualSocket->getReceiver()->toString();
+    response["data"] = virtualSocket->getReceiver()->toStringEx();
     return response;
 }

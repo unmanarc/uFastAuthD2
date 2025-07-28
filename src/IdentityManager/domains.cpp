@@ -1,12 +1,8 @@
 #include "domains.h"
 
-
 using namespace Mantids30;
 
-Domains::Domains()
-{
-
-}
+Domains::Domains() {}
 
 bool Domains::addDomain(const std::string &domainName, IdentityManager *identityManager)
 {
@@ -15,8 +11,9 @@ bool Domains::addDomain(const std::string &domainName, IdentityManager *identity
 
 IdentityManager *Domains::openDomain(const std::string &domainName)
 {
-    IdentityManager * i = (IdentityManager *)m_domainMap.openElement(domainName);;
-    if (i) i->checkConnection();
+    IdentityManager *i = (IdentityManager *) m_domainMap.openElement(domainName);
+    if (i)
+        i->checkConnection();
     return i;
 }
 

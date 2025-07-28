@@ -1,8 +1,8 @@
 #include "IdentityManager/ds_authentication.h"
 #include "identitymanager.h"
 
-#include <Mantids30/Threads/lock_shared.h>
 #include <Mantids30/Helpers/random.h>
+#include <Mantids30/Threads/lock_shared.h>
 
 using namespace Mantids30;
 
@@ -17,41 +17,38 @@ json IdentityManager::AuthController::authSlotsToJSON(const std::vector<Authenti
     return r;
 }
 
-void IdentityManager::AuthController::incrementCredentialBadCounts(Reason ret, const std::string & accountName, const Credential & pStoredCredentialData, const uint32_t & slotId , const Sessions::ClientDetails &clientDetails)
+void IdentityManager::AuthController::incrementCredentialBadCounts(Reason ret, const std::string &accountName, const Credential &pStoredCredentialData, const uint32_t &slotId,
+                                                                   const ClientDetails &clientDetails)
 {
     // Register the change for max attempts...
-    if ( !IS_PASSWORD_AUTHENTICATED( ret ) )
+    if (!IS_PASSWORD_AUTHENTICATED(ret))
     {
         // Increment the counter and disable the account acording to the policy.
-        if ( (pStoredCredentialData.badAttempts + 1) >= m_authenticationPolicy.maxTries )
+        if ((pStoredCredentialData.badAttempts + 1) >= m_authenticationPolicy.maxTries)
         {
             // Disable the account...
-            m_parent->accounts->disableAccount(accountName,true);
+            m_parent->accounts->disableAccount(accountName, true);
         }
         else
         {
-            incrementBadAttemptsOnCredential(accountName,slotId);
+            incrementBadAttemptsOnCredential(accountName, slotId);
         }
     }
     else
     {
         // Authenticated:
-        updateAccountLastLogin(accountName,slotId,clientDetails);
-        resetBadAttemptsOnCredential(accountName,slotId);
+        updateAccountLastLogin(accountName, slotId, clientDetails);
+        resetBadAttemptsOnCredential(accountName, slotId);
     }
 }
 
-Reason IdentityManager::AuthController::authenticateCredential(const Sessions::ClientDetails &clientDetails,
-                                                               const std::string &accountName,
-                                                               const std::string &incomingPassword,
-                                                               const uint32_t & slotId,
-                                                               const Mode & authMode,
-                                                               const std::string &challengeSalt,
+Reason IdentityManager::AuthController::authenticateCredential(const ClientDetails &clientDetails, const std::string &accountName, const std::string &incomingPassword, const uint32_t &slotId,
+                                                               const Mode &authMode, const std::string &challengeSalt,
                                                                // Extras...
                                                                std::shared_ptr<AppAuthExtras> authContext)
 {
     Reason ret = REASON_BAD_ACCOUNT;
-    bool accountFound=false, authSlotFound=false;
+    bool accountFound = false, authSlotFound = false;
     Credential pStoredCredentialData;
 
     // If something changes in between,
@@ -102,7 +99,7 @@ Reason IdentityManager::AuthController::authenticateCredential(const Sessions::C
         }
 
         // Check if the retrieved credential
-        pStoredCredentialData = retrieveCredential(accountName,slotId, &accountFound, &authSlotFound);
+        pStoredCredentialData = retrieveCredential(accountName, slotId, &accountFound, &authSlotFound);
 
         if (accountFound == false)
             ret = REASON_BAD_ACCOUNT;
@@ -120,7 +117,7 @@ Reason IdentityManager::AuthController::authenticateCredential(const Sessions::C
 
             auto flags = m_parent->accounts->getAccountFlags(accountName);
 
-            if      (!flags.confirmed)
+            if (!flags.confirmed)
                 return REASON_UNCONFIRMED_ACCOUNT;
 
             else if (!flags.enabled)
@@ -132,17 +129,17 @@ Reason IdentityManager::AuthController::authenticateCredential(const Sessions::C
             else if (m_parent->accounts->isAccountExpired(accountName))
                 return REASON_EXPIRED_ACCOUNT;
 
-            else if (lastLogin+m_authenticationPolicy.abandonedAccountExpirationSeconds<time(nullptr))
+            else if (lastLogin + m_authenticationPolicy.abandonedAccountExpirationSeconds < time(nullptr))
                 return REASON_INACTIVE_ACCOUNT;
 
             else
             {
-                ret = validateStoredCredential(accountName,pStoredCredentialData, incomingPassword, challengeSalt, authMode);
+                ret = validateStoredCredential(accountName, pStoredCredentialData, incomingPassword, challengeSalt, authMode);
             }
         }
     }
 
-    incrementCredentialBadCounts(ret, accountName, pStoredCredentialData,slotId, clientDetails);
+    incrementCredentialBadCounts(ret, accountName, pStoredCredentialData, slotId, clientDetails);
 
     return ret;
 }
@@ -151,7 +148,6 @@ std::string IdentityManager::AuthController::genRandomConfirmationToken()
 {
     return Mantids30::Helpers::Random::createRandomString(64);
 }
-
 
 AuthenticationPolicy IdentityManager::AuthController::getAuthenticationPolicy()
 {
@@ -178,12 +174,12 @@ std::map<uint32_t, Credential> IdentityManager::AuthController::getAccountAllCre
 {
     // TODO: this function can only be accessed if the user has been authenticated...
     Threads::Sync::Lock_RD lock(m_parent->m_mutex);
-    std::map<uint32_t, Credential> r;    
+    std::map<uint32_t, Credential> r;
     std::set<uint32_t> slotIdsUsedByAccount = listUsedAuthenticationSlotsOnAccount(accountName);
     for (const uint32_t slotId : slotIdsUsedByAccount)
     {
-        bool accountFound,authSlotFound;
-        Credential credential = retrieveCredential(accountName,slotId,&accountFound,&authSlotFound);
+        bool accountFound, authSlotFound;
+        Credential credential = retrieveCredential(accountName, slotId, &accountFound, &authSlotFound);
         if (accountFound && authSlotFound)
         {
             r[slotId] = credential.getPublicData();
@@ -217,16 +213,16 @@ std::map<uint32_t,AuthenticationSlotDetails> IdentityManager::AuthController::ge
     return r;
 }*/
 
-
 // TODO: this can only be called when authenticated.
-bool IdentityManager::AuthController::changeAccountAuthenticatedCredential(const std::string &accountName, uint32_t slotId, const std::string &sCurrentPassword, const Credential &passwordData, const Sessions::ClientDetails &clientInfo, Mode authMode, const std::string &challengeSalt)
+bool IdentityManager::AuthController::changeAccountAuthenticatedCredential(const std::string &accountName, uint32_t slotId, const std::string &sCurrentPassword, const Credential &passwordData,
+                                                                           const ClientDetails &clientInfo, Mode authMode, const std::string &challengeSalt)
 {
     {
         Threads::Sync::Lock_RD lock(m_parent->m_mutex);
 
         auto authSlots = listAuthenticationSlots();
 
-        if ( authSlots.find(slotId) == authSlots.end() )
+        if (authSlots.find(slotId) == authSlots.end())
         {
             // Bad, no slot id available...
             return false;
@@ -253,7 +249,7 @@ bool IdentityManager::AuthController::changeAccountAuthenticatedCredential(const
             // If the slotId has been initialized, authenticate the current credential.
             auto i = authenticateCredential(clientInfo, accountName, sCurrentPassword, slotId, authMode, challengeSalt);
             // Now take the authentication and add/change the credential
-            if ( ! (IS_PASSWORD_AUTHENTICATED(i)) )
+            if (!(IS_PASSWORD_AUTHENTICATED(i)))
             {
                 // Change the requested index.
                 return false;
@@ -262,21 +258,19 @@ bool IdentityManager::AuthController::changeAccountAuthenticatedCredential(const
     }
 
     // change it here...
-    return changeCredential(accountName,passwordData,slotId);
+    return changeCredential(accountName, passwordData, slotId);
 }
 
-
-
-bool IdentityManager::AuthController::validateAccountApplicationPermission(const std::string &accountName, const ApplicationPermission & applicationPermission)
+bool IdentityManager::AuthController::validateAccountApplicationPermission(const std::string &accountName, const ApplicationPermission &applicationPermission)
 {
     Threads::Sync::Lock_RD lock(m_parent->m_mutex);
-    if (validateAccountDirectApplicationPermission(accountName,applicationPermission))
+    if (validateAccountDirectApplicationPermission(accountName, applicationPermission))
     {
         return true;
     }
-    for (const std::string & roleName : m_parent->accounts->getAccountRoles(accountName,false))
+    for (const std::string &roleName : m_parent->accounts->getAccountRoles(accountName, false))
     {
-        if (validateApplicationPermissionOnRole(roleName, applicationPermission,false))
+        if (validateApplicationPermissionOnRole(roleName, applicationPermission, false))
         {
             return true;
         }
@@ -289,22 +283,21 @@ std::set<ApplicationPermission> IdentityManager::AuthController::getAccountUsabl
     std::set<ApplicationPermission> x;
     Threads::Sync::Lock_RD lock(m_parent->m_mutex);
     // Take permissions from the account
-    for (const ApplicationPermission & permission : getAccountDirectApplicationPermissions(accountName,false))
+    for (const ApplicationPermission &permission : getAccountDirectApplicationPermissions(accountName, false))
         x.insert(permission);
 
     // Take the permissions from the belonging roles
-    for (const std::string & roleName : m_parent->accounts->getAccountRoles(accountName,false))
+    for (const std::string &roleName : m_parent->accounts->getAccountRoles(accountName, false))
     {
-        for (const ApplicationPermission & permission : getRoleApplicationPermissions(roleName,false))
+        for (const ApplicationPermission &permission : getRoleApplicationPermissions(roleName, false))
             x.insert(permission);
     }
     return x;
 }
 
-bool IdentityManager::AuthController::setAccountPasswordOnScheme(
-    const std::string &accountName, std::string *sInitPW, const uint32_t &schemeId)
+bool IdentityManager::AuthController::setAccountPasswordOnScheme(const std::string &accountName, std::string *sInitPW, const uint32_t &schemeId)
 {
-    if (schemeId==UINT32_MAX)
+    if (schemeId == UINT32_MAX)
         return false;
 
     *sInitPW = "";
@@ -329,7 +322,7 @@ bool IdentityManager::AuthController::setAccountPasswordOnScheme(
             return false;
         }
         newPass = Mantids30::Helpers::Random::createRandomString(16);
-        credentialData = m_parent->authController->createNewCredential(authSlots.begin()->slotId,newPass,true);
+        credentialData = m_parent->authController->createNewCredential(authSlots.begin()->slotId, newPass, true);
     }
 
     bool r = m_parent->authController->changeCredential(accountName, credentialData, authSlots.begin()->slotId);
@@ -357,10 +350,9 @@ bool IdentityManager::AuthController::setAccountPasswordOnScheme(
                                 );*/
     // TODO: pasar esto a slot
     //`totp2FAStepsToleranceWindow`,`function`
-
 }
 
-Credential IdentityManager::AuthController::createNewCredential(const uint32_t & slotId, const std::string & passwordInput, bool forceExpiration)
+Credential IdentityManager::AuthController::createNewCredential(const uint32_t &slotId, const std::string &passwordInput, bool forceExpiration)
 {
     Credential r;
 
@@ -373,36 +365,42 @@ Credential IdentityManager::AuthController::createNewCredential(const uint32_t &
 
     r.slotDetails = authSlots[slotId];
     r.forceExpiration = forceExpiration;
-    r.expirationTimestamp = time(nullptr)+r.slotDetails.defaultExpirationSeconds;
+    r.expirationTimestamp = time(nullptr) + r.slotDetails.defaultExpirationSeconds;
 
     switch (r.slotDetails.passwordFunction)
     {
     case FN_NOTFOUND:
     {
         // Do nothing...
-    } break;
+    }
+    break;
     case FN_PLAIN:
     {
         r.hash = passwordInput;
-    } break;
+    }
+    break;
     case FN_SHA256:
     {
         r.hash = Helpers::Crypto::calcSHA256(passwordInput);
-    } break;
+    }
+    break;
     case FN_SHA512:
     {
         r.hash = Helpers::Crypto::calcSHA512(passwordInput);
-    } break;
+    }
+    break;
     case FN_SSHA256:
     {
         Mantids30::Helpers::Random::createRandomSalt32(r.ssalt);
         r.hash = Helpers::Crypto::calcSSHA256(passwordInput, r.ssalt);
-    } break;
+    }
+    break;
     case FN_SSHA512:
     {
         Mantids30::Helpers::Random::createRandomSalt32(r.ssalt);
         r.hash = Helpers::Crypto::calcSSHA512(passwordInput, r.ssalt);
-    } break;
+    }
+    break;
     case FN_GAUTHTIME:
         r.hash = passwordInput;
     }
@@ -410,8 +408,7 @@ Credential IdentityManager::AuthController::createNewCredential(const uint32_t &
     return r;
 }
 
-json IdentityManager::AuthController::getApplicableAuthenticationSchemesForAccount(
-    const std::string &app, const std::string &activity, const std::string &accountName)
+json IdentityManager::AuthController::getApplicableAuthenticationSchemesForAccount(const std::string &app, const std::string &activity, const std::string &accountName)
 {
     Threads::Sync::Lock_RD lock(m_parent->m_mutex);
 
@@ -478,7 +475,7 @@ json IdentityManager::AuthController::getApplicableAuthenticationSchemesForAccou
     return r;
 }
 
-uint32_t IdentityManager::AuthController::initializateDefaultPasswordSchemes(bool * defaultPasswordSchemesExist)
+uint32_t IdentityManager::AuthController::initializateDefaultPasswordSchemes(bool *defaultPasswordSchemesExist)
 {
     uint32_t schemeId, authSlotId;
     bool r = true;
@@ -507,4 +504,3 @@ uint32_t IdentityManager::AuthController::initializateDefaultPasswordSchemes(boo
     }
     return UINT32_MAX;
 }
-

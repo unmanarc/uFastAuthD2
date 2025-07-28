@@ -1,7 +1,6 @@
 #include "multicredentialdata.h"
 //#include "retcodes.h"
 
-
 using namespace Mantids30;
 
 MultiCredentialData::MultiCredentialData()
@@ -9,11 +8,10 @@ MultiCredentialData::MultiCredentialData()
     clear();
 }
 
-
 std::set<uint32_t> MultiCredentialData::getAuthenticationSlotsAvailable()
 {
     std::set<uint32_t> r;
-    for (const auto & i : m_authenticationsSlots)
+    for (const auto &i : m_authenticationsSlots)
         r.insert(i.first);
     return r;
 }
@@ -40,26 +38,29 @@ void MultiCredentialData::print()
 
 bool MultiCredentialData::parseJSON(const std::string &sAuthentications)
 {
-    if (sAuthentications.empty()) return true;
+    if (sAuthentications.empty())
+        return true;
 
     json jAuthentications;
     Mantids30::Helpers::JSONReader2 reader;
-    if (!reader.parse(sAuthentications, jAuthentications)) return false;
+    if (!reader.parse(sAuthentications, jAuthentications))
+        return false;
 
     return setJSON(jAuthentications);
 }
 
 bool MultiCredentialData::setJSON(const json &jAuthentications)
 {
-    if (!jAuthentications.isObject()) return false;
+    if (!jAuthentications.isObject())
+        return false;
 
     if (jAuthentications.isObject())
     {
         for (const auto &slotId : jAuthentications.getMemberNames())
         {
-            if ( jAuthentications[slotId].isMember("pass") )
+            if (jAuthentications[slotId].isMember("pass"))
             {
-                addAuthentication(strtoul(slotId.c_str(),nullptr,10), JSON_ASSTRING(jAuthentications[slotId],"pass",""));
+                addAuthentication(strtoul(slotId.c_str(), nullptr, 10), JSON_ASSTRING(jAuthentications[slotId], "pass", ""));
             }
         }
     }

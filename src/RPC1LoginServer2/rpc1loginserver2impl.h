@@ -8,7 +8,6 @@ public:
 
     static bool createRPCListenerCAB();
     static bool createRPCListenerPAB();
-
 };
 
 #endif // RPC1LOGINSERVER2IMPL_H

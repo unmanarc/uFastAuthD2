@@ -111,6 +111,22 @@ bool IdentityManager_DB::Applications_DB::updateApplicationDescription(const std
                                           {{":appName", MAKE_VAR(STRING, appName)}, {":description", MAKE_VAR(STRING, applicationDescription)}});
 }
 
+std::string IdentityManager_DB::Applications_DB::getApplicationNameByAPIKey(const std::string &apiKey)
+{
+    Threads::Sync::Lock_RD lock(_parent->m_mutex);
+    Abstract::STRING appName;
+    std::shared_ptr<SQLConnector::QueryInstance> queryResult = _parent->m_sqlConnector->qSelect("SELECT `appName` FROM iam_applications WHERE `apiKey` = :encodedApiKey LIMIT 1;",
+                                                                                                {
+                                                                                                    {":encodedApiKey", MAKE_VAR(STRING, Encoders::encodeToBase64Obf(apiKey))},
+                                                                                                },
+                                                                                                {&appName});
+    if (queryResult->getResultsOK() && queryResult->query->step())
+    {
+        return appName.getValue();
+    }
+    return "";
+}
+
 std::set<std::string> IdentityManager_DB::Applications_DB::listApplications()
 {
     std::set<std::string> ret;

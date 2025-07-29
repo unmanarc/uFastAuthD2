@@ -326,6 +326,7 @@ public:
         virtual std::string getApplicationAPIKey(const std::string &appName) = 0;
         virtual bool updateApplicationDescription(const std::string &appName, const std::string &applicationDescription) = 0;
         virtual bool updateApplicationAPIKey(const std::string &appName, const std::string &apiKey) = 0;
+        virtual std::string getApplicationNameByAPIKey(const std::string &apiKey) = 0;
 
         virtual std::set<std::string> listApplications() = 0;
         virtual bool validateApplicationOwner(const std::string &appName, const std::string &accountName) = 0;

@@ -317,7 +317,10 @@ bool IdentityManager_DB::initializeDatabase()
                  // TODO: check if this needs different implementation across different databases, by now this works on SQLite3
                  m_sqlConnector->query(R"(CREATE UNIQUE INDEX `idx_roles_accounts` ON `iam_rolesAccounts` (`f_roleName` ,`f_accountName`);)")
                  && m_sqlConnector->query(R"(CREATE UNIQUE INDEX `idx_permissions_roles` ON `iam_applicationPermissionsAtRole` (`f_appName`,`f_permissionId`,`f_roleName` );)")
+                 // Adding unique index for the API key of the applications
+                 && m_sqlConnector->query(R"(CREATE UNIQUE INDEX `idx_unique_api_key` ON `iam_applications` (`apiKey`);)")
                  && m_sqlConnector->query(R"(CREATE UNIQUE INDEX `idx_permissions_accounts` ON `iam_applicationPermissionsAtAccount` (`f_appName`,`f_permissionId`,`f_accountName`);)");
+
 
         return r;
     }

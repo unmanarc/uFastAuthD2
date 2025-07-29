@@ -184,6 +184,8 @@ public:
         std::string getApplicationAPIKey(const std::string &appName) override;
         bool updateApplicationAPIKey(const std::string &appName, const std::string &apiKey) override;
         bool updateApplicationDescription(const std::string &appName, const std::string &applicationDescription) override;
+        std::string getApplicationNameByAPIKey(const std::string &apiKey) override;
+
         std::set<std::string> listApplications() override;
         bool validateApplicationOwner(const std::string &appName, const std::string &accountName) override;
         bool validateApplicationAccount(const std::string &appName, const std::string &accountName) override;

@@ -126,11 +126,11 @@ json WebLogin_AuthMethods::getAccountDetails(IdentityManager *identityManager, c
 void WebLogin_AuthMethods::configureAccessToken(JWT::Token &accessToken, IdentityManager *identityManager, const std::string &refreshTokenId, const std::string &jwtAccountName,
                                                 const std::string &appName, const ApplicationTokenProperties &tokenProperties, const std::set<uint32_t> &slotIds)
 {
-    auto tokenId = Mantids30::Helpers::Random::createRandomString(16);
+    std::string tokenId = Mantids30::Helpers::Random::createRandomString(16);
     accessToken.setSubject(jwtAccountName);
     accessToken.setIssuedAt(time(nullptr));
-    auto expectedExpirationTime = time(nullptr) + tokenProperties.accessTokenTimeout;
-    auto accountExpirationTime = identityManager->accounts->getAccountExpirationTime(jwtAccountName);
+    time_t expectedExpirationTime = time(nullptr) + tokenProperties.accessTokenTimeout;
+    time_t accountExpirationTime = identityManager->accounts->getAccountExpirationTime(jwtAccountName);
 
     if (accountExpirationTime == 0 || accountExpirationTime >= expectedExpirationTime)
     {
@@ -262,7 +262,7 @@ bool WebLogin_AuthMethods::validateAccountForNewToken(IdentityManager *identityM
 {
     // First, check if the account is disabled, unconfirmed, or expired.
 
-    auto accountFlags = identityManager->accounts->getAccountFlags(jwtAccountName);
+    AccountFlags accountFlags = identityManager->accounts->getAccountFlags(jwtAccountName);
 
     if (!accountFlags.enabled)
     {
@@ -294,7 +294,7 @@ bool WebLogin_AuthMethods::validateAccountForNewToken(IdentityManager *identityM
 std::string WebLogin_AuthMethods::signApplicationToken(JWT::Token &accessToken, const ApplicationTokenProperties &tokenProperties)
 {
     std::string appName = JSON_ASSTRING_D(accessToken.getClaim("app"), "");
-    auto signingJWT = Globals::getIdentityManager()->applications->getAppJWTSigner(appName);
+    std::shared_ptr<JWT> signingJWT = Globals::getIdentityManager()->applications->getAppJWTSigner(appName);
     if (!signingJWT)
     {
         return std::string();
@@ -306,7 +306,7 @@ std::string WebLogin_AuthMethods::signApplicationToken(JWT::Token &accessToken, 
 HTTP::Status::Codes WebLogin_AuthMethods::handleLoginDynamicRequest(const std::string &appName, HTTPv1_Base::Request *request, HTTPv1_Base::Response *response, std::shared_ptr<void>)
 {
     std::string page;
-    auto status = Globals::getLoginDirManager()->retrieveFile(appName, page);
+    LoginDirectoryManager::ErrorCode status = Globals::getLoginDirManager()->retrieveFile(appName, page);
     bool originValidated = retrieveAndValidateAppOrigin(request, appName, USING_HEADER_REFERER);
     auto currentOrigin = request->getHeaderOption("Origin");
 

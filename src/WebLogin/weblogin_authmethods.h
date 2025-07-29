@@ -44,7 +44,6 @@ private:
     static void authorize(void *context, APIReturn &response, const RequestParameters &request, ClientDetails &clientDetails);
     static void logout(void *context, APIReturn &response, const RequestParameters &request, ClientDetails &authClientDetails);
 
-    //static void retokenize(void *context, APIReturn &response, const RequestParameters &request, ClientDetails &authClientDetails);
     static void tempMFAToken(void *context, APIReturn &response, const RequestParameters &request, ClientDetails &authClientDetails);
     static void changeCredential(void *context, APIReturn &response, const RequestParameters &request, ClientDetails &authClientDetails);
     static void listCredentials(void *context, APIReturn &response, const RequestParameters &request, ClientDetails &authClientDetails);

@@ -32,7 +32,7 @@ void WebSessionAuthHandler_AuthMethods::addMethods(std::shared_ptr<MethodsHandle
     methods->addResource(MethodsHandler::POST, "logout", &appLogout, nullptr, SecurityOptions::NO_AUTH, {});
     methods->addResource(MethodsHandler::POST, "refreshAccessToken", &refreshAccessToken, nullptr, SecurityOptions::NO_AUTH, {});
     methods->addResource(MethodsHandler::POST, "refreshRefresherToken", &refreshRefresherToken, nullptr, SecurityOptions::NO_AUTH, {});
-    methods->addResource(MethodsHandler::POST, "callback", &appLogout, nullptr, SecurityOptions::NO_AUTH, {}); // TODO: <- this
+    methods->addResource(MethodsHandler::POST, "callback", &callback, nullptr, SecurityOptions::NO_AUTH, {});
 }
 
 bool WebSessionAuthHandler_AuthMethods::validateAPIKey(const std::string &app, APIReturn &response, const RequestParameters &request, ClientDetails &authClientDetails)

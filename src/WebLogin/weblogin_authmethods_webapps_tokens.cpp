@@ -197,7 +197,7 @@ void WebLogin_AuthMethods::token(void *context, APIReturn &response, const Reque
         // This token is not available for retrieving app tokens...
         LOG_APP->log2(__func__, authenticatedUser, authClientDetails.ipAddress, Logs::LEVEL_SECURITY_ALERT,
                       "Invalid return URL '%s': The provided URI does not match any recognized redirect URIs for application '%s'.", redirectURI.c_str(), app.c_str());
-        response.setError(HTTP::Status::S_406_NOT_ACCEPTABLE, "AUTH_ERR_" + std::to_string(REASON_BAD_PARAMETERS), getReasonText(REASON_BAD_PARAMETERS));
+        response.setError(HTTP::Status::S_406_NOT_ACCEPTABLE, "AUTH_ERR_" + std::to_string(REASON_BAD_PARAMETERS), "Invalid Redirect URI");
         return;
     }
 

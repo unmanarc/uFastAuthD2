@@ -1,9 +1,9 @@
 #include "Mantids30/Program_Logs/loglevels.h"
+#include "Mantids30/Protocol_HTTP/httpv1_base.h"
 #include "websessionauthhandler_authmethods.h"
 #include "json/value.h"
 #include <Mantids30/Helpers/json.h>
 
-#include <algorithm> // std::find
 #include <boost/algorithm/string/join.hpp>
 #include <json/config.h>
 #include <optional>
@@ -79,31 +79,38 @@ std::optional<JWT::Token> WebSessionAuthHandler_AuthMethods::loadJWTAccessTokenF
 
 void WebSessionAuthHandler_AuthMethods::setupAccessTokenCookies(APIReturn &response, JWT::Token accessToken, const ApplicationTokenProperties &tokenProps)
 {
-    // This cookie is generic for all the application.
-    response.cookiesMap["AccessToken"] = HTTP::Headers::Cookie();
-    response.cookiesMap["AccessToken"].setExpiration(accessToken.getExpirationTime());
-    response.cookiesMap["AccessToken"].secure = true;
-    response.cookiesMap["AccessToken"].path = "/";
-    response.cookiesMap["AccessToken"].httpOnly = true;
-    response.cookiesMap["AccessToken"].value = signApplicationToken(accessToken, tokenProps);
-
-    // Max age accessible from JS to indicate when the access token needs to be refreshed.
-    response.cookiesMap["AccessTokenMaxAge"] = HTTP::Headers::Cookie();
-    response.cookiesMap["AccessTokenMaxAge"].setExpiration(accessToken.getExpirationTime());
-    response.cookiesMap["AccessTokenMaxAge"].path = "/";
-    response.cookiesMap["AccessTokenMaxAge"].secure = true;
-    response.cookiesMap["AccessTokenMaxAge"].httpOnly = false;
-    response.cookiesMap["AccessTokenMaxAge"].value = std::to_string(accessToken.getExpirationTime() - time(nullptr));
+    setupCookie(response, "AccessToken", accessToken.getExpirationTime(), true, "/", true, signApplicationToken(accessToken, tokenProps));
+    setupMaxAgeCookie(response, "AccessTokenMaxAge", accessToken.getExpirationTime());
 }
-
 void WebSessionAuthHandler_AuthMethods::setupRefreshTokenCookies(APIReturn &response, JWT::Token refreshToken, const ApplicationTokenProperties &tokenProps)
 {
-    // This cookie is specific to the path of the AUTH API and allows to refresh the access token.
-    response.cookiesMap["RefreshToken"] = HTTP::Headers::Cookie();
-    response.cookiesMap["RefreshToken"].setExpiration(tokenProps.refreshTokenTimeout);
-    response.cookiesMap["RefreshToken"].secure = true;
-    response.cookiesMap["RefreshToken"].httpOnly = true;
-    response.cookiesMap["RefreshToken"].value = signApplicationToken(refreshToken, tokenProps);
+    setupCookie(response, "RefreshToken", tokenProps.refreshTokenTimeout, true, "/", true, signApplicationToken(refreshToken, tokenProps));
+}
+
+void WebSessionAuthHandler_AuthMethods::setupAccessTokenCookies(APIReturn &response, std::string accessToken, const time_t &timeout)
+{
+    setupCookie(response, "AccessToken", timeout, true, "/", true, accessToken);
+    setupMaxAgeCookie(response, "AccessTokenMaxAge", timeout);
+}
+
+void WebSessionAuthHandler_AuthMethods::setupRefreshTokenCookies(APIReturn &response, std::string refreshToken, const time_t &timeout)
+{
+    setupCookie(response, "RefreshToken", timeout, true, "/", true, refreshToken);
+}
+
+void WebSessionAuthHandler_AuthMethods::setupCookie(APIReturn &response, const std::string &name, time_t expirationTime, bool secure, const std::string &path, bool httpOnly, const std::string &value)
+{
+    response.cookiesMap[name] = HTTP::Headers::Cookie();
+    response.cookiesMap[name].setExpiration(expirationTime);
+    response.cookiesMap[name].secure = secure;
+    response.cookiesMap[name].path = path;
+    response.cookiesMap[name].httpOnly = httpOnly;
+    response.cookiesMap[name].value = value;
+}
+
+void WebSessionAuthHandler_AuthMethods::setupMaxAgeCookie(APIReturn &response, const std::string &name, time_t expirationTime)
+{
+    setupCookie(response, name, expirationTime, true, "/", false, std::to_string(expirationTime - time(nullptr)));
 }
 
 void WebSessionAuthHandler_AuthMethods::refreshAccessToken(void *context, APIReturn &response, const RequestParameters &request, ClientDetails &authClientDetails)
@@ -160,7 +167,7 @@ void WebSessionAuthHandler_AuthMethods::refreshAccessToken(void *context, APIRet
     // --------- validate the refresh token itself (that is signed with the application keys) --------
     JWT::Token refreshTokenVerified;
 
-    auto validator = identityManager->applications->getAppJWTValidator(refreshTokenApp);
+    std::shared_ptr<JWT> validator = identityManager->applications->getAppJWTValidator(refreshTokenApp);
 
     if (!validator)
     {
@@ -176,7 +183,7 @@ void WebSessionAuthHandler_AuthMethods::refreshAccessToken(void *context, APIRet
         return;
     }
 
-    const auto &refreshTokenUser = refreshTokenVerified.getSubject();
+    const std::string &refreshTokenUser = refreshTokenVerified.getSubject();
 
     // --------- create a new access token (like in the token function) -----------
     std::set<uint32_t> currentAuthenticatedSlotIds;
@@ -224,6 +231,70 @@ void WebSessionAuthHandler_AuthMethods::appLogout(void *context, APIReturn &resp
     response.cookiesMap["RefreshToken"] = HTTP::Headers::Cookie();
     response.cookiesMap["RefreshToken"].setAsTransientCookie();
     response.cookiesMap["RefreshToken"].value = "";
+}
+
+void WebSessionAuthHandler_AuthMethods::callback(void *context, APIReturn &response, const RequestParameters &request, ClientDetails &authClientDetails)
+{
+    IdentityManager *identityManager = Globals::getIdentityManager();
+
+    // HTTP CLIENT VARS:
+    std::string accessTokenStr = request.clientRequest->getVars(HTTP::VARS_POST)->getStringValue("ACCESSTOKEN");
+    std::string refreshTokenStr = request.clientRequest->getVars(HTTP::VARS_POST)->getStringValue("REFRESHTOKEN");
+    std::string redirectURIStr = request.clientRequest->getVars(HTTP::VARS_POST)->getStringValue("REDIRECTURI");
+    std::string xAPIKeyStr = request.clientRequest->getHeaderOption("x-api-key");
+
+    // VARS:
+    std::string appNameStr = identityManager->applications->getApplicationNameByAPIKey(xAPIKeyStr);
+
+    // Now, search the application by the x-api-key:
+    if (appNameStr.empty())
+    {
+        // app key not found...
+        LOG_APP->log2(__func__, "", authClientDetails.ipAddress, Logs::LEVEL_SECURITY_ALERT, "Invalid API key provided. Application not found.");
+        response.setError(HTTP::Status::S_401_UNAUTHORIZED, "invalid_api_key", "The provided API key is invalid or unauthorized.");
+        return;
+    }
+
+    ApplicationTokenProperties tokenProps = identityManager->applications->getWebLoginJWTConfigFromApplication(appNameStr);
+    std::shared_ptr<JWT> validator = identityManager->applications->getAppJWTValidator(appNameStr);
+
+    JWT::Token accessToken, refreshToken;
+
+    // Verify that the tokens are valid, if not, don't return the tokens.
+    bool accessTokenValid = validator->verify(accessTokenStr, &accessToken);
+    bool refreshTokenValid = validator->verify(refreshTokenStr, &refreshToken);
+
+    if (!accessTokenValid || !refreshTokenValid)
+    {
+        std::string logMessage = "Invalid JWT token(s) provided.";
+        if (!accessTokenValid)
+        {
+            logMessage += " Access Token verification failed.";
+        }
+        if (!refreshTokenValid)
+        {
+            logMessage += " Refresh Token verification failed.";
+        }
+        LOG_APP->log2(__func__, "", authClientDetails.ipAddress, Logs::LEVEL_SECURITY_ALERT, logMessage.c_str());
+        response.setError(HTTP::Status::S_401_UNAUTHORIZED, "invalid_token", "The provided access or refresh token is invalid.");
+        return;
+    }
+
+    // Verify the redirection... (VERY IMPORTANT)
+    std::list<std::string> redirectURLS = identityManager->applications->listWebLoginRedirectURIsFromApplication(appNameStr);
+
+    if (std::find(redirectURLS.begin(), redirectURLS.end(), redirectURIStr) == redirectURLS.end())
+    {
+        LOG_APP->log2(__func__, "", authClientDetails.ipAddress, Logs::LEVEL_SECURITY_ALERT, "Redirect URI '%s' is not allowed for application '%s'.", redirectURIStr.c_str(), appNameStr.c_str());
+        response.setError(HTTP::Status::S_403_FORBIDDEN, "invalid_redirect_uri", "The requested redirect URI is not authorized.");
+        return;
+    }
+
+    setupAccessTokenCookies(response, accessTokenStr, accessToken.getExpirationTime());
+    setupRefreshTokenCookies(response, refreshTokenStr, refreshToken.getExpirationTime());
+
+    // Redirect:
+    response.redirectURL = redirectURIStr;
 }
 
 void WebSessionAuthHandler_AuthMethods::refreshRefresherToken(void *context, APIReturn &response, const RequestParameters &request, ClientDetails &authClientDetails)

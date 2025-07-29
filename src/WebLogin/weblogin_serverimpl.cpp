@@ -38,7 +38,6 @@ bool WebLogin_ServerImpl::createService()
 
     // Handle the login function for APP personalized site:
     loginWebServer->config.dynamicRequestHandlersByRoute["/login"] = {&WebLogin_AuthMethods::handleLoginDynamicRequest, nullptr};
-    /*loginWebServer->config.dynamicRequestHandlersByRoute["/retokenizeHTML"] = {&WebLogin_AuthMethods::handleRetokenizeHTMLDynamicRequest,nullptr};*/
 
     // Set the software version:
     loginWebServer->config.setSoftwareVersion(atoi(PROJECT_VER_MAJOR), atoi(PROJECT_VER_MINOR), atoi(PROJECT_VER_PATCH), "a");

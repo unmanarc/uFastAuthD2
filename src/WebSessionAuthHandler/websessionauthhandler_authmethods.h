@@ -16,6 +16,7 @@ public:
     using RequestParameters = Mantids30::API::RESTful::RequestParameters;
     using HTTPv1_Base = Mantids30::Network::Protocols::HTTP::HTTPv1_Base;
     using ClientDetails = Mantids30::Sessions::ClientDetails;
+    using JWT = Mantids30::DataFormat::JWT;
 
     /**
     * @brief Adds the available login authentication methods as server functions.
@@ -27,22 +28,28 @@ public:
     static void refreshAccessToken(void *context, APIReturn &response, const RequestParameters &request, ClientDetails &authClientDetails);
     static void refreshRefresherToken(void *context, APIReturn &response, const RequestParameters &request, ClientDetails &authClientDetails);
     static void appLogout(void *context, APIReturn &response, const RequestParameters &request, ClientDetails &authClientDetails);
+    static void callback(void *context, APIReturn &response, const RequestParameters &request, ClientDetails &authClientDetails);
 
 private:
     static bool validateAPIKey(const std::string &app, APIReturn &response, const RequestParameters &request, ClientDetails &authClientDetails);
 
-    static std::optional<Mantids30::DataFormat::JWT::Token> loadJWTAccessTokenFromPOST(APIReturn &response, const RequestParameters &request, ClientDetails &authClientDetails);
+    static std::optional<JWT::Token> loadJWTAccessTokenFromPOST(APIReturn &response, const RequestParameters &request, ClientDetails &authClientDetails);
 
-    static void setupAccessTokenCookies(APIReturn &response, Mantids30::DataFormat::JWT::Token accessToken, const ApplicationTokenProperties &tokenProps);
-    static void setupRefreshTokenCookies(APIReturn &response, Mantids30::DataFormat::JWT::Token refreshToken, const ApplicationTokenProperties &tokenProps);
+    static void setupAccessTokenCookies(APIReturn &response, JWT::Token accessToken, const ApplicationTokenProperties &tokenProps);
+    static void setupRefreshTokenCookies(APIReturn &response, JWT::Token refreshToken, const ApplicationTokenProperties &tokenProps);
+    static void setupAccessTokenCookies(APIReturn &response, std::string accessToken, const time_t & timeout);
+    static void setupRefreshTokenCookies(APIReturn &response, std::string refreshToken, const time_t & timeout);
+
+    static void setupCookie(APIReturn &response, const std::string &name, time_t expirationTime, bool secure, const std::string &path, bool httpOnly, const std::string &value);
+    static void setupMaxAgeCookie(APIReturn &response, const std::string &name, time_t expirationTime);
 
     static json getAccountDetails(IdentityManager *identityManager, const std::string &accountName);
 
-    static void configureAccessToken(Mantids30::DataFormat::JWT::Token &accessToken, IdentityManager *identityManager, const std::string &refreshTokenId, const std::string &jwtAccountName,
+    static void configureAccessToken(JWT::Token &accessToken, IdentityManager *identityManager, const std::string &refreshTokenId, const std::string &jwtAccountName,
                                      const std::string &appName, const ApplicationTokenProperties &tokenProperties, const std::set<uint32_t> &slotIds);
 
-    static void configureRefreshToken(Mantids30::DataFormat::JWT::Token &refreshToken, IdentityManager *identityManager, const std::string &refreshTokenId, const std::string &jwtAccountName,
+    static void configureRefreshToken(JWT::Token &refreshToken, IdentityManager *identityManager, const std::string &refreshTokenId, const std::string &jwtAccountName,
                                       const std::string &appName, const ApplicationTokenProperties &tokenProperties, const std::set<uint32_t> &slotIds);
 
-    static std::string signApplicationToken(Mantids30::DataFormat::JWT::Token &accessToken, const ApplicationTokenProperties &tokenProperties);
+    static std::string signApplicationToken(JWT::Token &accessToken, const ApplicationTokenProperties &tokenProperties);
 };

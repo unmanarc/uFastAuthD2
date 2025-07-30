@@ -10,6 +10,8 @@
 
 #include "../globals.h"
 
+#include "Tokens/tokensmanager.h"
+
 using namespace Mantids30;
 using namespace Mantids30::DataFormat;
 using namespace Program;
@@ -88,23 +90,24 @@ void WebLogin_AuthMethods::setupAccessTokenCookies(APIReturn &response, JWT::Tok
     response.cookiesMap["AccessToken"].value = signApplicationToken(accessToken, tokenProps);
 
     // Max age accessible from JS to indicate when the access token needs to be refreshed.
-    response.cookiesMap["AccessTokenMaxAge"] = HTTP::Headers::Cookie();
+/*    response.cookiesMap["AccessTokenMaxAge"] = HTTP::Headers::Cookie();
     response.cookiesMap["AccessTokenMaxAge"].setExpiration(accessToken.getExpirationTime());
     response.cookiesMap["AccessTokenMaxAge"].path = "/";
     response.cookiesMap["AccessTokenMaxAge"].secure = true;
     response.cookiesMap["AccessTokenMaxAge"].httpOnly = false;
-    response.cookiesMap["AccessTokenMaxAge"].value = std::to_string(accessToken.getExpirationTime() - time(nullptr));
+    response.cookiesMap["AccessTokenMaxAge"].value = std::to_string(accessToken.getExpirationTime() - time(nullptr));*/
 }
 
 void WebLogin_AuthMethods::setupRefreshTokenCookies(APIReturn &response, JWT::Token refreshToken, const ApplicationTokenProperties &tokenProps)
 {
     // This cookie is specific to the path of the AUTH API and allows to refresh the access token.
     response.cookiesMap["RefreshToken"] = HTTP::Headers::Cookie();
-    response.cookiesMap["RefreshToken"].setExpiration(tokenProps.refreshTokenTimeout);
+    response.cookiesMap["RefreshToken"].setExpiration(refreshToken.getExpirationTime());
     response.cookiesMap["RefreshToken"].secure = true;
     response.cookiesMap["RefreshToken"].httpOnly = true;
     response.cookiesMap["RefreshToken"].value = signApplicationToken(refreshToken, tokenProps);
 }
+
 
 /*
     This will tranform the current authentication into an APP access...
@@ -213,7 +216,6 @@ void WebLogin_AuthMethods::token(void *context, APIReturn &response, const Reque
     //////////////////////////////////////////////////////////////////////////////////////////
     JWT::Token accessToken, refreshToken;
 
-    auto refreshTokenId = Mantids30::Helpers::Random::createRandomString(16);
 
     // DB Info:
     ApplicationTokenProperties tokenProperties = identityManager->applications->getWebLoginJWTConfigFromApplication(app);
@@ -226,8 +228,10 @@ void WebLogin_AuthMethods::token(void *context, APIReturn &response, const Reque
         return;
     }
 
-    configureAccessToken(accessToken, identityManager, refreshTokenId, authenticatedUser, app, tokenProperties, authenticatedSlotIdsSet);
-    configureRefreshToken(refreshToken, identityManager, refreshTokenId, authenticatedUser, app, tokenProperties, authenticatedSlotIdsSet);
+    std::string refreshTokenId = Mantids30::Helpers::Random::createRandomString(16);
+
+    TokensManager::configureRefreshToken(refreshToken,refreshTokenId, authenticatedUser, app, tokenProperties, authenticatedSlotIdsSet);
+    TokensManager::configureAccessToken(accessToken,refreshTokenId, authenticatedUser, app, tokenProperties, authenticatedSlotIdsSet);
 
     // This information the JS will resend as POST to the callback.
 
@@ -237,158 +241,6 @@ void WebLogin_AuthMethods::token(void *context, APIReturn &response, const Reque
 
     // you should give all the previous information to the callbackURI, so the callbackURI will "absorb the cookie"
     (*response.responseJSON())["callbackURI"] = callbackURI;
-
-    //  (*response.responseJSON())["expiresIn"] = (Json::UInt64) (accessToken.getExpirationTime() - time(nullptr));
-
-    /*// Configuration parameters:
-    IdentityManager *identityManager = Globals::getIdentityManager();
-
-    JWT::Token accessToken, refreshToken;
-
-    std::optional<JWT::Token> currentJWTToken = loadJWTAccessTokenFromPOST(response,request,authClientDetails);
-    if (!currentJWTToken)
-    {
-        return;
-    }
-    // JWT Info.
-    std::string jwtPreAuthUser = JSON_ASSTRING_D(currentJWTToken->getClaim("preAuthUser"), "");
-    std::string jwtPreAuthApp = JSON_ASSTRING_D(currentJWTToken->getClaim("app"), "");
-    std::set<uint32_t> currentAuthenticatedSlotIds = getSlotIdsFromJSON(currentJWTToken->getClaim("slotIds"));
-
-    if (!validateAPIKey(jwtPreAuthApp, response,request,authClientDetails))
-    {
-        return;
-    }
-
-    // DB Info:
-    ApplicationTokenProperties tokenProperties = identityManager->applications->getWebLoginJWTConfigFromApplication(jwtPreAuthApp);
-    if ( tokenProperties.appName != jwtPreAuthApp )
-    {
-        // This token is not available for retrieving app tokens...
-        LOG_APP->log2(__func__, jwtPreAuthUser, authClientDetails.ipAddress, Logs::LEVEL_CRITICAL, "Configuration error: The application '%s' is configured with an unsupported or invalid signing algorithm.", jwtPreAuthApp.c_str());
-        response.setError(HTTP::Status::S_500_INTERNAL_SERVER_ERROR,"AUTH_ERR_" + std::to_string(REASON_INTERNAL_ERROR), getReasonText(REASON_INTERNAL_ERROR));
-        return;
-    }
-
-    // Validate the token...
-    if (!currentJWTToken->hasClaim("isFullyAuthenticated"))
-    {
-        // This token is not available for retrieving app tokens...
-        LOG_APP->log2(__func__, jwtPreAuthUser, authClientDetails.ipAddress, Logs::LEVEL_SECURITY_ALERT, "Token request denied: User attempted to obtain a token without presenting all required credentials.", jwtPreAuthUser.c_str());
-        response.setError(HTTP::Status::S_401_UNAUTHORIZED,"AUTH_ERR_" + std::to_string(REASON_UNAUTHENTICATED), getReasonText(REASON_UNAUTHENTICATED));
-        return;
-    }
-
-    std::list<std::string> redirectURIs = identityManager->applications->listWebLoginRedirectURIsFromApplication(jwtPreAuthApp);
-    std::string redirectURI = request.clientRequest->getVars(HTTP::VARS_POST)->getStringValue(redirectURI);
-
-    // Validate if the redirect URI is acceptable by the application.
-    if (!redirectURI.empty() && std::find(redirectURIs.begin(), redirectURIs.end(), redirectURI) == redirectURIs.end())
-    {
-        // This token is not available for retrieving app tokens...
-        LOG_APP->log2(__func__, jwtPreAuthUser, authClientDetails.ipAddress, Logs::LEVEL_SECURITY_ALERT, "Invalid return URL '%s': The provided URI does not match any recognized redirect URIs for application '%s'.", redirectURI.c_str(), jwtPreAuthApp.c_str());
-        response.setError(HTTP::Status::S_406_NOT_ACCEPTABLE,"AUTH_ERR_" + std::to_string(REASON_BAD_PARAMETERS), getReasonText(REASON_BAD_PARAMETERS));
-        return;
-    }
-
-    auto refreshTokenId = Mantids30::Helpers::Random::createRandomString(16);
-
-    configureAccessToken(accessToken, identityManager, refreshTokenId, jwtPreAuthUser, jwtPreAuthApp, tokenProperties, currentAuthenticatedSlotIds);
-    configureRefreshToken(refreshToken, identityManager, refreshTokenId, jwtPreAuthUser, jwtPreAuthApp, tokenProperties, currentAuthenticatedSlotIds);
-
-    setupAccessTokenCookies(response,accessToken,tokenProperties);
-    setupRefreshTokenCookies(response,refreshToken,tokenProperties);
-
-    // Create the proper header for allowing the IAM.
-    const auto &permittedOrigins = Globals::getWebLoginServer()->config.permittedLoginOrigins;
-    if (!permittedOrigins.empty())
-    {
-        response.httpExtraHeaders["Access-Control-Allow-Origin"] = boost::algorithm::join(permittedOrigins, ", ");
-    }
-    else
-    {
-        // If no origins are specified, don't allow anything... (don't add this header)
-    }
-
-    // It's just a POST (no creds...)
-    //response.httpExtraHeaders["Access-Control-Allow-Credentials"] = "true";
-    response.httpExtraHeaders["Access-Control-Allow-Methods"] = "POST";
-    response.httpExtraHeaders["Access-Control-Allow-Headers"] = "Content-Type";
-
-    // Redirect:
-    response.httpExtraHeaders["Location"] = redirectURI;
-    response.setError( HTTP::Status::S_307_TEMPORARY_REDIRECT, "redirect", "Website redirection." );
-    
-    // TODO: how to setup the local access token... maybe I should create a new api for it.
-    //configureIAMAccessToken(response, request, identityManager, refreshTokenId, jwtPreAuthUser, currentAuthenticatedSlotIds);
-
-    // TODO: guardar los tokens en una db interna para el logout (no hacer ahorita)
-  //  (*response.responseJSON())["accessToken"] = signAccessToken(accessToken, tokenProperties, jwtPreAuthApp);
-  //..  (*response.responseJSON())["expiresIn"] = (Json::UInt64) (accessToken.getExpirationTime() - time(nullptr));
-
-    // TODO: la información que requiere la APP para operar, es la configuración de los privilegios, los requisitos de 2nd factor para ciertos privilegios\
-*/
 }
 
-void WebLogin_AuthMethods::tempMFAToken(void *context, APIReturn &response, const RequestParameters &request, ClientDetails &authClientDetails)
-{
-    // INPUTS...
-    /* std::string password = JSON_ASSTRING(*request.inputJSON, "password", "");
-    std::string authMode = JSON_ASSTRING(*request.inputJSON, "authMode", "");
-    std::string challengeSalt = JSON_ASSTRING(*request.inputJSON, "challengeSalt", "");
-    uint32_t slotId = JSON_ASUINT(*request.inputJSON, "slotId", 0);
-    std::string appName = JSON_ASSTRING(*request.inputJSON, "app", "");
 
-    // TODO: multi-slots input.
-    IdentityManager *identityManager = Globals::getIdentityManager();
-    JWT::Token tempMFAToken;
-
-    // JWT Info.
-    std::string jwtAccountName = request.jwtToken->getSubject();
-    std::set<uint32_t> currentAuthenticatedSlotIds;
-    // Don't get the previous tokens
-    //= getSlotIdsFromJSON(request.jwtToken->getClaim("slotIds"));
-
-    // DB Info:
-    auto tokenProperties = Globals::getIdentityManager()->applications->getWebLoginJWTConfigFromApplication(appName);
-
-    // Check JWT APP Signature capabilities...
-    if (!JWT::isAlgorithmSupported(tokenProperties.tokenType))
-    {
-        // This token is not available for retrieving app tokens...
-        LOG_APP->log2(__func__, jwtAccountName, authClientDetails.ipAddress, Logs::LEVEL_CRITICAL, "The application '%s' is configured with an unsupported or invalid signing algorithm.", appName.c_str());
-
-        response.setError(HTTP::Status::S_500_INTERNAL_SERVER_ERROR,"AUTH_ERR_" + std::to_string(REASON_INTERNAL_ERROR), getReasonText(REASON_INTERNAL_ERROR));
-        return;
-    }
-
-    Reason reason = REASON_INTERNAL_ERROR;
-    if (!validateAccountForNewToken(identityManager, jwtAccountName, reason, appName, true))
-    {
-        LOG_APP->log2(__func__, jwtAccountName, authClientDetails.ipAddress, Logs::LEVEL_WARN, "The account '%s' can't create a new temporal the access token for the application '%s'.", jwtAccountName.c_str(), appName.c_str());
-
-        response.setError(HTTP::Status::S_401_UNAUTHORIZED,"AUTH_ERR_" + std::to_string(reason), getReasonText(reason));
-        return;
-    }
-
-    // The token is valid here...
-    auto authRetCode = identityManager->authController->authenticateCredential(authClientDetails, jwtAccountName, password, slotId, getAuthModeFromString(authMode), challengeSalt);
-    bool statusOk = IS_PASSWORD_AUTHENTICATED(authRetCode) && authRetCode != REASON_EXPIRED_PASSWORD;
-
-    LOG_APP->log2(__func__, jwtAccountName, authClientDetails.ipAddress, authRetCode ? Logs::LEVEL_SECURITY_ALERT : Logs::LEVEL_INFO, "Account Temporal Authorization Result: %" PRIu32 " - %s, for application %s", authRetCode, response.getErrorString().c_str(), appName.c_str());
-
-    if (!statusOk)
-    {
-        response.setError(HTTP::Status::S_401_UNAUTHORIZED,"AUTH_ERR_"+std::to_string(authRetCode), getReasonText(authRetCode) );
-    }
-    else
-    {
-        // Authentication Factor Validated and not expired. (if expired, you should renew it before keep using it)
-        currentAuthenticatedSlotIds.insert(slotId);
-        configureAccessToken(tempMFAToken, identityManager, request.jwtToken->getJwtId(), jwtAccountName, appName, tokenProperties, currentAuthenticatedSlotIds);
-        auto expectedExpirationTime = time(nullptr) + tokenProperties.tempMFATokenTimeout;
-        auto accountExpirationTime = identityManager->accounts->getAccountExpirationTime(jwtAccountName);
-        tempMFAToken.setExpirationTime(accountExpirationTime < expectedExpirationTime ? accountExpirationTime : expectedExpirationTime);
-        (*response.responseJSON())["tempMFAToken"] = signApplicationToken(tempMFAToken, tokenProperties);
-    }*/
-}

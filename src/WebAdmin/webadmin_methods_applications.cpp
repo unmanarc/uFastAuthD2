@@ -273,8 +273,7 @@ void WebAdminMethods_Applications::modifyWebLoginJWTConfigForApplication(void *c
     ApplicationTokenProperties tokenInfo;
 
     tokenInfo.appName = JSON_ASSTRING(*request.inputJSON, "appName", "");
-    tokenInfo.accessTokenTimeout = (*request.inputJSON)["accessTokenTimeout"].asUInt();
-    tokenInfo.refreshTokenTimeout = (*request.inputJSON)["refreshTokenTimeout"].asUInt();
+    tokenInfo.tokensConfiguration = (*request.inputJSON)["tokensConfiguration"];
     tokenInfo.tempMFATokenTimeout = (*request.inputJSON)["tempMFATokenTimeout"].asUInt();
     tokenInfo.sessionInactivityTimeout = (*request.inputJSON)["sessionInactivityTimeout"].asUInt();
     tokenInfo.tokenType = JSON_ASSTRING(*request.inputJSON, "tokenType", "");
@@ -298,8 +297,7 @@ void WebAdminMethods_Applications::getWebLoginJWTConfigFromApplication(void *con
     ApplicationTokenProperties tokenInfo = Globals::getIdentityManager()->applications->getWebLoginJWTConfigFromApplication(appName);
 
     payloadOut["appName"] = tokenInfo.appName;
-    payloadOut["accessTokenTimeout"] = tokenInfo.accessTokenTimeout;
-    payloadOut["refreshTokenTimeout"] = tokenInfo.refreshTokenTimeout;
+    payloadOut["tokensConfiguration"] = tokenInfo.tokensConfiguration;
     payloadOut["tempMFATokenTimeout"] = tokenInfo.tempMFATokenTimeout;
     payloadOut["sessionInactivityTimeout"] = tokenInfo.sessionInactivityTimeout;
     payloadOut["tokenType"] = tokenInfo.tokenType;

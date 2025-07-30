@@ -1,5 +1,6 @@
 #include "Mantids30/Program_Logs/loglevels.h"
 #include "Mantids30/Protocol_HTTP/httpv1_base.h"
+#include "Tokens/tokensmanager.h"
 #include "websessionauthhandler_authmethods.h"
 #include "json/value.h"
 #include <Mantids30/Helpers/json.h>
@@ -9,6 +10,7 @@
 #include <optional>
 
 #include "../globals.h"
+#include "Tokens/tokensmanager.h"
 
 using namespace Mantids30;
 using namespace Mantids30::DataFormat;
@@ -79,16 +81,20 @@ std::optional<JWT::Token> WebSessionAuthHandler_AuthMethods::loadJWTAccessTokenF
 
 void WebSessionAuthHandler_AuthMethods::setupAccessTokenCookies(APIReturn &response, JWT::Token accessToken, const ApplicationTokenProperties &tokenProps)
 {
-    setupCookie(response, "AccessToken", accessToken.getExpirationTime(), true, "/", true, signApplicationToken(accessToken, tokenProps));
-    setupMaxAgeCookie(response, "AccessTokenMaxAge", accessToken.getExpirationTime());
-}
-void WebSessionAuthHandler_AuthMethods::setupRefreshTokenCookies(APIReturn &response, JWT::Token refreshToken, const ApplicationTokenProperties &tokenProps)
-{
-    setupCookie(response, "RefreshToken", tokenProps.refreshTokenTimeout, true, "/", true, signApplicationToken(refreshToken, tokenProps));
+    setupCookie(response, "AccessToken", accessToken.getExpirationTime(), true, JSON_ASSTRING(tokenProps.tokensConfiguration["accessToken"],"path","/"), true, signApplicationToken(accessToken, tokenProps));
+    //setupMaxAgeCookie(response, "AccessTokenMaxAge", accessToken.getExpirationTime());
 }
 
+void WebSessionAuthHandler_AuthMethods::setupRefreshTokenCookies(APIReturn &response, JWT::Token refreshToken, const ApplicationTokenProperties &tokenProps)
+{
+    setupCookie(response, "RefreshToken", refreshToken.getExpirationTime(), true, JSON_ASSTRING(tokenProps.tokensConfiguration["refreshToken"],"path","/auth"), true, signApplicationToken(refreshToken, tokenProps));
+}
+/*
 void WebSessionAuthHandler_AuthMethods::setupAccessTokenCookies(APIReturn &response, std::string accessToken, const time_t &timeout)
 {
+    IdentityManager *identityManager = Globals::getIdentityManager();
+    ApplicationTokenProperties tokenProps = identityManager->applications->getWebLoginJWTConfigFromApplication(refreshTokenApp);
+
     setupCookie(response, "AccessToken", timeout, true, "/", true, accessToken);
     setupMaxAgeCookie(response, "AccessTokenMaxAge", timeout);
 }
@@ -96,7 +102,7 @@ void WebSessionAuthHandler_AuthMethods::setupAccessTokenCookies(APIReturn &respo
 void WebSessionAuthHandler_AuthMethods::setupRefreshTokenCookies(APIReturn &response, std::string refreshToken, const time_t &timeout)
 {
     setupCookie(response, "RefreshToken", timeout, true, "/", true, refreshToken);
-}
+}*/
 
 void WebSessionAuthHandler_AuthMethods::setupCookie(APIReturn &response, const std::string &name, time_t expirationTime, bool secure, const std::string &path, bool httpOnly, const std::string &value)
 {
@@ -108,10 +114,11 @@ void WebSessionAuthHandler_AuthMethods::setupCookie(APIReturn &response, const s
     response.cookiesMap[name].value = value;
 }
 
+/*
 void WebSessionAuthHandler_AuthMethods::setupMaxAgeCookie(APIReturn &response, const std::string &name, time_t expirationTime)
 {
     setupCookie(response, name, expirationTime, true, "/", false, std::to_string(expirationTime - time(nullptr)));
-}
+}*/
 
 void WebSessionAuthHandler_AuthMethods::refreshAccessToken(void *context, APIReturn &response, const RequestParameters &request, ClientDetails &authClientDetails)
 {
@@ -198,7 +205,7 @@ void WebSessionAuthHandler_AuthMethods::refreshAccessToken(void *context, APIRet
     }
 
     JWT::Token newAccessToken;
-    configureAccessToken(newAccessToken, identityManager, refreshTokenVerified.getJwtId(), refreshTokenUser, refreshTokenApp, tokenProps,
+    TokensManager::configureAccessToken(newAccessToken, refreshTokenVerified.getJwtId(), refreshTokenUser, refreshTokenApp, tokenProps,
                          currentAuthenticatedSlotIds); // Assuming these variables are accessible here
 
     // --------- return as cookie, and create the max age cookie too, don't do anything else. ------------
@@ -223,10 +230,10 @@ void WebSessionAuthHandler_AuthMethods::appLogout(void *context, APIReturn &resp
     response.cookiesMap["AccessToken"].value = "";
     response.cookiesMap["AccessToken"].path = "/";
 
-    response.cookiesMap["AccessTokenMaxAge"] = HTTP::Headers::Cookie();
+/*    response.cookiesMap["AccessTokenMaxAge"] = HTTP::Headers::Cookie();
     response.cookiesMap["AccessTokenMaxAge"].setAsTransientCookie();
     response.cookiesMap["AccessTokenMaxAge"].path = "/";
-    response.cookiesMap["AccessTokenMaxAge"].value = "";
+    response.cookiesMap["AccessTokenMaxAge"].value = "";*/
 
     response.cookiesMap["RefreshToken"] = HTTP::Headers::Cookie();
     response.cookiesMap["RefreshToken"].setAsTransientCookie();
@@ -290,8 +297,8 @@ void WebSessionAuthHandler_AuthMethods::callback(void *context, APIReturn &respo
         return;
     }
 
-    setupAccessTokenCookies(response, accessTokenStr, accessToken.getExpirationTime());
-    setupRefreshTokenCookies(response, refreshTokenStr, refreshToken.getExpirationTime());
+    setupAccessTokenCookies(response, accessToken, tokenProps);
+    setupRefreshTokenCookies(response, refreshToken, tokenProps);
 
     // Redirect:
     response.redirectURL = redirectURIStr;
@@ -375,7 +382,6 @@ void WebSessionAuthHandler_AuthMethods::refreshRefresherToken(void *context, API
     }
 
     // TODO: check if the refresh the refresh token is available by the app configuration
-
     // The token is valid here...
     // TODO: invalidar todos los tokens viejos que su parent sea este refresher...
     // TODO: guardar los tokens en una db interna para el logout (no hacer ahorita)
@@ -407,6 +413,6 @@ void WebSessionAuthHandler_AuthMethods::refreshRefresherToken(void *context, API
     }
 
     JWT::Token newRefreshToken;
-    configureRefreshToken(newRefreshToken, identityManager, refreshTokenId, refreshTokenUser, refreshTokenApp, tokenProps, currentAuthenticatedSlotIds);
+    TokensManager::configureRefreshToken(newRefreshToken, refreshTokenId, refreshTokenUser, refreshTokenApp, tokenProps, currentAuthenticatedSlotIds);
     setupRefreshTokenCookies(response, newRefreshToken, tokenProps);
 }

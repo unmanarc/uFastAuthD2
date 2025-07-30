@@ -37,19 +37,13 @@ private:
 
     static void setupAccessTokenCookies(APIReturn &response, JWT::Token accessToken, const ApplicationTokenProperties &tokenProps);
     static void setupRefreshTokenCookies(APIReturn &response, JWT::Token refreshToken, const ApplicationTokenProperties &tokenProps);
-    static void setupAccessTokenCookies(APIReturn &response, std::string accessToken, const time_t & timeout);
-    static void setupRefreshTokenCookies(APIReturn &response, std::string refreshToken, const time_t & timeout);
+/*    static void setupAccessTokenCookies(APIReturn &response, std::string accessToken, const time_t & timeout);
+    static void setupRefreshTokenCookies(APIReturn &response, std::string refreshToken, const time_t & timeout);*/
 
     static void setupCookie(APIReturn &response, const std::string &name, time_t expirationTime, bool secure, const std::string &path, bool httpOnly, const std::string &value);
     static void setupMaxAgeCookie(APIReturn &response, const std::string &name, time_t expirationTime);
 
     static json getAccountDetails(IdentityManager *identityManager, const std::string &accountName);
-
-    static void configureAccessToken(JWT::Token &accessToken, IdentityManager *identityManager, const std::string &refreshTokenId, const std::string &jwtAccountName,
-                                     const std::string &appName, const ApplicationTokenProperties &tokenProperties, const std::set<uint32_t> &slotIds);
-
-    static void configureRefreshToken(JWT::Token &refreshToken, IdentityManager *identityManager, const std::string &refreshTokenId, const std::string &jwtAccountName,
-                                      const std::string &appName, const ApplicationTokenProperties &tokenProperties, const std::set<uint32_t> &slotIds);
 
     static std::string signApplicationToken(JWT::Token &accessToken, const ApplicationTokenProperties &tokenProperties);
 };

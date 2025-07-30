@@ -1,5 +1,6 @@
 #pragma once
 
+#include "json/value.h"
 #include <stdint.h>
 #include <string>
 
@@ -13,16 +14,14 @@ struct ApplicationDetails
 struct ApplicationTokenProperties
 {
     std::string appName;
-    uint32_t accessTokenTimeout;
-    uint32_t refreshTokenTimeout;
     uint32_t tempMFATokenTimeout;
     uint32_t sessionInactivityTimeout;
     std::string tokenType;
     bool allowRefreshTokenRenovation;
-    //std::string accessTokenSigningKey;
     bool includeApplicationPermissions;
     bool includeBasicAccountInfo;
     bool maintainRevocationAndLogoutInfo;
+    Json::Value tokensConfiguration;
 };
 struct ApplicationPermissionDetails
 {

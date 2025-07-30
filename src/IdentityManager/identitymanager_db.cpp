@@ -157,13 +157,12 @@ bool IdentityManager_DB::initializeDatabase()
                  m_sqlConnector->query(R"(
                                         CREATE TABLE `iam_applicationsJWTTokenConfig` (
                                             `f_appName`                       VARCHAR(256)    NOT NULL,
-                                            `accessTokenTimeout`              BIGINT UNSIGNED NOT NULL DEFAULT '300',
-                                            `refreshTokenTimeout`             BIGINT UNSIGNED NOT NULL DEFAULT '7776000',
                                             `tempMFATokenTimeout`             BIGINT UNSIGNED NOT NULL DEFAULT '30',
                                             `sessionInactivityTimeout`        BIGINT UNSIGNED NOT NULL DEFAULT '180',
                                             `tokenType`                       VARCHAR(20)     NOT NULL DEFAULT 'HS256',
                                             `accessTokenSigningKey`           TEXT DEFAULT NULL,
                                             `accessTokenValidationKey`        TEXT DEFAULT NULL,
+                                            `tokensConfigJSON`              TEXT NOT NULL DEFAULT '{ "accessToken" : {"path" : "/", "timeout" : 300},"refreshToken" : {"path" : "/auth", "timeout" : 2592000} }',
                                             `includeApplicationPermissions`   BOOLEAN NOT NULL DEFAULT TRUE,
                                             `includeBasicAccountInfo`         BOOLEAN NOT NULL DEFAULT TRUE,
                                             `maintainRevocationAndLogoutInfo` BOOLEAN NOT NULL DEFAULT FALSE,

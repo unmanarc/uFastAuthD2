@@ -36,9 +36,11 @@ bool IdentityManager_DB::Applications_DB::addApplication(const std::string &appN
         std::string randomSecret = Mantids30::Helpers::Random::createRandomString(64);
         bool tokenInsertSuccess = _parent->m_sqlConnector->query("INSERT INTO iam_applicationsJWTTokenConfig (`f_appName`, `accessTokenSigningKey`, `accessTokenValidationKey`) "
                                                                  "VALUES (:appName, :signingKey, :validationKey);",
-                                                                 {{":appName", MAKE_VAR(STRING, appName)},
+                                                                 {
+                                                                  {":appName", MAKE_VAR(STRING, appName)},
                                                                   {":signingKey", MAKE_VAR(STRING, Helpers::Encoders::encodeToBase64Obf(randomSecret, 0x8A376C54D999F187))},
-                                                                  {":validationKey", MAKE_VAR(STRING, Helpers::Encoders::encodeToBase64Obf(randomSecret, 0x8A376C54D999F187))}});
+                                                                  {":validationKey", MAKE_VAR(STRING, Helpers::Encoders::encodeToBase64Obf(randomSecret, 0x8A376C54D999F187))}
+                                                                 });
         return tokenInsertSuccess;
     }
     else
@@ -376,20 +378,21 @@ std::list<std::string> IdentityManager_DB::Applications_DB::listWebLoginOriginUr
 bool IdentityManager_DB::Applications_DB::modifyWebLoginJWTConfigForApplication(const ApplicationTokenProperties &tokenInfo)
 {
     Threads::Sync::Lock_RW lock(_parent->m_mutex);
-    return _parent->m_sqlConnector->query("UPDATE iam_applicationsJWTTokenConfig SET accessTokenTimeout=:accessTokenTimeout, refreshTokenTimeout=:refreshTokenTimeout, "
+    return _parent->m_sqlConnector->query("UPDATE iam_applicationsJWTTokenConfig SET "
                                           "tempMFATokenTimeout=:tempMFATokenTimeout, sessionInactivityTimeout=:sessionInactivityTimeout, "
                                           "tokenType=:tokenType, includeApplicationPermissions=:includeApplicationPermissions, "
                                           "includeBasicAccountInfo=:includeBasicAccountInfo, allowRefreshTokenRenovation=:allowRefreshTokenRenovation, "
+                                          "tokensConfigJSON=:tokensConfigJSON, "
                                           "maintainRevocationAndLogoutInfo=:maintainRevocationAndLogoutInfo WHERE f_appName=:appName;",
                                           {{":appName", MAKE_VAR(STRING, tokenInfo.appName)},
-                                           {":accessTokenTimeout", MAKE_VAR(UINT32, tokenInfo.accessTokenTimeout)},
-                                           {":refreshTokenTimeout", MAKE_VAR(UINT32, tokenInfo.refreshTokenTimeout)},
                                            {":tempMFATokenTimeout", MAKE_VAR(UINT32, tokenInfo.tempMFATokenTimeout)},
                                            {":sessionInactivityTimeout", MAKE_VAR(UINT32, tokenInfo.sessionInactivityTimeout)},
                                            {":tokenType", MAKE_VAR(STRING, tokenInfo.tokenType)},
                                            {":includeApplicationPermissions", MAKE_VAR(BOOL, tokenInfo.includeApplicationPermissions)},
                                            {":includeBasicAccountInfo", MAKE_VAR(BOOL, tokenInfo.includeBasicAccountInfo)},
                                            {":allowRefreshTokenRenovation", MAKE_VAR(BOOL, tokenInfo.allowRefreshTokenRenovation)},
+                                           {":allowRefreshTokenRenovation", MAKE_VAR(BOOL, tokenInfo.allowRefreshTokenRenovation)},
+                                           {":tokensConfigJSON", MAKE_VAR(STRING, tokenInfo.tokensConfiguration.toStyledString())},
                                            {":maintainRevocationAndLogoutInfo", MAKE_VAR(BOOL, tokenInfo.maintainRevocationAndLogoutInfo)}});
 }
 
@@ -401,20 +404,20 @@ ApplicationTokenProperties IdentityManager_DB::Applications_DB::getWebLoginJWTCo
     tokenInfo.appName = appName;
 
     // Define las variables para capturar los valores de la base de datos.
-    Abstract::UINT32 accessTokenTimeout, refreshTokenTimeout, tempMFATokenTimeout, sessionInactivityTimeout;
-    Abstract::STRING tokenType;
+    Abstract::UINT32 tempMFATokenTimeout, sessionInactivityTimeout;
+    Abstract::STRING tokenType,tokensConfigJSON;
     Abstract::BOOL includeApplicationPermissions, includeBasicAccountInfo, maintainRevocationAndLogoutInfo, allowRefreshTokenRenovation;
 
     std::shared_ptr<SQLConnector::QueryInstance> i
-        = _parent->m_sqlConnector->qSelect("SELECT accessTokenTimeout,allowRefreshTokenRenovation,refreshTokenTimeout,tempMFATokenTimeout, sessionInactivityTimeout, tokenType, "
-                                           "includeApplicationPermissions, includeBasicAccountInfo, maintainRevocationAndLogoutInfo FROM iam_applicationsJWTTokenConfig WHERE f_appName=:appName;",
+        = _parent->m_sqlConnector->qSelect("SELECT allowRefreshTokenRenovation,tempMFATokenTimeout, sessionInactivityTimeout, tokenType, "
+                                           "includeApplicationPermissions, includeBasicAccountInfo, maintainRevocationAndLogoutInfo, tokensConfigJSON "
+                                           "FROM iam_applicationsJWTTokenConfig "
+                                           "WHERE f_appName=:appName;",
                                            {{":appName", MAKE_VAR(STRING, appName)}},
-                                           {&accessTokenTimeout, &allowRefreshTokenRenovation, &refreshTokenTimeout, &tempMFATokenTimeout, &sessionInactivityTimeout, &tokenType,
-                                            &includeApplicationPermissions, &includeBasicAccountInfo, &maintainRevocationAndLogoutInfo});
+                                           {&allowRefreshTokenRenovation, &tempMFATokenTimeout, &sessionInactivityTimeout, &tokenType,
+                                            &includeApplicationPermissions, &includeBasicAccountInfo, &maintainRevocationAndLogoutInfo,&tokensConfigJSON });
     if (i->getResultsOK() && i->query->step())
     {
-        tokenInfo.accessTokenTimeout = accessTokenTimeout.getValue();
-        tokenInfo.refreshTokenTimeout = refreshTokenTimeout.getValue();
         tokenInfo.tempMFATokenTimeout = tempMFATokenTimeout.getValue();
         tokenInfo.sessionInactivityTimeout = sessionInactivityTimeout.getValue();
         tokenInfo.tokenType = tokenType.getValue();
@@ -422,6 +425,8 @@ ApplicationTokenProperties IdentityManager_DB::Applications_DB::getWebLoginJWTCo
         tokenInfo.includeBasicAccountInfo = includeBasicAccountInfo.getValue();
         tokenInfo.maintainRevocationAndLogoutInfo = maintainRevocationAndLogoutInfo.getValue();
         tokenInfo.allowRefreshTokenRenovation = allowRefreshTokenRenovation.getValue();
+        Mantids30::Helpers::JSONReader2 reader;
+        reader.parse( tokensConfigJSON.getValue(), tokenInfo.tokensConfiguration );
     }
     return tokenInfo;
 }

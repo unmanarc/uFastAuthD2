@@ -44,7 +44,6 @@ private:
     static void authorize(void *context, APIReturn &response, const RequestParameters &request, ClientDetails &clientDetails);
     static void logout(void *context, APIReturn &response, const RequestParameters &request, ClientDetails &authClientDetails);
 
-    static void tempMFAToken(void *context, APIReturn &response, const RequestParameters &request, ClientDetails &authClientDetails);
     static void changeCredential(void *context, APIReturn &response, const RequestParameters &request, ClientDetails &authClientDetails);
     static void listCredentials(void *context, APIReturn &response, const RequestParameters &request, ClientDetails &authClientDetails);
     static void accountCredentialPublicData(void *context, APIReturn &response, const RequestParameters &request, ClientDetails &authClientDetails);
@@ -56,16 +55,6 @@ private:
     static std::set<uint32_t> getSlotIdsFromJSON(const json &input);
     static json getJSONFromSlotIds(const std::set<uint32_t> &input);
     static bool areAllSlotIdsAuthenticated(const std::set<uint32_t> &currentAuthenticatedSlotIds, const std::map<uint32_t, std::string> &getAccountAuthenticationSlotsUsedForLogin);
-
-    static json getAccountDetails(IdentityManager *identityManager, const std::string &accountName);
-
-    static void configureAccessToken(Mantids30::DataFormat::JWT::Token &accessToken, IdentityManager *identityManager, const std::string &refreshTokenId, const std::string &jwtAccountName,
-                                     const std::string &appName, const ApplicationTokenProperties &tokenProperties, const std::set<uint32_t> &slotIds);
-
-    static void configureRefreshToken(Mantids30::DataFormat::JWT::Token &refreshToken, IdentityManager *identityManager, const std::string &refreshTokenId, const std::string &jwtAccountName,
-                                      const std::string &appName, const ApplicationTokenProperties &tokenProperties, const std::set<uint32_t> &slotIds);
-    static void configureIAMAccessToken(APIReturn &apiRet, const RequestParameters &inputParameters, IdentityManager *identityManager, const Mantids30::DataFormat::JWT::Token &intermediateToken,
-                                        const Mantids30::DataFormat::JWT::Token &currentAccessToken);
 
     static bool validateAccountForNewToken(IdentityManager *identityManager, const std::string &jwtAccountName, Reason &reason, const std::string &appName, bool checkValidAppAccount);
 

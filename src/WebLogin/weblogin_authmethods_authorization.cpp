@@ -1,5 +1,6 @@
 #include "IdentityManager/ds_authentication.h"
 #include "Mantids30/Program_Logs/loglevels.h"
+#include "Tokens/tokensmanager.h"
 #include "weblogin_authmethods.h"
 #include <Mantids30/Helpers/json.h>
 
@@ -194,7 +195,7 @@ void WebLogin_AuthMethods::authorize(void *context, APIReturn &response, const R
             newIntermediateAuthToken.addClaim("slotIds", slotIds);
             newIntermediateAuthToken.addClaim("type", "intermediate");
 
-            configureIAMAccessToken(response, request, identityManager, newIntermediateAuthToken, cookieAccessToken);
+            TokensManager::setIAMAccessToken(response, request, newIntermediateAuthToken, cookieAccessToken);
 
             (*response.responseJSON())["isFullyAuthenticated"] = true;
         }

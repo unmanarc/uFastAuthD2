@@ -211,6 +211,8 @@ void WebSessionAuthHandler_AuthMethods::refreshAccessToken(void *context, APIRet
     // --------- return as cookie, and create the max age cookie too, don't do anything else. ------------
     // Update cookies with new tokens
     setupAccessTokenCookies(response, newAccessToken, tokenProps);
+
+    (*response.responseJSON())["maxAge"] = (time_t)(newAccessToken.getExpirationTime() - time(nullptr));
 }
 
 void WebSessionAuthHandler_AuthMethods::appLogout(void *context, APIReturn &response, const RequestParameters &request, ClientDetails &authClientDetails)

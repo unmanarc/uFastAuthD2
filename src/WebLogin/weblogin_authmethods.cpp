@@ -187,45 +187,6 @@ HTTP::Status::Codes WebLogin_AuthMethods::handleLoginDynamicRequest(const std::s
 
     return HTTP::Status::S_200_OK;
 }
-/*
-
-// Handle the retokenization HTML.
-HTTP::Status::Codes WebLogin_AuthMethods::handleRetokenizeHTMLDynamicRequest(
-    const std::string &internalPath, HTTPv1_Base::Request *request, HTTPv1_Base::Response *response, std::shared_ptr<void>)
-{
-    // TODO: security: sanitize appName in DB, so you can't use escapes in the HTML ;)
-
-
-    // scheme:
-
-    //     webapp -> ( https://IAM/retokenizeHTML/?app=... ) via iframe (checking the origin on destination, it's a valid app+origin?)
-    //     HTML( https://IAM/retokenizeHTML/?app=... ) -> https://IAM/api/v1/retokenize via AJAX returning back the app callback endpoint.
-    //     HTML( https://IAM/retokenizeHTML/?app=... ) -> app callback endpoint (eg. webapp/api/auth/callback) via FORM POST injecting the token
-    //     webapp/api/auth/callback called with #retokenize won't go anywhere (maybe must close the parent iframe to prevent anything)
-
-    //     TODO: what if retokenization fails and not logged in... must redirect to the auth size (maybe using a floating window on this case?)
-
-
-    // GET Input.
-    std::string appName = request->getVars(HTTP::VARS_GET)->getTValue<std::string>("app","");
-
-    // Origin.
-    bool originValidated = retrieveAndValidateAppOrigin(request, appName,USING_HEADER_REFERER);
-
-    // Current Origin
-    auto currentOrigin = request->getHeaderOption("Origin");
-
-    // Validate origin:
-    if (!originValidated)
-    {
-        LOG_APP->log2(__func__, "", request->networkClientInfo.REMOTE_ADDR, Logs::LEVEL_SECURITY_ALERT, "Not allowed origin '%s' for application '%s' during retokenization", currentOrigin.c_str(), appName.c_str());
-
-        return HTTP::Status::S_403_FORBIDDEN;
-    }
-
-    return retokenizeUsingJS(response,appName);
-}
-*/
 
 bool WebLogin_AuthMethods::retrieveAndValidateAppOrigin(HTTPv1_Base::Request *request, const std::string &appName, const OriginSource &originSource)
 {

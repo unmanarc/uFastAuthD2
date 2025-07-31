@@ -5,8 +5,14 @@
 aclocal.m4
 autom4te.cache/*
 
-var/www/ufastauthd2_admin/assets/*
-var/www/ufastauthd2_login/assets/*
+var/www/ufastauthd2_admin/assets/css/bootstrap*
+var/www/ufastauthd2_admin/assets/js/bootstrap*
+var/www/ufastauthd2_admin/assets/js/jquery*
+
+var/www/ufastauthd2_login/assets/css/bootstrap*
+var/www/ufastauthd2_login/assets/js/bootstrap*
+var/www/ufastauthd2_login/assets/js/jquery*
+
 var/www/node_modules/*
 var/www/package-lock.json
 

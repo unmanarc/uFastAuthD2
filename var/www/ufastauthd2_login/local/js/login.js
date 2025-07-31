@@ -171,13 +171,16 @@ $(document).ready(function () {
     }
 
     // Validate if 'redirectURI' exists and is a valid base64 string
-    try {
-        decodedRedirectURI = atob(encodedRedirectURI);
-    }
-    catch (error) {
-        updateMessage('ERROR: Invalid redirect URI.');
-        $("#usernameForm").addClass("d-none");
-        return;
+    if (!encodedRedirectURI) {
+        decodedRedirectURI = "";
+    } else {
+        try {
+            decodedRedirectURI = atob(encodedRedirectURI);
+        } catch (error) {
+            updateMessage('ERROR: Invalid redirect URI.');
+            $("#usernameForm").addClass("d-none");
+            return;
+        }
     }
 
 

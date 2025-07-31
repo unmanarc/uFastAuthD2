@@ -72,3 +72,5 @@ ltmain.sh
 *.autosave
 etc/ufastauthd2/jwt_secret.key
 .vscode/settings.json
+
+TODO.md

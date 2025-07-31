@@ -37,6 +37,20 @@ function refreshAccessToken() {
   });
 }
 
+function logout() {
+  $.ajax({
+    url: '/auth/api/v1/logout',
+    type: 'POST',
+    success: function (response) {
+      // Redirect to the login page or reload the current page after logout
+      window.location.reload();
+    },
+    error: function () {
+      alert('Logout failed');
+    }
+  });
+}
+
 /**
  * Starts a countdown timer for the session.
  * When the countdown reaches zero, it triggers an AJAX request to refresh the access token.

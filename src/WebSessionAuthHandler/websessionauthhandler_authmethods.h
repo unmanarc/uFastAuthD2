@@ -26,7 +26,7 @@ public:
 
     // Remote triggered:
     static void refreshAccessToken(void *context, APIReturn &response, const RequestParameters &request, ClientDetails &authClientDetails);
-    static void refreshRefresherToken(void *context, APIReturn &response, const RequestParameters &request, ClientDetails &authClientDetails);
+    //static void refreshRefresherToken(void *context, APIReturn &response, const RequestParameters &request, ClientDetails &authClientDetails);
     static void appLogout(void *context, APIReturn &response, const RequestParameters &request, ClientDetails &authClientDetails);
     static void callback(void *context, APIReturn &response, const RequestParameters &request, ClientDetails &authClientDetails);
 

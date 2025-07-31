@@ -31,7 +31,7 @@ void WebSessionAuthHandler_AuthMethods::addMethods(std::shared_ptr<MethodsHandle
     // Web triggered events:
     methods->addResource(MethodsHandler::POST, "logout", &appLogout, nullptr, SecurityOptions::NO_AUTH, {});
     methods->addResource(MethodsHandler::POST, "refreshAccessToken", &refreshAccessToken, nullptr, SecurityOptions::NO_AUTH, {});
-    methods->addResource(MethodsHandler::POST, "refreshRefresherToken", &refreshRefresherToken, nullptr, SecurityOptions::NO_AUTH, {});
+//    methods->addResource(MethodsHandler::POST, "refreshRefresherToken", &refreshRefresherToken, nullptr, SecurityOptions::NO_AUTH, {});
     methods->addResource(MethodsHandler::POST, "callback", &callback, nullptr, SecurityOptions::NO_AUTH, {});
 }
 

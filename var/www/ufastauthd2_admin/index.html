@@ -1,8 +1,33 @@
-<!--<%include:/assets/hidden/inc.main.header.html%>-->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hello World</title>
+    <script src="/assets/js/jquery.min.js"></script>
+    <script src="/auth/assets/js/auth.js"></script>
+</head>
+<body>
+    <div style="display: flex; justify-content: center; align-items: center; height: 100vh; flex-direction: column;">
+        <h1 id="welcome-message">Hello World</h1>
+        <p id="status">logged in!</p>
+
+        <a href="#" onclick="logout(); return false;" style="text-decoration: none; color: #007BFF; font-size: 18px; padding: 10px 20px; border: 1px solid #007BFF; border-radius: 5px;">Cerrar sesión de la aplicación</a>
+
+    </div>
+    <script>
+        // Esperar a que el DOM esté listo y auth.js se haya cargado
+        $(document).ready(function() {
+            // Asegurarse de que los valores de auth.js estén disponibles
+            if (typeof user !== 'undefined') {
+                $('#welcome-message').text('Welcome, ' + user + '!');
+            }
+        });
+    </script>
+</body>
+</html>
+
+
 <script>
-    document.getElementById("apptitle").innerHTML = "Unmanarc's Fast Authentication Daemon";
-    document.location = "/accounts";
+    
 </script>
-
-
-<!--<%include:/assets/hidden/inc.main.footer.html%>-->

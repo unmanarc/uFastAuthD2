@@ -217,7 +217,22 @@ void WebSessionAuthHandler_AuthMethods::refreshAccessToken(void *context, APIRet
 
 void WebSessionAuthHandler_AuthMethods::appLogout(void *context, APIReturn &response, const RequestParameters &request, ClientDetails &authClientDetails)
 {
+    IdentityManager *identityManager = Globals::getIdentityManager();
+    std::string xAPIKeyStr = request.clientRequest->getHeaderOption("x-api-key");
     std::string refreshTokenStr = request.clientRequest->getCookies()->getSubVar("RefreshToken");
+
+    // VARS:
+    std::string appNameStr = identityManager->applications->getApplicationNameByAPIKey(xAPIKeyStr);
+
+    // Now, search the application by the x-api-key:
+    if (appNameStr.empty())
+    {
+        // app key not found...
+        LOG_APP->log2(__func__, "", authClientDetails.ipAddress, Logs::LEVEL_SECURITY_ALERT, "Invalid API key provided. Application not found.");
+        response.setError(HTTP::Status::S_401_UNAUTHORIZED, "invalid_api_key", "The provided API key is invalid or unauthorized.");
+        return;
+    }
+
     // ----------   prevent CSRF here. because this cookie is strict, won't exist on CSRF calls...   -----------
     if (refreshTokenStr.empty())
     {
@@ -226,20 +241,18 @@ void WebSessionAuthHandler_AuthMethods::appLogout(void *context, APIReturn &resp
         return;
     }
 
+    ApplicationTokenProperties tokenProps = identityManager->applications->getWebLoginJWTConfigFromApplication(appNameStr);
+
     // if ok, clear everything!:
     response.cookiesMap["AccessToken"] = HTTP::Headers::Cookie();
     response.cookiesMap["AccessToken"].setAsTransientCookie();
     response.cookiesMap["AccessToken"].value = "";
-    response.cookiesMap["AccessToken"].path = "/";
-
-/*    response.cookiesMap["AccessTokenMaxAge"] = HTTP::Headers::Cookie();
-    response.cookiesMap["AccessTokenMaxAge"].setAsTransientCookie();
-    response.cookiesMap["AccessTokenMaxAge"].path = "/";
-    response.cookiesMap["AccessTokenMaxAge"].value = "";*/
+    response.cookiesMap["AccessToken"].path = JSON_ASSTRING(tokenProps.tokensConfiguration["accessToken"],"path","");
 
     response.cookiesMap["RefreshToken"] = HTTP::Headers::Cookie();
     response.cookiesMap["RefreshToken"].setAsTransientCookie();
     response.cookiesMap["RefreshToken"].value = "";
+    response.cookiesMap["RefreshToken"].path = JSON_ASSTRING(tokenProps.tokensConfiguration["refreshToken"],"path","");
 }
 
 void WebSessionAuthHandler_AuthMethods::callback(void *context, APIReturn &response, const RequestParameters &request, ClientDetails &authClientDetails)
@@ -306,6 +319,9 @@ void WebSessionAuthHandler_AuthMethods::callback(void *context, APIReturn &respo
     response.redirectURL = redirectURIStr;
 }
 
+
+
+/*
 void WebSessionAuthHandler_AuthMethods::refreshRefresherToken(void *context, APIReturn &response, const RequestParameters &request, ClientDetails &authClientDetails)
 {
     IdentityManager *identityManager = Globals::getIdentityManager();
@@ -417,4 +433,4 @@ void WebSessionAuthHandler_AuthMethods::refreshRefresherToken(void *context, API
     JWT::Token newRefreshToken;
     TokensManager::configureRefreshToken(newRefreshToken, refreshTokenId, refreshTokenUser, refreshTokenApp, tokenProps, currentAuthenticatedSlotIds);
     setupRefreshTokenCookies(response, newRefreshToken, tokenProps);
-}
+}*/

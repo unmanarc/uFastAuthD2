@@ -42,15 +42,15 @@ private:
     static void token(void *context, APIReturn &response, const RequestParameters &request, ClientDetails &authClientDetails);
     static void preAuthorize(void *context, APIReturn &response, const RequestParameters &request, ClientDetails &authClientDetails);
     static void authorize(void *context, APIReturn &response, const RequestParameters &request, ClientDetails &clientDetails);
-    static void logout(void *context, APIReturn &response, const RequestParameters &request, ClientDetails &authClientDetails);
+    static void logout(void *, APIReturn &response, const RequestParameters &, ClientDetails &);
 
     static void changeCredential(void *context, APIReturn &response, const RequestParameters &request, ClientDetails &authClientDetails);
     static void listCredentials(void *context, APIReturn &response, const RequestParameters &request, ClientDetails &authClientDetails);
     static void accountCredentialPublicData(void *context, APIReturn &response, const RequestParameters &request, ClientDetails &authClientDetails);
     static void registerAccount(void *context, APIReturn &response, const RequestParameters &request, ClientDetails &authClientDetails);
 
-    static void setupAccessTokenCookies(APIReturn &response, Mantids30::DataFormat::JWT::Token accessToken, const ApplicationTokenProperties &tokenProps);
-    static void setupRefreshTokenCookies(APIReturn &response, Mantids30::DataFormat::JWT::Token refreshToken, const ApplicationTokenProperties &tokenProps);
+    /*static void setupAccessTokenCookies(APIReturn &response, Mantids30::DataFormat::JWT::Token accessToken, const ApplicationTokenProperties &tokenProps);
+    static void setupRefreshTokenCookies(APIReturn &response, Mantids30::DataFormat::JWT::Token refreshToken, const ApplicationTokenProperties &tokenProps);*/
 
     static std::set<uint32_t> getSlotIdsFromJSON(const json &input);
     static json getJSONFromSlotIds(const std::set<uint32_t> &input);

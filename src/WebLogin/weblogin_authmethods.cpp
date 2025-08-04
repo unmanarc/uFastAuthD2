@@ -43,7 +43,8 @@ void WebLogin_AuthMethods::addMethods(std::shared_ptr<MethodsHandler> methods)
     // Transform the current authentication to the app authentication...
     methods->addResource(MethodsHandler::POST, "token", &token, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {});
 
-    methods->addResource(MethodsHandler::POST, "logout", &logout, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {});
+    // Logout only clear the cookie... it just does need a CSRF control method...
+    methods->addResource(MethodsHandler::POST, "logout", &logout, nullptr, SecurityOptions::NO_AUTH, {});
 
     // Account registration:
     //methods->addResource(MethodsHandler::POST, "registerAccount", &registerAccount, nullptr, SecurityOptions::NO_AUTH, {});

@@ -1,20 +1,21 @@
 #include "tokensmanager.h"
 
-#include "globals.h"
 #include "IdentityManager/identitymanager.h"
+#include "globals.h"
 
 using namespace Mantids30;
 using namespace Mantids30::Network::Protocols;
 using namespace API::RESTful;
 
-void TokensManager::configureAccessToken(Mantids30::DataFormat::JWT::Token &accessToken, const std::string &refreshTokenId, const std::string &jwtAccountName, const std::string &appName, const ApplicationTokenProperties &tokenProperties, const std::set<uint32_t> &slotIds)
+void TokensManager::configureAccessToken(Mantids30::DataFormat::JWT::Token &accessToken, const std::string &refreshTokenId, const std::string &jwtAccountName, const std::string &appName,
+                                         const ApplicationTokenProperties &tokenProperties, const std::set<uint32_t> &slotIds)
 {
     IdentityManager *identityManager = Globals::getIdentityManager();
 
     std::string tokenId = Mantids30::Helpers::Random::createRandomString(16);
     accessToken.setSubject(jwtAccountName);
     accessToken.setIssuedAt(time(nullptr));
-    time_t expectedExpirationTime = time(nullptr) + JSON_ASUINT64(tokenProperties.tokensConfiguration["accessToken"],"timeout",300);
+    time_t expectedExpirationTime = time(nullptr) + JSON_ASUINT64(tokenProperties.tokensConfiguration["accessToken"], "timeout", 300);
     time_t accountExpirationTime = identityManager->accounts->getAccountExpirationTime(jwtAccountName);
 
     if (accountExpirationTime == 0 || accountExpirationTime >= expectedExpirationTime)
@@ -51,14 +52,15 @@ void TokensManager::configureAccessToken(Mantids30::DataFormat::JWT::Token &acce
     // Get the user basic info if needed for this application...
     if (tokenProperties.includeBasicAccountInfo)
     {
-        accessToken.addClaim("accountInfo", identityManager->accounts->getAccountDetails(jwtAccountName).toJSON() );
+        accessToken.addClaim("accountInfo", identityManager->accounts->getAccountDetails(jwtAccountName).toJSON());
     }
 
     if (identityManager->accounts->getAccountFlags(jwtAccountName).admin)
         accessToken.addClaim("isAdmin", true);
 }
 
-void TokensManager::configureRefreshToken(Mantids30::DataFormat::JWT::Token &refreshToken, const std::string &refreshTokenId, const std::string &jwtAccountName, const std::string &appName, const ApplicationTokenProperties &tokenProperties, const std::set<uint32_t> &slotIds)
+void TokensManager::configureRefreshToken(Mantids30::DataFormat::JWT::Token &refreshToken, const std::string &refreshTokenId, const std::string &jwtAccountName, const std::string &appName,
+                                          const ApplicationTokenProperties &tokenProperties, const std::set<uint32_t> &slotIds)
 {
     IdentityManager *identityManager = Globals::getIdentityManager();
 
@@ -66,7 +68,7 @@ void TokensManager::configureRefreshToken(Mantids30::DataFormat::JWT::Token &ref
     refreshToken.setIssuedAt(time(nullptr));
     //refreshToken.addClaim( "tokensConfig", tokenProperties.tokensConfiguration["refreshToken"] );
 
-    auto expectedExpirationTime = time(nullptr) + JSON_ASUINT64(tokenProperties.tokensConfiguration["refreshToken"],"timeout",2592000);
+    auto expectedExpirationTime = time(nullptr) + JSON_ASUINT64(tokenProperties.tokensConfiguration["refreshToken"], "timeout", 2592000);
     auto accountExpirationTime = identityManager->accounts->getAccountExpirationTime(jwtAccountName);
 
     if (accountExpirationTime == 0 || accountExpirationTime >= expectedExpirationTime)
@@ -87,13 +89,19 @@ void TokensManager::configureRefreshToken(Mantids30::DataFormat::JWT::Token &ref
     refreshToken.addClaim("type", "refresher");
 }
 
-void TokensManager::setIAMAccessToken(APIReturn &response, const RequestParameters &request, const Mantids30::DataFormat::JWT::Token &intermediateToken, const Mantids30::DataFormat::JWT::Token &currentAccessToken)
+void TokensManager::setIAMAccessToken(APIReturn &response, const RequestParameters &request, const Mantids30::DataFormat::JWT::Token &intermediateToken,
+    const Mantids30::DataFormat::JWT::Token &currentAccessToken, bool keepAuthenticated, const time_t & currentIntermediateTokenExpirationTime)
 {
     IdentityManager *identityManager = Globals::getIdentityManager();
     Mantids30::DataFormat::JWT::Token accessToken;
     std::string accountName = JSON_ASSTRING_D(intermediateToken.getClaim("preAuthUser"), "");
     auto accountExpirationTime = identityManager->accounts->getAccountExpirationTime(accountName);
-    uint32_t expectedRefresherTokenTimeoutTime = time(nullptr) + Globals::getConfig()->get<uint32_t>("WebLoginService.IAMTokenTimeout", 2592000);
+    time_t expectedRefresherTokenTimeoutTime = safeAdd(time(nullptr), Globals::getConfig()->get<time_t>("WebLoginService.IAMTokenTimeout", 2592000));
+
+    if (!keepAuthenticated)
+    {
+        expectedRefresherTokenTimeoutTime = currentIntermediateTokenExpirationTime;
+    }
 
     Json::Value combinedSlotIds;
     std::set<uint32_t> uniqueSlotIds = Mantids30::Helpers::jsonToUInt32Set(currentAccessToken.getClaim("slotIds"));
@@ -112,12 +120,15 @@ void TokensManager::setIAMAccessToken(APIReturn &response, const RequestParamete
 
     accessToken.setSubject(accountName);
     accessToken.setIssuedAt(time(nullptr));
-    accessToken.setExpirationTime((accountExpirationTime < expectedRefresherTokenTimeoutTime && accountExpirationTime != 0) ? accountExpirationTime : expectedRefresherTokenTimeoutTime);
+    accessToken.setExpirationTime(accountExpirationTime == 0 ? expectedRefresherTokenTimeoutTime :       // Token does not expire.
+                                      std::min(accountExpirationTime, expectedRefresherTokenTimeoutTime) // Token expires, take the min time between two...
+    );
     accessToken.setNotBefore(time(nullptr) - 30);
     accessToken.addClaim("slotIds", combinedSlotIds);
     accessToken.addClaim("type", "IAM");
     accessToken.addClaim("app", "IAM");
     accessToken.addClaim("apps", Mantids30::Helpers::setToJSON(uniqueAuthApps));
+    accessToken.addClaim("keepAuthenticated", keepAuthenticated);
 
     accessToken.setJwtId(Mantids30::Helpers::Random::createRandomString(16));
 
@@ -137,13 +148,13 @@ void TokensManager::setIAMAccessToken(APIReturn &response, const RequestParamete
     //authenticationPublicData["apps"] = accountName;
 
     // TODO: account data?
-
-    response.cookiesMap["loggedIn"] = HTTP::Headers::Cookie();
-    response.cookiesMap["loggedIn"].setExpiration(accessToken.getExpirationTime());
-    response.cookiesMap["loggedIn"].secure = true;
-    response.cookiesMap["loggedIn"].httpOnly = false;
-    response.cookiesMap["loggedIn"].path = "/";
-    response.cookiesMap["loggedIn"].value = Helpers::Encoders::encodeToBase64(authenticationPublicData.toStyledString());
+    if (keepAuthenticated)
+    {
+        response.cookiesMap["loggedIn"] = HTTP::Headers::Cookie();
+        response.cookiesMap["loggedIn"].setExpiration(accessToken.getExpirationTime());
+        response.cookiesMap["loggedIn"].secure = true;
+        response.cookiesMap["loggedIn"].httpOnly = false;
+        response.cookiesMap["loggedIn"].path = "/";
+        response.cookiesMap["loggedIn"].value = Helpers::Encoders::encodeToBase64(authenticationPublicData.toStyledString());
+    }
 }
-
-

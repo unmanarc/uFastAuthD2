@@ -52,6 +52,9 @@ function logout() {
         type: "POST",
         contentType: "application/json",
         data: JSON.stringify({}),
+        headers: {
+            "X-Logout": "1" // This prevents CSRF logout attacks.
+        },
         success: function (response) {
             // Recargar la página con los mismos parámetros GET
             loggedIn = false;
@@ -60,58 +63,6 @@ function logout() {
         error: showErrorWithXHR
     });
 }
-/*
-function retokenizeApplication() 
-{
-    // Perform the AJAX request
-    $.ajax({
-        url: "/api/v1/retokenize",
-        type: "POST",
-        contentType: "application/json",
-        data: JSON.stringify({ 
-            redirectURI: decodedRedirectURI,
-            app: appName
-        }),
-        success: function (response) {
-            createAndSubmitRedirectForm(response.callbackURI, {
-                accessToken: response.accessToken,
-                expiresIn: response.expiresIn,
-                redirectURI: decodedRedirectURI
-            }, mode === 'app' ? 'GET' : 'POST');
-        },
-        error: showErrorWithXHR
-    });
-}*/
-/*
-function redirectToAuthenticatedSite() {
-
-    if (loggedInGETParsedParam === false)
-    {
-        // Reinject the application token.
-        retokenizeApplication();
-        return;
-    }
-
-    // Perform the AJAX request
-    $.ajax({
-        url: "/api/v1/getApplicationAuthCallbackURI",
-        type: "POST",
-        contentType: "application/json",
-        data: JSON.stringify({ 
-            app: appName,
-            redirectURI: decodedRedirectURI 
-        }),
-        success: function (response) {
-                // submit the token to the app.
-                createAndSubmitRedirectForm(response.callbackURI, {
-                    accessToken: "", // No access token means that the application will use the current one.
-                    redirectURI: decodedRedirectURI // Will only accept this from the admited Origin URL.
-                }, mode === 'app' ? 'GET' : 'POST');
-        },
-        error: showErrorWithXHR
-    });
-}*/
-
 
 function loadTokenAndRedirect() {
     // Perform the AJAX request
@@ -132,12 +83,6 @@ function loadTokenAndRedirect() {
             // submit the token to the app.
             const callbackURI = response.callbackURI;
             createAndSubmitRedirectForm(callbackURI, response, mode === 'app' ? 'GET' : 'POST');
-
-            /*                createAndSubmitRedirectForm(response.callbackURI, {
-                                accessToken: response.accessToken,
-                                expiresIn: response.expiresIn,
-                                redirectURI: decodedRedirectURI
-                            }, mode === 'app' ? 'GET' : 'POST');*/
         },
         error: showErrorWithXHR
     });
@@ -182,7 +127,6 @@ $(document).ready(function () {
             return;
         }
     }
-
 
     // Load refresh token from cookie
     const cookies = document.cookie.split(';');
@@ -235,6 +179,7 @@ $(document).ready(function () {
             contentType: "application/json",
             data: JSON.stringify({
                 preAuthUser: username,
+                keepAuthenticated: $("#keepAuthenticated").is(":checked"),
                 app: appName,
                 schemeId: schemeId,
                 password: password,

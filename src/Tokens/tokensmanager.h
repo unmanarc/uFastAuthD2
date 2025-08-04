@@ -26,7 +26,7 @@ public:
                                       const std::string &appName, const ApplicationTokenProperties &tokenProperties, const std::set<uint32_t> &slotIds);
 
     static void setIAMAccessToken(APIReturn &response, const RequestParameters &request, const Mantids30::DataFormat::JWT::Token &intermediateToken,
-                                        const Mantids30::DataFormat::JWT::Token &currentAccessToken);
+                                  const Mantids30::DataFormat::JWT::Token &currentAccessToken, bool keepAuthenticated, const time_t &currentIntermediateTokenExpirationTime);
 
 
 };

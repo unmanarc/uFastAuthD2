@@ -78,7 +78,7 @@ std::optional<JWT::Token> WebLogin_AuthMethods::loadJWTAccessTokenFromPOST(APIRe
 
     return accessTokenVerified;
 }
-
+/*
 void WebLogin_AuthMethods::setupAccessTokenCookies(APIReturn &response, JWT::Token accessToken, const ApplicationTokenProperties &tokenProps)
 {
     // This cookie is generic for all the application.
@@ -88,14 +88,6 @@ void WebLogin_AuthMethods::setupAccessTokenCookies(APIReturn &response, JWT::Tok
     response.cookiesMap["AccessToken"].path = "/";
     response.cookiesMap["AccessToken"].httpOnly = true;
     response.cookiesMap["AccessToken"].value = signApplicationToken(accessToken, tokenProps);
-
-    // Max age accessible from JS to indicate when the access token needs to be refreshed.
-/*    response.cookiesMap["AccessTokenMaxAge"] = HTTP::Headers::Cookie();
-    response.cookiesMap["AccessTokenMaxAge"].setExpiration(accessToken.getExpirationTime());
-    response.cookiesMap["AccessTokenMaxAge"].path = "/";
-    response.cookiesMap["AccessTokenMaxAge"].secure = true;
-    response.cookiesMap["AccessTokenMaxAge"].httpOnly = false;
-    response.cookiesMap["AccessTokenMaxAge"].value = std::to_string(accessToken.getExpirationTime() - time(nullptr));*/
 }
 
 void WebLogin_AuthMethods::setupRefreshTokenCookies(APIReturn &response, JWT::Token refreshToken, const ApplicationTokenProperties &tokenProps)
@@ -108,7 +100,7 @@ void WebLogin_AuthMethods::setupRefreshTokenCookies(APIReturn &response, JWT::To
     response.cookiesMap["RefreshToken"].value = signApplicationToken(refreshToken, tokenProps);
 }
 
-
+*/
 /*
     This will tranform the current authentication into an APP access...
 */
@@ -241,6 +233,13 @@ void WebLogin_AuthMethods::token(void *context, APIReturn &response, const Reque
 
     // you should give all the previous information to the callbackURI, so the callbackURI will "absorb the cookie"
     (*response.responseJSON())["callbackURI"] = callbackURI;
+
+    if (JSON_ASBOOL_D(request.jwtToken->getClaim("keepAuthenticated"),false) == false)
+    {
+        // Discard access cookies upon first use. (Access tokens are short-lived, but should be discarded after the first usage)
+        logout(context, response, request, authClientDetails);
+    }
+
 }
 
 

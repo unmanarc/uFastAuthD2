@@ -7,8 +7,13 @@ using namespace Network::Protocols;
 
 // Get the application token...
 
-void WebLogin_AuthMethods::logout(void *context, APIReturn &response, const RequestParameters &request, ClientDetails &authClientDetails)
+void WebLogin_AuthMethods::logout(void *, APIReturn &response, const RequestParameters &request, ClientDetails &)
 {
+    if ( request.clientRequest->headers.getOptionValueStringByName("X-Logout") != "1" )
+    {
+        return;
+    }
+
     response.cookiesMap["AccessToken"] = HTTP::Headers::Cookie();
     response.cookiesMap["AccessToken"].setAsTransientCookie();
     response.cookiesMap["AccessToken"].value = "";

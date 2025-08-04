@@ -43,6 +43,7 @@ struct ApplicationPermission
 
 struct AppAuthExtras
 {
+    bool keepAuthenticated = false;
     std::string appName;
     uint32_t schemeId = UINT32_MAX;
     uint32_t currentSlotPosition = UINT32_MAX;

@@ -75,11 +75,11 @@ void WebLogin_AuthMethods::authorize(void *context, APIReturn &response, const R
     std::string oldIntermediateAuthTokenStr = request.clientRequest->getAuthorizationBearer();
     std::string cookieAccessTokenStr = request.clientRequest->getCookie("AccessToken");
 
-    JWT::Token intermediateAuthToken, cookieAccessToken;
+    JWT::Token oldIntermediateAuthToken, cookieAccessToken;
 
     if (!oldIntermediateAuthTokenStr.empty())
     {
-        if (!request.jwtValidator->verify(oldIntermediateAuthTokenStr, &intermediateAuthToken))
+        if (!request.jwtValidator->verify(oldIntermediateAuthTokenStr, &oldIntermediateAuthToken))
         {
             response.setError(HTTP::Status::S_403_FORBIDDEN, "AUTH_ERR_" + std::to_string(REASON_UNAUTHENTICATED), getReasonText(REASON_UNAUTHENTICATED));
             return;
@@ -87,13 +87,14 @@ void WebLogin_AuthMethods::authorize(void *context, APIReturn &response, const R
     }
 
     // JWT Signed Parameters:
-    std::string accountName = JSON_ASSTRING_D(intermediateAuthToken.getClaim("preAuthUser"), "");
-    bool isFullyAuthenticated = JSON_ASBOOL_D(intermediateAuthToken.getClaim("isFullyAuthenticated"), false);
-    authContext->appName = JSON_ASSTRING_D(intermediateAuthToken.getClaim("app"), "");
-    authContext->slotSchemeHash = JSON_ASSTRING_D(intermediateAuthToken.getClaim("slotSchemeHash"), "");
-    authContext->schemeId = JSON_ASUINT_D(intermediateAuthToken.getClaim("schemeId"), UINT32_MAX);
-    authContext->currentSlotPosition = JSON_ASUINT_D(intermediateAuthToken.getClaim("currentSlotPosition"), UINT32_MAX);
-    std::string jwtTokenId = intermediateAuthToken.getJwtId();
+    std::string accountName = JSON_ASSTRING_D(oldIntermediateAuthToken.getClaim("preAuthUser"), "");
+    bool isFullyAuthenticated = JSON_ASBOOL_D(oldIntermediateAuthToken.getClaim("isFullyAuthenticated"), false);
+    authContext->appName = JSON_ASSTRING_D(oldIntermediateAuthToken.getClaim("app"), "");
+    authContext->slotSchemeHash = JSON_ASSTRING_D(oldIntermediateAuthToken.getClaim("slotSchemeHash"), "");
+    authContext->schemeId = JSON_ASUINT_D(oldIntermediateAuthToken.getClaim("schemeId"), UINT32_MAX);
+    authContext->keepAuthenticated = JSON_ASBOOL_D(oldIntermediateAuthToken.getClaim("keepAuthenticated"), false);
+    authContext->currentSlotPosition = JSON_ASUINT_D(oldIntermediateAuthToken.getClaim("currentSlotPosition"), UINT32_MAX);
+    std::string jwtTokenId = oldIntermediateAuthToken.getJwtId();
 
     if (!cookieAccessTokenStr.empty())
     {
@@ -129,6 +130,7 @@ void WebLogin_AuthMethods::authorize(void *context, APIReturn &response, const R
     {
         // When there is no token, override initial token parameters with the input parameters...
         accountName = JSON_ASSTRING(*request.inputJSON, "preAuthUser", "");
+        authContext->keepAuthenticated = JSON_ASBOOL(*request.inputJSON, "keepAuthenticated", false);
         authContext->appName = JSON_ASSTRING(*request.inputJSON, "app", "");
         authContext->schemeId = JSON_ASUINT(*request.inputJSON, "schemeId", UINT32_MAX);
         authContext->currentSlotPosition = 0;
@@ -169,7 +171,7 @@ void WebLogin_AuthMethods::authorize(void *context, APIReturn &response, const R
         }
         else
         {
-            newIntermediateAuthToken.setExpirationTime(intermediateAuthToken.getExpirationTime());
+            newIntermediateAuthToken.setExpirationTime(oldIntermediateAuthToken.getExpirationTime());
         }
 
         newIntermediateAuthToken.setIssuedAt(time(nullptr));
@@ -179,6 +181,7 @@ void WebLogin_AuthMethods::authorize(void *context, APIReturn &response, const R
         newIntermediateAuthToken.addClaim("preAuthUser", accountName);
         newIntermediateAuthToken.addClaim("slotSchemeHash", authContext->slotSchemeHash);
         newIntermediateAuthToken.addClaim("schemeId", authContext->schemeId);
+        newIntermediateAuthToken.addClaim("keepAuthenticated", authContext->keepAuthenticated);
 
         if (authContext->currentSlotPosition == authSlots.size() - 1)
         {
@@ -195,7 +198,10 @@ void WebLogin_AuthMethods::authorize(void *context, APIReturn &response, const R
             newIntermediateAuthToken.addClaim("slotIds", slotIds);
             newIntermediateAuthToken.addClaim("type", "intermediate");
 
-            TokensManager::setIAMAccessToken(response, request, newIntermediateAuthToken, cookieAccessToken);
+            TokensManager::setIAMAccessToken(response, request, newIntermediateAuthToken, cookieAccessToken,
+                                             authContext->keepAuthenticated, // Keep authenticated will use the current authentication proccess
+                                             newIntermediateAuthToken.getExpirationTime() // Get current JWT expiration time (if keep autneticated is false)
+                                             );
 
             (*response.responseJSON())["isFullyAuthenticated"] = true;
         }

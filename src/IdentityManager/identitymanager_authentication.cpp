@@ -37,7 +37,7 @@ void IdentityManager::AuthController::incrementCredentialBadCounts(Reason ret, c
     else
     {
         // Authenticated:
-        updateAccountLastLogin(accountName, slotId, clientDetails);
+        updateAccountLastAccess(accountName, slotId, clientDetails);
         resetBadAttemptsOnCredential(accountName, slotId);
     }
 }
@@ -107,7 +107,7 @@ Reason IdentityManager::AuthController::authenticateCredential(const ClientDetai
             ret = REASON_PASSWORD_INDEX_NOTFOUND;
         else
         {
-            time_t lastLogin = getAccountLastLogin(accountName);
+            time_t lastLogin = getAccountLastAccess(accountName);
 
             // There is no last login.. use the creation date for doing the inactivity calculation...
             if (lastLogin == std::numeric_limits<time_t>::max())
@@ -336,7 +336,7 @@ bool IdentityManager::AuthController::setAccountPasswordOnScheme(const std::stri
             &&
 
             &&
-           _parent->m_sqlConnector->query("INSERT INTO iam_accountCredentials "
+           _parent->m_sqlConnector->query("INSERT INTO iam.accountCredentials "
                                 "(`f_AuthSlotId`,`f_accountName`,`hash`,`expiration`,`salt`,`forcedExpiration`)"
                                 " VALUES"
                                 "('0',:account,:hash,:expiration,:salt,:forcedExpiration);",

@@ -29,7 +29,7 @@ void WebAdminMethods_Accounts::addMethods_Accounts(std::shared_ptr<MethodsHandle
     methods->addResource(MethodsHandler::GET, "getAccountExpirationTime", &getAccountExpirationTime, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"ACCOUNT_READ"});
     methods->addResource(MethodsHandler::GET, "getAccountFlags", &getAccountFlags, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"ACCOUNT_READ"});
     methods->addResource(MethodsHandler::GET, "getAccountInfo", &getAccountInfo, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"ACCOUNT_READ"});
-    methods->addResource(MethodsHandler::GET, "getAccountLastLogin", &getAccountLastLogin, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"ACCOUNT_READ"});
+    methods->addResource(MethodsHandler::GET, "getAccountLastAccess", &getAccountLastAccess, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"ACCOUNT_READ"});
     methods->addResource(MethodsHandler::GET, "getAccountRoles", &getAccountRoles, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"ACCOUNT_READ"});
     methods->addResource(MethodsHandler::GET, "getAccountUsableApplicationPermissions", &getAccountUsableApplicationPermissions, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"ACCOUNT_READ"});
     methods->addResource(MethodsHandler::GET, "isAccountExpired", &isAccountExpired, nullptr, SecurityOptions::REQUIRE_JWT_COOKIE_AUTH, {"ACCOUNT_READ"});
@@ -254,9 +254,9 @@ void WebAdminMethods_Accounts::getAccountInfo(void *context, APIReturn &response
     }
 }
 
-void WebAdminMethods_Accounts::getAccountLastLogin(void *context, APIReturn &response, const RequestParameters &request, ClientDetails &authClientDetails)
+void WebAdminMethods_Accounts::getAccountLastAccess(void *context, APIReturn &response, const RequestParameters &request, ClientDetails &authClientDetails)
 {
-    (*response.responseJSON()) = Globals::getIdentityManager()->authController->getAccountLastLogin(JSON_ASSTRING(*request.inputJSON, "accountName", ""));
+    (*response.responseJSON()) = Globals::getIdentityManager()->authController->getAccountLastAccess(JSON_ASSTRING(*request.inputJSON, "accountName", ""));
 }
 
 void WebAdminMethods_Accounts::getAccountRoles(void *context, APIReturn &response, const RequestParameters &request, ClientDetails &authClientDetails)

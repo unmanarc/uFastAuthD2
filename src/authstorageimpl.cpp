@@ -34,16 +34,74 @@ bool AuthStorageImpl::createAuth()
 
     if (boost::to_lower_copy(sDriverName) == "sqlite3")
     {
-        std::string dbFilePath = Globals::getConfig()->get<std::string>("Auth.File", "");
-        SQLConnector_SQLite3 *sqlConnector = new SQLConnector_SQLite3;
-        sqlConnector->setThrowCPPErrorOnQueryFailure(true);
-        if (!sqlConnector->connect(dbFilePath))
+        SQLConnector_SQLite3 *dbConnector = new SQLConnector_SQLite3();
+        dbConnector->setThrowCPPErrorOnQueryFailure(true);
+
+        if (!dbConnector->connectInMemory())
         {
-            LOG_APP->log0(__func__, Logs::LEVEL_CRITICAL, "Error, Failed to open/create SQLite3 file: '%s'", dbFilePath.c_str());
+            LOG_APP->log0(__func__, Logs::LEVEL_CRITICAL, "Error, Failed to create in-memory SQLite3 database");
+            delete dbConnector;
             return false;
         }
 
-        identityManager = new IdentityManager_DB(sqlConnector);
+        auto createFileIfNotExists = [](const std::string &path) -> bool
+        {
+            struct stat buffer;
+            if (stat(path.c_str(), &buffer) == 0)
+                return true;
+            std::ofstream file(path);
+            if (!file.is_open())
+            {
+                LOG_APP->log0(__func__, Logs::LEVEL_CRITICAL, "Failed to create database file: '%s'", path.c_str());
+                return false;
+            }
+            file.close();
+#ifdef WIN32
+            _chmod(path.c_str(), _S_IREAD | _S_IWRITE);
+#else
+            chmod(path.c_str(), 0600);
+#endif
+            return true;
+        };
+
+        std::string dbFilePath = Globals::getConfig()->get<std::string>("Auth.IAMMainFile", "");
+        std::string dbLogsPath = Globals::getConfig()->get<std::string>("Auth.IAMLogsFile", "");
+
+        if (!createFileIfNotExists(dbFilePath))
+        {
+            delete dbConnector;
+            return false;
+        }
+
+        if (!createFileIfNotExists(dbLogsPath))
+        {
+            delete dbConnector;
+            return false;
+        }
+
+        if (!dbConnector->attach(dbFilePath, "iam"))
+        {
+            LOG_APP->log0(__func__, Logs::LEVEL_CRITICAL, "Error, Failed to attach IAM SQLite3 database file: '%s'", dbFilePath.c_str());
+            delete dbConnector;
+            return false;
+        }
+        else
+        {
+            LOG_APP->log0(__func__, Logs::LEVEL_INFO, "Opened IAM SQLite3 database file: '%s'", dbFilePath.c_str());
+        }
+
+        if (!dbConnector->attach(dbLogsPath, "logs"))
+        {
+            LOG_APP->log0(__func__, Logs::LEVEL_CRITICAL, "Error, Failed to attach logs SQLite3 database file: '%s'", dbLogsPath.c_str());
+            delete dbConnector;
+            return false;
+        }
+        else
+        {
+            LOG_APP->log0(__func__, Logs::LEVEL_INFO, "Opened logs SQLite3 database file: '%s'", dbLogsPath.c_str());
+        }
+
+        identityManager = new IdentityManager_DB(dbConnector);
     }
     /*    else if (boost::to_lower_copy(driver) == "postgresql")
     {

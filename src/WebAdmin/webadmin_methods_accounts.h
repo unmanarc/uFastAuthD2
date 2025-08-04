@@ -32,7 +32,7 @@ protected:
     static void getAccountFlags(void *context, APIReturn &response, const RequestParameters &request, ClientDetails &authClientDetails);
     static void getAccountInfo(void *context, APIReturn &response, const RequestParameters &request, ClientDetails &authClientDetails);
     static void getAccountDetails(void *context, APIReturn &response, const RequestParameters &request, ClientDetails &authClientDetails);
-    static void getAccountLastLogin(void *context, APIReturn &response, const RequestParameters &request, ClientDetails &authClientDetails);
+    static void getAccountLastAccess(void *context, APIReturn &response, const RequestParameters &request, ClientDetails &authClientDetails);
     static void resetBadAttemptsOnCredential(void *context, APIReturn &response, const RequestParameters &request, ClientDetails &authClientDetails);
     static void getAccountExpirationTime(void *context, APIReturn &response, const RequestParameters &request, ClientDetails &authClientDetails);
     static void isAccountExpired(void *context, APIReturn &response, const RequestParameters &request, ClientDetails &authClientDetails);

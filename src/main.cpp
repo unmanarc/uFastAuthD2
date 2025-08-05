@@ -7,10 +7,10 @@
 #include "WebAdmin/webadmin_serverimpl.h"
 #include "WebLogin/weblogin_serverimpl.h"
 #include "WebSessionAuthHandler/websessionauthhandler_serverimpl.h"
-
+/*
 #include "RPC1LoginServer2/fastrpcimpl.h"
 #include "RPC1LoginServer2/rpc1loginserver2impl.h"
-
+*/
 #include "authstorageimpl.h"
 
 #include "config.h"

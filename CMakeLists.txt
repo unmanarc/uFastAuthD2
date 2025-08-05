@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.12)
 include(GNUInstallDirs)
 
-set(APP_NAME "uFastAuthD2")
+set(APP_NAME "uFastAuthD3")
 set(SVERSION 2.0.0)
 
 project(${APP_NAME})

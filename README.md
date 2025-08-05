@@ -1,10 +1,10 @@
-# uFastAuthD2 (Unmanarc Fast Authentication Daemon 2)  
+# uFastAuthD3 (Unmanarc Fast Authentication Daemon 3)  
 
 **Author:** Aaron Mizrachi (unmanarc) <dev@unmanarc.com>   
 **Main License:** GPLv3   
 
 
-A lightweight Identity and Access Management (IAM) system designed for secure, stateless authentication in resource-constrained environments. Built in **C++**, uFastAuthD2 provides fast and reliable authentication services for web applications, microservices, and IoT devices, even on platforms like the **Raspberry Pi**.  
+A lightweight Identity and Access Management (IAM) system designed for secure, stateless authentication in resource-constrained environments. Built in **C++**, uFastAuthD3 provides fast and reliable authentication services for web applications, microservices, and IoT devices, even on platforms like the **Raspberry Pi**.  
 
 ---
 

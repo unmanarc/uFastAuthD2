@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build-assets": "mkdir -pv ufastauthd2_login/assets/js && cp -r node_modules/bootstrap/dist/* ufastauthd2_login/assets/ && cp -r node_modules/jquery/dist/* ufastauthd2_login/assets/js/ && mkdir -pv ufastauthd2_admin/assets/js && cp -r node_modules/bootstrap/dist/* ufastauthd2_admin/assets/ && cp -r node_modules/jquery/dist/* ufastauthd2_admin/assets/js/"
+    "build-assets": "mkdir -pv ufastauthd3_login/assets/js && cp -r node_modules/bootstrap/dist/* ufastauthd3_login/assets/ && cp -r node_modules/jquery/dist/* ufastauthd3_login/assets/js/ && mkdir -pv ufastauthd3_admin/assets/js && cp -r node_modules/bootstrap/dist/* ufastauthd3_admin/assets/ && cp -r node_modules/jquery/dist/* ufastauthd3_admin/assets/js/"
   },
   "keywords": [],
   "author": "",

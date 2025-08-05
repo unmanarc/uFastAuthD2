@@ -40,7 +40,7 @@ public:
         globalArguments->addAuthor({"Aarón Mizrachi", "aaron@unmanarc.com"});
         globalArguments->setVersion(atoi(PROJECT_VER_MAJOR), atoi(PROJECT_VER_MINOR), atoi(PROJECT_VER_PATCH), "a");
 
-        globalArguments->addCommandLineOption("Service Options", 'c', "config-dir", "Configuration directory", "/etc/ufastauthd2", Memory::Abstract::Var::TYPE_STRING);
+        globalArguments->addCommandLineOption("Service Options", 'c', "config-dir", "Configuration directory", "/etc/ufastauthd3", Memory::Abstract::Var::TYPE_STRING);
         globalArguments->addCommandLineOption("Recovery Options", 'r', "resetadmpw", "Reset Administrator Password", "false", Memory::Abstract::Var::TYPE_BOOL);
     }
 
@@ -56,7 +56,7 @@ public:
         Globals::setResetAdminPasswd(globalArguments->getCommandLineOptionBooleanValue("resetadmpw"));
         std::string configDir = globalArguments->getCommandLineOptionValue("config-dir")->toString();
 
-        initLog->log0(__func__, Program::Logs::LEVEL_INFO, "Loading configuration: %s", (configDir + "/ufastauthd2.conf").c_str());
+        initLog->log0(__func__, Program::Logs::LEVEL_INFO, "Loading configuration: %s", (configDir + "/ufastauthd3.conf").c_str());
 
         if (access(configDir.c_str(), R_OK))
         {
@@ -67,31 +67,31 @@ public:
         chdir(configDir.c_str());
 
         bool isConfigFileInsecure = true;
-        if (!Helpers::File::isSensitiveConfigPermissionInsecure("ufastauthd2.conf", &isConfigFileInsecure))
+        if (!Helpers::File::isSensitiveConfigPermissionInsecure("ufastauthd3.conf", &isConfigFileInsecure))
         {
-            initLog->log0(__func__, Program::Logs::LEVEL_WARN, "The configuration 'ufastauthd2.conf' file is inaccessible, loading defaults...");
+            initLog->log0(__func__, Program::Logs::LEVEL_WARN, "The configuration 'ufastauthd3.conf' file is inaccessible, loading defaults...");
         }
         else
         {
             if (isConfigFileInsecure)
             {
                 initLog->log0(__func__, Program::Logs::LEVEL_SECURITY_ALERT,
-                              "The permissions of the 'ufastauthd2.conf' file are currently not set to 0600. This may leave your API key exposed to potential security threats. To mitigate this risk, "
+                              "The permissions of the 'ufastauthd3.conf' file are currently not set to 0600. This may leave your API key exposed to potential security threats. To mitigate this risk, "
                               "we are changing the permissions of the file to ensure that your API key remains secure. Please ensure that you take necessary precautions to protect your API key and "
                               "update any affected applications or services as necessary.");
 
-                if (Helpers::File::fixSensitiveConfigPermission("ufastauthd2.conf"))
+                if (Helpers::File::fixSensitiveConfigPermission("ufastauthd3.conf"))
                 {
-                    initLog->log0(__func__, Program::Logs::LEVEL_SECURITY_ALERT, "The permissions of the 'ufastauthd2.conf' file has been changed to 0600.");
+                    initLog->log0(__func__, Program::Logs::LEVEL_SECURITY_ALERT, "The permissions of the 'ufastauthd3.conf' file has been changed to 0600.");
                 }
                 else
                 {
-                    initLog->log0(__func__, Program::Logs::LEVEL_CRITICAL, "The permissions of the 'ufastauthd2.conf' file can't be changed.");
+                    initLog->log0(__func__, Program::Logs::LEVEL_CRITICAL, "The permissions of the 'ufastauthd3.conf' file can't be changed.");
                     return false;
                 }
             }
 
-            boost::property_tree::info_parser::read_info("ufastauthd2.conf", pConfig);
+            boost::property_tree::info_parser::read_info("ufastauthd3.conf", pConfig);
         }
 
         *(Globals::getConfig()) = pConfig;

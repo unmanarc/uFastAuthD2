@@ -1,0 +1,124 @@
+<!--<%include:/hidden/inc.main.header.html%>-->
+<!--<%include:/hidden/inc.layout.leftpanel.header.html%>-->
+<!--<%include:/hidden/inc.links.accounts.html%>-->
+<!--<%include:/hidden/inc.layout.leftpanel.middle.html%>-->
+
+<script>
+  document.getElementById("apptitle").innerHTML = "Accounts &#9658; Create New Account";
+  document.getElementById("mainview-accounts-create-link").style.color = "white";
+
+  function csrfReady() {
+  }
+  function ajaxCreateUser() {
+    var pwdCheck = checkPasswordReq($("#newpass0").val(), 12);
+
+    if ($("#newpass0").val() != $("#newpass1").val()) {
+      alert("Password does not match.");
+      $("#newpass0").focus();
+      return;
+    }
+    else if (pwdCheck != "") {
+      alert(pwdCheck);
+      alert($("#newpass0").val());
+      $("#newpass0").focus();
+      return;
+    }
+
+    var payloadData = {
+      secretTempPass: $("#newpass0").val(),
+      accountName: $("#accountName").val(),
+      givenName: $("#givenName").val(),
+      lastName: $("#lastName").val(),
+      extraData: $("#extraData").val(),
+      description: $("#description").val(),
+      mail: $("#mail").val(),
+      isConfirmed: $("#isConfirmed:checked").length > 0,
+      isEnabled: $("#isEnabled:checked").length > 0,
+      isSuperuser: $("#isSuperuser:checked").length > 0
+    };
+
+    $.ajax({
+      url: '/japi_exec?method=accountAdd',
+      headers: { "CSRFToken": csrfToken },
+      data: { payload: JSON.stringify(payloadData) },
+      type: 'POST',
+      success: function (response) {
+
+        if (response["retCode"] == false) {
+          alert("User creation failed (" + response["retMsg"] + ").");
+        }
+        else {
+          alert("User was created!");
+          window.location = "/account-edit?" + window.btoa($("#accountName").val());
+        }
+      },
+      error: commonFunctionError
+    });
+  }
+
+  function generateRandomPassword() {
+
+    document.getElementById("pass0TR").style.visibility = "";
+    document.getElementById("pass1TR").style.visibility = "collapse";
+    document.getElementById("pass2TR").style.visibility = "collapse";
+    var proposedPasswd = genNewPassword();
+    document.getElementById("newpassGEN").innerText = proposedPasswd;
+    document.getElementById("newpass0").value = proposedPasswd;
+    document.getElementById("newpass1").value = proposedPasswd;
+  }
+
+
+</script>
+
+<table width=100% style=" border-spacing: 10px;   border-collapse: separate;">
+  <tr><td colspan="2" align="right"> <button type="button" class="btn btn-success" onclick="javascript:ajaxCreateUser()">Create Account</button>  </td></tr>
+</table> 
+
+
+  <table width=100% style=" border-spacing: 10px;   border-collapse: separate;">
+
+    <tr><td colspan="2" align="">          <h5>Account Info</h5>      <hr>      </td> </tr>
+
+       <!--     <tr><td colspan="2" align="">          <h4>Account Data</h4> <hr>            </td> </tr>-->
+
+      <tr><td align="right">Account Name: </td><td><input type="username" name="username" id="accountName" class="form-control" placeholder="Account Name" onkeypress="javascript:checkUserName()"></td></tr>
+      <tr><td align="right">Given Name: </td><td><input id="givenName" class="form-control" placeholder="Given Name"></td></tr>
+      <tr><td align="right">Last Name: </td><td><input id="lastName" class="form-control" placeholder="Last Name"></td></tr>
+      <tr><td align="right">Email: </td><td><input id="mail" type="email" class="form-control" placeholder="Email"></td></tr>
+      <tr><td  align="right">Description: </td><td><input id="description" class="form-control" placeholder="Description"></td></tr>
+      <tr><td  align="right">Extra Data: </td><td><input id="extraData" class="form-control" placeholder="Extra Data"></td></tr>
+
+      <tr><td colspan="2" align="">          <h5>Temporary Master Password</h5>      <hr>      </td> </tr>
+    
+      <tr valign=top id="pass1TR"><td align="right">New Password:</td><td align="right"><input type="password" name="password" id="newpass0" class="form-control" placeholder="********"></td></tr>
+    	<tr valign=top id="pass2TR"><td align="right">Confirm New Password:</td><td align="right"><input type="password" name="password" id="newpass1" class="form-control" placeholder="********"></td></tr>
+      <tr valign=top id="pass0TR" style="visibility: collapse;"><td align="right">Generated Password:</td><td align="center"><h5 id="newpassGEN" style=" font-weight: bold; font-family: 'Courier New', monospace;"></h5></td></tr>
+      <tr><td align=""></td> <td align="right"> <button type="button" class="btn btn-secondary" onclick="javascript:generateRandomPassword()">Generate Random Password</button> </td></tr>     
+
+      <tr><td colspan="2" align="">          <h5>&nbsp;Account Status / Privileges</h5>      <hr>     
+                      
+        <table width=100% style=" border-spacing: 10px;   border-collapse: separate;">
+          <tr valign=top>
+            <td width=50%>
+              <table width=100% style=" border-spacing: 10px;   border-collapse: separate;">
+                <tr><td align=""></td> <td align="right">Account Enabled: <input type="checkbox" value="" id="isEnabled" checked></td></tr>
+                <tr><td align=""></td> <td align="right">Account Confirmed: <input type="checkbox" value="" id="isConfirmed"></td></tr>     
+    
+              </table>
+            </td>
+            <td width=50%>
+              <table width=100% style=" border-spacing: 10px;   border-collapse: separate;">
+                <tr><td align=""></td> <td align="right">Super User: <input type="checkbox" value="" id="isSuperuser"></td></tr>
+    
+              </table>
+            </td>
+          </tr>
+        </table>
+      
+      </td> </tr>
+
+   </table>
+
+  <hr>
+<!--<%include:/hidden/inc.layout.leftpanel.footer.html%>-->
+<!--<%include:/hidden/inc.main.footer.html%>-->

@@ -1,0 +1,71 @@
+<!--<%include:/hidden/inc.main.header.html%>-->
+<!--<%include:/hidden/inc.layout.leftpanel.header.html%>-->
+<!--<%include:/hidden/inc.links.groups.html%>-->
+<!--<%include:/hidden/inc.layout.leftpanel.middle.html%>-->
+
+<script>
+    document.getElementById("apptitle").innerHTML = "Groups &#9658; Create New Group";
+    document.getElementById("mainview-group-create-link").style.color = "white";
+
+    function csrfReady() {
+    }
+    function ajaxCreateGroup() {
+
+        var payloadData = {
+            groupName: $("#groupName").val().toUpperCase(),
+            groupDescription: $("#description").val()
+        };
+
+        $.ajax({
+            url: '/japi_exec?method=groupAdd',
+            headers: { "CSRFToken": csrfToken },
+            data: { payload: JSON.stringify(payloadData) },
+            type: 'POST',
+            success: function (response) {
+
+                if (response["retCode"] == false) {
+                    alert("Group creation failed (" + response["retMsg"] + ").");
+                }
+                else {
+                    alert("Group was created!");
+                    window.location = "/group-edit?" + window.btoa($("#groupName").val().toUpperCase());
+                }
+            },
+            error: commonFunctionError
+        });
+    }
+    function checkGroupName() {
+        var regex = new RegExp("^[a-zA-Z0-9_-]+$");
+        var key = String.fromCharCode(!event.charCode ? event.which : event.charCode);
+        if (!regex.test(key)) {
+            event.preventDefault();
+            return false;
+        }
+        return true;
+    }
+</script>
+<table width=100% style=" border-spacing: 10px;   border-collapse: separate;">
+    <tr>
+        <td colspan="2" align="right"> <button type="button" class="btn btn-success"
+                onclick="javascript:ajaxCreateGroup()">Create Group</button> </td>
+    </tr>
+
+    <tr>
+        <td colspan="2" align="">
+            <h5>Group Info</h5>
+            <hr>
+        </td>
+    </tr>
+    <tr>
+        <td align="right">Group Name: </td>
+        <td><input type="text" name="groupName" id="groupName" class="form-control" placeholder="Group Name"
+                style="text-transform: uppercase" onkeypress="javascript:checkGroupName()"></td>
+    </tr>
+    <tr>
+        <td align="right">Description: </td>
+        <td><input id="description" class="form-control" placeholder="Description"></td>
+    </tr>
+</table>
+
+<!--<%include:/hidden/inc.layout.leftpanel.footer.html%>-->
+<!--<%include:/hidden/inc.main.footer.html%>-->

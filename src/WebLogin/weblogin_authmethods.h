@@ -5,7 +5,6 @@
 #include <Mantids30/Helpers/json.h>
 #include <Mantids30/Protocol_HTTP/httpv1_base.h>
 
-#include <optional>
 #include <regex>
 
 // This template is for FastRPC
@@ -17,6 +16,7 @@ public:
     using RequestParameters = Mantids30::API::RESTful::RequestParameters;
     using HTTPv1_Base = Mantids30::Network::Protocols::HTTP::HTTPv1_Base;
     using ClientDetails = Mantids30::Sessions::ClientDetails;
+    using JWT = Mantids30::DataFormat::JWT;
 
     /**
     * @brief Adds the available login authentication methods as server functions.
@@ -35,42 +35,45 @@ public:
                                                                                         std::shared_ptr<void>);
 
 private:
-    static bool validateAPIKey(const std::string &app, APIReturn &response, const RequestParameters &request, ClientDetails &authClientDetails);
-
-    static std::optional<Mantids30::DataFormat::JWT::Token> loadJWTAccessTokenFromPOST(APIReturn &response, const RequestParameters &request, ClientDetails &authClientDetails);
-
-    static void token(void *context, APIReturn &response, const RequestParameters &request, ClientDetails &authClientDetails);
-    static void preAuthorize(void *context, APIReturn &response, const RequestParameters &request, ClientDetails &authClientDetails);
-    static void authorize(void *context, APIReturn &response, const RequestParameters &request, ClientDetails &clientDetails);
-    static void logout(void *, APIReturn &response, const RequestParameters &, ClientDetails &);
-
-    static void changeCredential(void *context, APIReturn &response, const RequestParameters &request, ClientDetails &authClientDetails);
-    static void listCredentials(void *context, APIReturn &response, const RequestParameters &request, ClientDetails &authClientDetails);
-    static void accountCredentialPublicData(void *context, APIReturn &response, const RequestParameters &request, ClientDetails &authClientDetails);
-    static void registerAccount(void *context, APIReturn &response, const RequestParameters &request, ClientDetails &authClientDetails);
-
-    /*static void setupAccessTokenCookies(APIReturn &response, Mantids30::DataFormat::JWT::Token accessToken, const ApplicationTokenProperties &tokenProps);
-    static void setupRefreshTokenCookies(APIReturn &response, Mantids30::DataFormat::JWT::Token refreshToken, const ApplicationTokenProperties &tokenProps);*/
-
-    static std::set<uint32_t> getSlotIdsFromJSON(const json &input);
-    static json getJSONFromSlotIds(const std::set<uint32_t> &input);
-    static bool areAllSlotIdsAuthenticated(const std::set<uint32_t> &currentAuthenticatedSlotIds, const std::map<uint32_t, std::string> &getAccountAuthenticationSlotsUsedForLogin);
-
-    static bool validateAccountForNewToken(IdentityManager *identityManager, const std::string &jwtAccountName, Reason &reason, const std::string &appName, bool checkValidAppAccount);
-
-    static std::string signApplicationToken(Mantids30::DataFormat::JWT::Token &accessToken, const ApplicationTokenProperties &tokenProperties);
-    //static std::optional<std::string> retrieveAndValidateAccessTokenFromInputData(RequestParameters &request);
-
     enum OriginSource
     {
         USING_HEADER_ORIGIN,
         USING_HEADER_REFERER
     };
 
+    ////////////////
+    // EXPOSED FUNCTIONS:
+
+    static void preAuthorize(void *context, APIReturn &response, const RequestParameters &request, ClientDetails &authClientDetails);
+    static void authorize(void *context, APIReturn &response, const RequestParameters &request, ClientDetails &clientDetails);
+
+    static void token(void *context, APIReturn &response, const RequestParameters &request, ClientDetails &authClientDetails);
+
+    static void logout(void *, APIReturn &response, const RequestParameters &, ClientDetails &);
+
+    static void changeCredential(void *context, APIReturn &response, const RequestParameters &request, ClientDetails &authClientDetails);
+    static void listCredentials(void *context, APIReturn &response, const RequestParameters &request, ClientDetails &authClientDetails);
+    static void accountCredentialPublicData(void *context, APIReturn &response, const RequestParameters &request, ClientDetails &authClientDetails);
+
+    static void registerAccount(void *context, APIReturn &response, const RequestParameters &request, ClientDetails &authClientDetails);
+
+    ////////////////
+
+
     static bool retrieveAndValidateAppOrigin(HTTPv1_Base::Request *request, const std::string &appName, const OriginSource &originSource);
     static std::regex originPattern;
 
-    static Mantids30::Network::Protocols::HTTP::Status::Codes retokenizeUsingJS(HTTPv1_Base::Response *response, const std::string &url);
+
+    // TOKEN HELPERS:
+    static bool token_validateRedirectUri(IdentityManager *identityManager, const std::string &app, const std::string &redirectURI, const std::string &user, const std::string &ipAddress);
+    static bool token_createAndSignJWTs(IdentityManager *identityManager, const JWT::Token *jwtToken, const std::string &app, const std::string &user, const std::string &redirectURI, APIReturn &response);
+    static bool token_validateJwtClaims(const JWT::Token* jwtToken, const std::string& user, const std::string& ipAddress);
+    static bool token_validateAuthenticationScheme(IdentityManager* identityManager, const JWT::Token* jwtToken,
+                                             const std::string& app, const std::string& activity, uint32_t schemeId,
+                                             const std::string& user, const std::string& ipAddress);
+    static std::string token_signApplicationJWT(JWT::Token &accessToken, const ApplicationTokenProperties &tokenProperties);
+    static bool token_validateAppAuthorization(IdentityManager* identityManager, const JWT::Token* jwtToken,
+                                         const std::string& app, const std::string& user, const std::string& ipAddress);
 
     // TODO:
     /*    static APIReturn initiatePasswordReset(void* context, const RequestParameters& inputParameters);

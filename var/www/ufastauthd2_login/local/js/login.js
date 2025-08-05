@@ -79,6 +79,9 @@ function loadTokenAndRedirect() {
 
             }
         ),
+        headers: {
+            "X-Logout": "1" // This prevents CSRF logout attacks.
+        },
         success: function (response) {
             // submit the token to the app.
             const callbackURI = response.callbackURI;

@@ -25,6 +25,8 @@ public:
     IdentityManager();
     virtual ~IdentityManager();
 
+    bool validateAccountForNewAccess(const std::string &accountName,const std::string &appName, Reason &reason,  bool checkValidAppAccount);
+
     class Accounts
     {
     public:

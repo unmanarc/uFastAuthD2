@@ -89,7 +89,7 @@ void TokensManager::configureRefreshToken(Mantids30::DataFormat::JWT::Token &ref
     refreshToken.addClaim("type", "refresher");
 }
 
-void TokensManager::setIAMAccessToken(APIReturn &response, const RequestParameters &request, const Mantids30::DataFormat::JWT::Token &intermediateToken,
+void TokensManager::setIAMAccessTokenCookie(APIReturn &response, const RequestParameters &request, const Mantids30::DataFormat::JWT::Token &intermediateToken,
     const Mantids30::DataFormat::JWT::Token &currentAccessToken, bool keepAuthenticated, const time_t & currentIntermediateTokenExpirationTime)
 {
     IdentityManager *identityManager = Globals::getIdentityManager();

@@ -19,6 +19,39 @@ IdentityManager::~IdentityManager()
         delete authController;
 }
 
+bool IdentityManager::validateAccountForNewAccess(const std::string &accountName, const std::string &appName, Reason &reason, bool checkValidAppAccount)
+{
+    // First, check if the account is disabled, unconfirmed, or expired.
+
+    AccountFlags accountFlags = accounts->getAccountFlags(accountName);
+
+    if (!accountFlags.enabled)
+    {
+        reason = Reason::REASON_DISABLED_ACCOUNT;
+        return false;
+    }
+    else if (!accountFlags.confirmed)
+    {
+        reason = Reason::REASON_UNCONFIRMED_ACCOUNT;
+        return false;
+    }
+    else if (accounts->isAccountExpired(accountName))
+    {
+        reason = Reason::REASON_EXPIRED_ACCOUNT;
+        return false;
+    }
+
+    // If checkValidAppAccount is true, check if the account is valid for the specified application.
+    if (checkValidAppAccount && !applications->validateApplicationAccount(appName, accountName))
+    {
+        reason = Reason::REASON_BAD_ACCOUNT;
+        return false;
+    }
+
+    // If all checks pass, the account is valid for refreshing the token.
+    return true;
+}
+
 bool IdentityManager::initializeAdminAccountWithPassword(const std::string &accountName, std::string *adminPW, const uint32_t &schemeId, bool *alreadyExist)
 {
     bool r = true;

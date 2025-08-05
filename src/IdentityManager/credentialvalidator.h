@@ -43,6 +43,24 @@ struct ApplicationPermission
 
 struct AppAuthExtras
 {
+    void fillFromTokenClaims( const json & claims )
+    {
+        appName = JSON_ASSTRING(claims,"app", "");
+        slotSchemeHash = JSON_ASSTRING(claims,"slotSchemeHash", "");
+        schemeId = JSON_ASUINT(claims,"schemeId", UINT32_MAX);
+        keepAuthenticated = JSON_ASBOOL(claims,"keepAuthenticated", false);
+        currentSlotPosition = JSON_ASUINT(claims,"currentSlotPosition", UINT32_MAX);
+    }
+
+    void fillFromInitialJSONPOST( const json & inputJSON )
+    {
+        keepAuthenticated = JSON_ASBOOL(inputJSON, "keepAuthenticated", false);
+        appName = JSON_ASSTRING(inputJSON, "app", "");
+        schemeId = JSON_ASUINT(inputJSON, "schemeId", UINT32_MAX);
+        currentSlotPosition = 0;
+
+    }
+
     bool keepAuthenticated = false;
     std::string appName;
     uint32_t schemeId = UINT32_MAX;

@@ -14,7 +14,6 @@
 #include <string>
 
 #include "../globals.h"
-#include "IdentityManager/ds_authentication.h"
 #include "logindirectorymanager.h"
 
 using namespace Mantids30;
@@ -69,126 +68,6 @@ void WebLogin_AuthMethods::addMethods(std::shared_ptr<MethodsHandler> methods)
     //    methods->addResource("addAccount",{&addAccount,auth});
 }
 
-bool WebLogin_AuthMethods::validateAPIKey(const std::string &app, APIReturn &response, const RequestParameters &request, ClientDetails &authClientDetails)
-{
-    IdentityManager *identityManager = Globals::getIdentityManager();
-
-    // Check if the token generation is called within the app context:
-    std::string apiKey = request.clientRequest->headers.getOptionValueStringByName("x-api-key");
-
-    // Check if the token generation is called within the app context:
-    std::string dbApiKey = identityManager->applications->getApplicationAPIKey(app);
-
-    if (dbApiKey.empty())
-    {
-        LOG_APP->log2(__func__, request.jwtToken->getSubject(), authClientDetails.ipAddress, Logs::LEVEL_SECURITY_ALERT,
-                      "Application '%s' does not exist. Pre-Auth JWT Token signature may be compromised!! Change immediately!", app.c_str());
-        response.setError(HTTP::Status::S_400_BAD_REQUEST, "AUTH_ERR_" + std::to_string(REASON_BAD_PARAMETERS), getReasonText(REASON_BAD_PARAMETERS));
-        return false;
-    }
-
-    if (dbApiKey != apiKey)
-    {
-        LOG_APP->log2(__func__, request.jwtToken->getSubject(), authClientDetails.ipAddress, Logs::LEVEL_SECURITY_ALERT,
-                      "Application '%s' does not match the web application API Key. Attack or misconfiguration?", app.c_str());
-        response.setError(HTTP::Status::S_404_NOT_FOUND, "not_found", "Not Found.");
-        return false;
-    }
-
-    return true;
-}
-
-std::set<uint32_t> WebLogin_AuthMethods::getSlotIdsFromJSON(const json &input)
-{
-    std::set<uint32_t> slotIds;
-    for (auto &element : input)
-    {
-        if (element.isUInt())
-            slotIds.insert(element.asUInt());
-        else
-        {
-            // This is an unexpected scenario where an unauthorized user has manipulated the token. The application should immediately terminate for security reasons.
-            throw std::invalid_argument(
-                "Possible security event detected! The JWT input contains an invalid element. I recommend you to change the JWT keys and figure out how the keys has been leaked...");
-        }
-    }
-    return slotIds;
-}
-
-bool WebLogin_AuthMethods::validateAccountForNewToken(IdentityManager *identityManager, const std::string &jwtAccountName, Reason &reason, const std::string &appName, bool checkValidAppAccount)
-{
-    // First, check if the account is disabled, unconfirmed, or expired.
-
-    AccountFlags accountFlags = identityManager->accounts->getAccountFlags(jwtAccountName);
-
-    if (!accountFlags.enabled)
-    {
-        reason = Reason::REASON_DISABLED_ACCOUNT;
-        return false;
-    }
-    else if (!accountFlags.confirmed)
-    {
-        reason = Reason::REASON_UNCONFIRMED_ACCOUNT;
-        return false;
-    }
-    else if (identityManager->accounts->isAccountExpired(jwtAccountName))
-    {
-        reason = Reason::REASON_EXPIRED_ACCOUNT;
-        return false;
-    }
-
-    // If checkValidAppAccount is true, check if the account is valid for the specified application.
-    if (checkValidAppAccount && !identityManager->applications->validateApplicationAccount(appName, jwtAccountName))
-    {
-        reason = Reason::REASON_BAD_ACCOUNT;
-        return false;
-    }
-
-    // If all checks pass, the account is valid for refreshing the token.
-    return true;
-}
-
-std::string WebLogin_AuthMethods::signApplicationToken(JWT::Token &accessToken, const ApplicationTokenProperties &tokenProperties)
-{
-    std::string appName = JSON_ASSTRING_D(accessToken.getClaim("app"), "");
-    std::shared_ptr<JWT> signingJWT = Globals::getIdentityManager()->applications->getAppJWTSigner(appName);
-    if (!signingJWT)
-    {
-        return std::string();
-    }
-    return signingJWT->signFromToken(accessToken, false);
-}
-
-// Handle personalized login forms:
-HTTP::Status::Codes WebLogin_AuthMethods::handleLoginDynamicRequest(const std::string &appName, HTTPv1_Base::Request *request, HTTPv1_Base::Response *response, std::shared_ptr<void>)
-{
-    std::string page;
-    LoginDirectoryManager::ErrorCode status = Globals::getLoginDirManager()->retrieveFile(appName, page);
-    bool originValidated = retrieveAndValidateAppOrigin(request, appName, USING_HEADER_REFERER);
-    auto currentOrigin = request->getHeaderOption("Origin");
-
-    if (!originValidated)
-    {
-        LOG_APP->log2(__func__, "", request->networkClientInfo.REMOTE_ADDR, Logs::LEVEL_SECURITY_ALERT, "Not allowed origin '%s' for application '%s'", currentOrigin.c_str(), appName.c_str());
-
-        return HTTP::Status::S_403_FORBIDDEN;
-    }
-
-    if (status != LoginDirectoryManager::ErrorCode::SUCCESS)
-    {
-        LOG_APP->log2(__func__, "", request->networkClientInfo.REMOTE_ADDR, Logs::LEVEL_WARN, "Failed to obtain the HTML for application '%s': %s", appName.c_str(),
-                      LoginDirectoryManager::getErrorMessage(status).c_str());
-        return HTTP::Status::S_404_NOT_FOUND;
-    }
-
-    LOG_APP->log2(__func__, "", request->networkClientInfo.REMOTE_ADDR, Logs::LEVEL_INFO, "HTML Login for application '%s' requested from '%s'", appName.c_str(), currentOrigin.c_str());
-
-    response->content.writer()->writeString(page);
-    response->setContentType("text/html");
-
-    return HTTP::Status::S_200_OK;
-}
-
 bool WebLogin_AuthMethods::retrieveAndValidateAppOrigin(HTTPv1_Base::Request *request, const std::string &appName, const OriginSource &originSource)
 {
     auto origins = Globals::getIdentityManager()->applications->listWebLoginOriginUrlsFromApplication(appName);
@@ -221,82 +100,33 @@ bool WebLogin_AuthMethods::retrieveAndValidateAppOrigin(HTTPv1_Base::Request *re
     return originValidated;
 }
 
-HTTP::Status::Codes WebLogin_AuthMethods::retokenizeUsingJS(HTTPv1_Base::Response *response, const std::string &appName)
+// Handle personalized login forms:
+HTTP::Status::Codes WebLogin_AuthMethods::handleLoginDynamicRequest(const std::string &appName, HTTPv1_Base::Request *request, HTTPv1_Base::Response *response, std::shared_ptr<void>)
 {
-    response->content.getStreamableObj()->strPrintf(
-        R"(<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>Retokenize</title>
-    <script src="/assets/js/jquery.min.js"></script>
-</head>
-<body>
-    <script>
-        // Create and send the form:
-        function createAndSubmitRedirectForm(actionUrl, data, method = 'POST') {
-            const form = document.createElement('form');
-            form.method = method;
-            form.action = actionUrl;
-            Object.entries(data).forEach(([name, value]) => {
-                const input = document.createElement('input');
-                input.type = 'hidden';
-                input.name = name;
-                input.value = value;
-                form.appendChild(input);
-            });
-            document.body.appendChild(form);
-            form.submit();
-        }
+    std::string page;
+    LoginDirectoryManager::ErrorCode status = Globals::getLoginDirManager()->retrieveFile(appName, page);
+    bool originValidated = retrieveAndValidateAppOrigin(request, appName, USING_HEADER_REFERER);
+    auto currentOrigin = request->getHeaderOption("Origin");
 
-        // AJAX Logic:
-        $(window).on('load', function() {
-            $.ajax({
-                url: "/api/v1/retokenize",
-                type: "POST",
-                contentType: "application/json",
-                data: JSON.stringify({
-                    redirectURI: "",
-                    app: "%s"
-                }),
-                success: function (response) {
-                    createAndSubmitRedirectForm(response.callbackURI, {
-                        accessToken: response.accessToken,
-                        expiresIn: response.expiresIn,
-                        redirectURI: "#retokenize"
-                    }, 'POST');
-                },
-                error: function(xhr, status, error) {
-                    console.error("Error during AJAX:", error);
-                }
-            });
-        });
-    </script>
-</body>
-</html>)",
-        appName.c_str());
+    if (!originValidated)
+    {
+        LOG_APP->log2(__func__, "", request->networkClientInfo.REMOTE_ADDR, Logs::LEVEL_SECURITY_ALERT, "Not allowed origin '%s' for application '%s'", currentOrigin.c_str(), appName.c_str());
+
+        return HTTP::Status::S_403_FORBIDDEN;
+    }
+
+    if (status != LoginDirectoryManager::ErrorCode::SUCCESS)
+    {
+        LOG_APP->log2(__func__, "", request->networkClientInfo.REMOTE_ADDR, Logs::LEVEL_WARN, "Failed to obtain the HTML for application '%s': %s", appName.c_str(),
+                      LoginDirectoryManager::getErrorMessage(status).c_str());
+        return HTTP::Status::S_404_NOT_FOUND;
+    }
+
+    LOG_APP->log2(__func__, "", request->networkClientInfo.REMOTE_ADDR, Logs::LEVEL_INFO, "HTML Login for application '%s' requested from '%s'", appName.c_str(), currentOrigin.c_str());
+
+    response->content.writer()->writeString(page);
+    response->setContentType("text/html");
+
     return HTTP::Status::S_200_OK;
 }
 
-// TODO: entregar una tabla de los slotIds que requiere una permission específico...
-// TODO: block my account (and temporary external link to do so in case of account compromise)
-// TODO: mail o mensaje de "ha sido logeado"
-// TODO: default return url?
-// TODO: hacer servicio que permita identificar tokens invalidados (o servicio de redistribución de estos en real time)
-// TODO: hacer servicio de personalizacion de la app por usuario en bg... (la app podra consultar y modificar via una api parametros extra del usuario)
-// TODO: la app no tiene porque manejar el token de refresh, podría ir en un cookie sobre el dominio del IAM?, como hacemos para que la app pueda refrescar este token? cuando sea mayor a 1/2 del tiempo de vida? (puede solicitarlo cada 1hr por ejemplo y que esta app se encargue de refrescarlo)
-// TODO: poner el account expiration date dentro del token
-// TODO: puede ser que el refresher no quieras dejarlo refrescarse a si mismo y obligar a reautenticar cada cierto tiempo?...
-// TODO: implementación de "remember me"
-// TODO: geolocalizacion en el login? (LOWPRIO)
-// TODO: account personalization image. (LOWPRIO)
-// TODO: directory personalization... (LOWPRIO)
-// TODO: mensaje a cuenta... (LOWPRIO)
-// TODO: API REST para recibir archivos... (no todo es JSON)
-// TODO: list current logins
-// TODO: list brief login history
-// TODO: logout...
-// TODO: redirecciones de regreso
-// TODO: opción de una sesión por usuario (en la app)
-// TODO: implement navigator fingerprint security as a claim (including ip address)...
-// TODO: logearse en sitio web desde una app de celular que escanee un QR code...

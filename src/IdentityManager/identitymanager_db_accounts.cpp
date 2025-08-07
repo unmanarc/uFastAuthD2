@@ -317,34 +317,37 @@ std::list<AccountDetails> IdentityManager_DB::Accounts_DB::searchAccounts(std::s
 
     sSqlQuery += ";";
 
-    auto allFields = listAccountDetailFields();
-
-    std::shared_ptr<SQLConnector::QueryInstance> i = _parent->m_sqlConnector->qSelect(sSqlQuery,
-                                                                                      {{":SEARCHWORDS", MAKE_VAR(STRING, sSearchWords)},
-                                                                                       {":LIMIT", MAKE_VAR(UINT64, limit)},
-                                                                                       {":OFFSET", MAKE_VAR(UINT64, offset)}},
-                                                                                      {&accountName, &admin, &enabled, &expiration, &confirmed});
-
-    while (i->getResultsOK() && i->query->step())
     {
-        AccountDetails rDetail;
+        std::shared_ptr<SQLConnector::QueryInstance> i = _parent->m_sqlConnector->qSelect(sSqlQuery,
+                                                                                          {{":SEARCHWORDS", MAKE_VAR(STRING, sSearchWords)},
+                                                                                           {":LIMIT", MAKE_VAR(UINT64, limit)},
+                                                                                           {":OFFSET", MAKE_VAR(UINT64, offset)}},
+                                                                                          {&accountName, &admin, &enabled, &expiration, &confirmed});
 
-        rDetail.accountFlags.confirmed = confirmed.getValue();
-        rDetail.accountFlags.enabled = enabled.getValue();
-        rDetail.accountFlags.admin = admin.getValue();
-        rDetail.expired = !expiration.getValue() ? false : expiration.getValue() < time(nullptr);
-        rDetail.accountName = accountName.getValue();
-        rDetail.fieldValues = getAccountDetailValues(accountName.getValue(), ACCOUNT_DETAILS_SEARCH);
+        while (i->getResultsOK() && i->query->step())
+        {
+            AccountDetails rDetail;
 
+            rDetail.accountFlags.confirmed = confirmed.getValue();
+            rDetail.accountFlags.enabled = enabled.getValue();
+            rDetail.accountFlags.admin = admin.getValue();
+            rDetail.expired = !expiration.getValue() ? false : expiration.getValue() < time(nullptr);
+            rDetail.accountName = accountName.getValue();
+            ret.push_back(rDetail);
+        }
+    }
+
+    // Populate fieldValues for all accounts in the result set
+    auto allFields = listAccountDetailFields();
+    for (auto &rDetail : ret)
+    {
+        rDetail.fieldValues = getAccountDetailValues(rDetail.accountName, ACCOUNT_DETAILS_SEARCH);
         for (auto &i : rDetail.fieldValues)
         {
             if (allFields.find(i.first) != allFields.end())
                 rDetail.fields[i.first] = allFields[i.first];
         }
-
-        ret.push_back(rDetail);
     }
-
     return ret;
 }
 

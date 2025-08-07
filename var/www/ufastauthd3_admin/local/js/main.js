@@ -16,16 +16,6 @@ function logout() {
   });
 }
 
-function commonFunctionError(xhr, ajaxOptions, thrownError) {
-  if (xhr.status == 404) {
-    // Session is gone...
-    alert("Unauthorized Function");
-    logout();
-  }
-  else {
-    console.log("Network error " + xhr.status);
-  }
-}
 
 var intervalId = -1;
 
@@ -102,6 +92,16 @@ function ajaxExecuteMethod( methodName, payloadData, successFunction ) {
   });
 }
 */
+
+function commonFunctionError(xhr, ajaxOptions, thrownError) {
+  if (xhr.status == 404) {
+    // Session is gone...
+    console.log("Session expired or unauthorized access attempted. Status code: " + xhr.status + ". The user may have been logged out, or the requested resource might not be accessible due to permission restrictions.");
+  }
+  else {
+    console.log("Network error " + xhr.status);
+  }
+}
 
 function ajaxLoadInfo() {
  $('#welcome').text("Welcome " + user);

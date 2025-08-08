@@ -24,17 +24,6 @@ CredentialData MultiCredentialData::getAuthentication(const uint32_t &slotId)
     CredentialData r;
     return r;
 }
-/*
-
-void MultiCredentialData::print()
-{
-    for (const auto & i : authentications)
-    {
-        Memory::Streams::StreamableJSON s;
-        s.setValue(i.second.toJSON());
-        std::cout << ">>>> With auth: " << s.toString() << std::endl << std::flush;
-    }
-}*/
 
 bool MultiCredentialData::parseJSON(const std::string &sAuthentications)
 {
